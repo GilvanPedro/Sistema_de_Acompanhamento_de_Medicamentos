@@ -4,39 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e07bee26-c5e1-421a-8602-ceef1fde862b" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0008-separacao-da-mensagem-notificacao.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/out/notification/MensagemNotificacao.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/out/persistence/HistoricoCsvAdapter.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/out/persistence/MedicamentoCsvAdapter.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/out/persistence/UsuarioCsvAdapter.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/application/service/EditarMedicamentoService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/port/in/EditarMedicamentoCase.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/port/out/SalvarHistoricoPort.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/port/out/SalvarMedicamentoPort.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/port/out/SalvarUsuarioPort.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/in/console/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/in/console/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/out/id/GerarIdEmMemoriaAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/out/id/GerarIdPorArquivoAdapter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/out/notification/ConsoleNotificationAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/out/notification/ConsoleNotificationAdapter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/application/service/RegistrarMedicamentoService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/application/service/RegistrarMedicamentoService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/application/service/RegistrarUsuarioService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/application/service/RegistrarUsuarioService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/config/AppConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/config/AppConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/model/Familiar.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/model/Familiar.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/model/HistoricoMedicamento.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/model/HistoricoMedicamento.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/model/Idoso.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/model/Idoso.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/model/Medicamento.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/model/Medicamento.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/model/Usuario.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/model/Usuario.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/target/classes/br/com/adapter/in/console/Main.class" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/target/classes/br/com/adapter/in/console/Main.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/target/classes/br/com/adapter/out/notification/ConsoleNotificationAdapter.class" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/target/classes/br/com/adapter/out/notification/ConsoleNotificationAdapter.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/target/classes/br/com/application/service/RegistrarMedicamentoService.class" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/target/classes/br/com/application/service/RegistrarMedicamentoService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/target/classes/br/com/application/service/RegistrarUsuarioService.class" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/target/classes/br/com/application/service/RegistrarUsuarioService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/target/classes/br/com/config/AppConfig.class" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/target/classes/br/com/config/AppConfig.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/target/classes/br/com/domain/model/Familiar.class" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/target/classes/br/com/domain/model/Familiar.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/target/classes/br/com/domain/model/Idoso.class" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/target/classes/br/com/domain/model/Idoso.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/target/classes/br/com/domain/model/Medicamento.class" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/target/classes/br/com/domain/model/Medicamento.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/target/classes/br/com/domain/model/Usuario.class" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/target/classes/br/com/domain/model/Usuario.class" afterDir="false" />
-    </list>
+    <list default="true" id="e07bee26-c5e1-421a-8602-ceef1fde862b" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -74,61 +42,61 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="0.0" />
-      <entry key="MS500" value="1.8804377038397666E-137" />
-      <entry key="S2" value="1.12332026478664E-34" />
-      <entry key="S5" value="4.926616452113558E-14" />
-      <entry key="S10" value="3.8267792035758227E-7" />
-      <entry key="S30" value="0.01814778453408948" />
-      <entry key="S60" value="0.43179624154523116" />
-      <entry key="M2" value="2.7464225972461684" />
-      <entry key="M5" value="9.126768361781227" />
-      <entry key="M10" value="13.853131178900837" />
-      <entry key="M15" value="16.46076548816017" />
-      <entry key="M30" value="28.31402307976805" />
-      <entry key="H1" value="69.66579050981463" />
-      <entry key="H2" value="139.05764975782097" />
-      <entry key="H4" value="206.88041563767376" />
-      <entry key="D1" value="294.6708842741515" />
-      <entry key="W1" value="313.6951552012676" />
+      <entry key="MS100" value="1.0000005592513932" />
+      <entry key="MS500" value="1.0589900383961077" />
+      <entry key="S2" value="1.838910133035562" />
+      <entry key="S5" value="2.744949765342229" />
+      <entry key="S10" value="3.3492070995997127" />
+      <entry key="S30" value="4.160049605780195" />
+      <entry key="S60" value="4.588278493915622" />
+      <entry key="M2" value="5.857237257771966" />
+      <entry key="M5" value="11.261205154316023" />
+      <entry key="M10" value="16.518295496436608" />
+      <entry key="M15" value="19.564461619551544" />
+      <entry key="M30" value="31.64853885813961" />
+      <entry key="H1" value="72.60015989029935" />
+      <entry key="H2" value="141.98537999083203" />
+      <entry key="H4" value="210.3343105792016" />
+      <entry key="D1" value="299.3028723621071" />
+      <entry key="W1" value="318.6391615904782" />
     </decayedCancelled>
     <decayedSelected>
-      <entry key="MS100" value="1.0" />
-      <entry key="MS500" value="1.0" />
-      <entry key="S2" value="1.0" />
-      <entry key="S5" value="1.0" />
-      <entry key="S10" value="1.000000000000335" />
-      <entry key="S30" value="1.0001396322148017" />
-      <entry key="S60" value="1.0225640149637107" />
-      <entry key="M2" value="1.2966661369288777" />
-      <entry key="M5" value="2.4086405492104266" />
-      <entry key="M10" value="3.379186661696911" />
-      <entry key="M15" value="3.935350970244358" />
-      <entry key="M30" value="6.6038402034149195" />
-      <entry key="H1" value="15.66153074355603" />
-      <entry key="H2" value="29.8390488500658" />
-      <entry key="H4" value="42.90592903638007" />
-      <entry key="D1" value="59.01801003150602" />
-      <entry key="W1" value="62.41329588121006" />
+      <entry key="MS100" value="0.0" />
+      <entry key="MS500" value="2.0751863849911113E-94" />
+      <entry key="S2" value="3.7954587638531085E-24" />
+      <entry key="S5" value="4.282582233159127E-10" />
+      <entry key="S10" value="2.069440077209774E-5" />
+      <entry key="S30" value="0.027458591474906997" />
+      <entry key="S60" value="0.1694335126667226" />
+      <entry key="M2" value="0.5278160275790497" />
+      <entry key="M5" value="1.681255643797558" />
+      <entry key="M10" value="2.8232092169693317" />
+      <entry key="M15" value="3.4908998626648198" />
+      <entry key="M30" value="6.219758412466674" />
+      <entry key="H1" value="15.199268516531268" />
+      <entry key="H2" value="29.395389255821314" />
+      <entry key="H4" value="42.585762740760565" />
+      <entry key="D1" value="58.94438152483977" />
+      <entry key="W1" value="62.40216645361588" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="1.8374594084607745E-4" />
-      <entry key="MS500" value="0.17899609265014294" />
-      <entry key="S2" value="0.6504454614340428" />
-      <entry key="S5" value="0.8419462269870926" />
-      <entry key="S10" value="0.917576649435673" />
-      <entry key="S30" value="0.9897259402104951" />
-      <entry key="S60" value="1.4345390468952095" />
-      <entry key="M2" value="4.014570093411428" />
-      <entry key="M5" value="11.501734511429897" />
-      <entry key="M10" value="17.20692086553908" />
-      <entry key="M15" value="20.375894862179056" />
-      <entry key="M30" value="34.900500035328584" />
-      <entry key="H1" value="85.30735684614733" />
-      <entry key="H2" value="168.87804622846878" />
-      <entry key="H4" value="249.77302528565602" />
-      <entry key="D1" value="353.6858513961317" />
-      <entry key="W1" value="376.1079915471869" />
+      <entry key="MS100" value="0.9460581758096537" />
+      <entry key="MS500" value="1.0473134961869632" />
+      <entry key="S2" value="1.8338524082338556" />
+      <entry key="S5" value="2.74192013498424" />
+      <entry key="S10" value="3.3473584762215323" />
+      <entry key="S30" value="4.185926284748381" />
+      <entry key="S60" value="4.753987815671383" />
+      <entry key="M2" value="6.373211623836022" />
+      <entry key="M5" value="12.91885896599154" />
+      <entry key="M10" value="19.320237285567885" />
+      <entry key="M15" value="23.037390852656525" />
+      <entry key="M30" value="37.85192739128805" />
+      <entry key="H1" value="87.78004500389909" />
+      <entry key="H2" value="171.36239006372307" />
+      <entry key="H4" value="252.90685125288977" />
+      <entry key="D1" value="358.24421442869647" />
+      <entry key="W1" value="381.04086854146624" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{

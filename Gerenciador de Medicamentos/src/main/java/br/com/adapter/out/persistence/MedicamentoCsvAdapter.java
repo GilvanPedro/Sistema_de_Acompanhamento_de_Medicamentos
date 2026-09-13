@@ -26,12 +26,13 @@ public class MedicamentoCsvAdapter implements SalvarMedicamentoPort {
         for (String linha : lerLinhas()) {
             String[] campos = linha.split(";");
             int id = Integer.parseInt(campos[0]);
-            String nome = campos[1];
-            LocalTime horario = LocalTime.parse(campos[2]);
-            DayOfWeek diaSemana = DayOfWeek.valueOf(campos[3]);
-            TipoMedicamento tipo = TipoMedicamento.valueOf(campos[4]);
+            int idosoId = Integer.parseInt(campos[1]);
+            String nome = campos[2];
+            LocalTime horario = LocalTime.parse(campos[3]);
+            DayOfWeek diaSemana = DayOfWeek.valueOf(campos[4]);
+            TipoMedicamento tipo = TipoMedicamento.valueOf(campos[5]);
 
-            resultado.add(new Medicamento(id, nome, horario, diaSemana, tipo));
+            resultado.add(new Medicamento(id, idosoId, nome, horario, diaSemana, tipo));
         }
 
         return resultado;
@@ -77,6 +78,7 @@ public class MedicamentoCsvAdapter implements SalvarMedicamentoPort {
 
     private String montarLinha(Medicamento medicamento) {
         return medicamento.getId() + ";" +
+                medicamento.getIdosoId() + ";" +
                 medicamento.getNome() + ";" +
                 medicamento.getHorarioMedicamento() + ";" +
                 medicamento.getDiaSemana() + ";" +

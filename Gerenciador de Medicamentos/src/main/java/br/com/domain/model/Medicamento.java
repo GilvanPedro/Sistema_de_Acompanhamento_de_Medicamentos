@@ -5,58 +5,35 @@ import java.time.DayOfWeek;
 
 public class Medicamento {
     private int id;
+    private int idosoId;
     private String nome;
     private LocalTime horarioMedicamento;
     private DayOfWeek diaSemana;
-    private  TipoMedicamento tipoMedicamento;
+    private TipoMedicamento tipoMedicamento;
 
-    public Medicamento(int id, String nome, LocalTime horarioMedicamento, DayOfWeek diaSemana, TipoMedicamento tipoMedicamento) {
+    public Medicamento(int id, int idosoId, String nome, LocalTime horarioMedicamento, DayOfWeek diaSemana, TipoMedicamento tipoMedicamento) {
         this.id = id;
+        this.idosoId = idosoId;
         this.nome = nome;
         this.horarioMedicamento = horarioMedicamento;
         this.diaSemana = diaSemana;
         this.tipoMedicamento = tipoMedicamento;
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public LocalTime getHorarioMedicamento() {
-        return horarioMedicamento;
-    }
-
-    public void setHorarioMedicamento(LocalTime horarioMedicamento) {
-        this.horarioMedicamento = horarioMedicamento;
-    }
-
-    public DayOfWeek getDiaSemana() {
-        return diaSemana;
-    }
-
-    public void setDiaSemana(DayOfWeek diaSemana) {
-        this.diaSemana = diaSemana;
-    }
-
-    public TipoMedicamento getTipoMedicamento() {
-        return tipoMedicamento;
-    }
-
-    public void setTipoMedicamento(TipoMedicamento tipoMedicamento) {
-        this.tipoMedicamento = tipoMedicamento;
-    }
+    public int getId() { return id; }
+    public int getIdosoId() { return idosoId; }
+    public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
+    public LocalTime getHorarioMedicamento() { return horarioMedicamento; }
+    public void setHorarioMedicamento(LocalTime horarioMedicamento) { this.horarioMedicamento = horarioMedicamento; }
+    public DayOfWeek getDiaSemana() { return diaSemana; }
+    public void setDiaSemana(DayOfWeek diaSemana) { this.diaSemana = diaSemana; }
+    public TipoMedicamento getTipoMedicamento() { return tipoMedicamento; }
+    public void setTipoMedicamento(TipoMedicamento tipoMedicamento) { this.tipoMedicamento = tipoMedicamento; }
 
     @Override
     public String toString() {
-        return String.format("[%d] %s | %s | %s às %s",
-                id, nome, tipoMedicamento.getDescricao(), diaSemana, horarioMedicamento);
+        return String.format("[%d] %s | %s | %s às %s | Idoso id %d",
+                id, nome, tipoMedicamento.getDescricao(), diaSemana, horarioMedicamento, idosoId);
     }
 }

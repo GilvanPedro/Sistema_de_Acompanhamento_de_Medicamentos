@@ -7,5 +7,5 @@ import java.time.DayOfWeek;
 import java.time.LocalTime;
 
 public interface RegistrarMedicamentoCase {
-    Medicamento registrarMedicamento(String nome, DayOfWeek diaSemana, LocalTime horarioMedicamento, TipoMedicamento tipoMedicamento);
+    Medicamento registrarMedicamento(String nome, DayOfWeek diaSemana, LocalTime horario, TipoMedicamento tipo, int idosoId);
 }

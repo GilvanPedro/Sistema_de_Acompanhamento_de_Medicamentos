@@ -20,9 +20,9 @@ public class RegistrarMedicamentoService implements RegistrarMedicamentoCase {
     }
 
     @Override
-    public Medicamento registrarMedicamento(String nome, DayOfWeek diaSemana, LocalTime horario, TipoMedicamento tipo) {
+    public Medicamento registrarMedicamento(String nome, DayOfWeek diaSemana, LocalTime horario, TipoMedicamento tipo, int idosoId) {
         int novoId = gerarIdPort.proximoId();
-        Medicamento medicamento = new Medicamento(novoId, nome, horario, diaSemana, tipo);
+        Medicamento medicamento = new Medicamento(novoId, idosoId, nome, horario, diaSemana, tipo);
         salvarMedicamentoPort.salvar(medicamento);
         return medicamento;
     }
