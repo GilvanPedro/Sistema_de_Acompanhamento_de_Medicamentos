@@ -15,11 +15,6 @@ Neste estágio o projeto ainda é só a modelagem em Java puro rodando no consol
 - **Simulação de notificações** (`NotificacoesApi`), com três avisos possíveis: lembrete pro idoso, aviso de remédio tomado e aviso de remédio esquecido — por enquanto tudo impresso no console
 - **Classe `Main`** com um cenário de teste montando idosos, familiares e medicamentos na mão, só pra validar se a lógica funciona
 
-## Tecnologias
-
-- Java 17
-- Maven
-
 ## Estrutura Futura do Projeto (Arquitetura Hexagonal)
 
 O projeto segue o padrão **Ports & Adapters (Hexagonal)**: a regra de negócio fica isolada no centro, sem depender de banco de dados, frameworks ou forma de entrada/saída. Tudo que é "externo" se conecta através de contratos (portas) e implementações trocáveis (adaptadores).

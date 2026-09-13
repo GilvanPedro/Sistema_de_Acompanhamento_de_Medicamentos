@@ -1,9 +1,7 @@
 package br.com.adapter.in.console;
 
-import br.com.api.NotificacoesApi;
+import br.com.adapter.out.notification.ConsoleNotificationAdapter;
 import br.com.domain.model.*;
-// Assumindo que TipoMedicamento é um Enum no seu pacote model
-// import br.com.model.TipoMedicamento;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
@@ -60,8 +58,10 @@ public class Main {
         }
 
         System.out.println();
-        NotificacoesApi notificacoesApi = new NotificacoesApi();
+        ConsoleNotificationAdapter notificacoes = new ConsoleNotificationAdapter();
 
-        notificacoesApi.notificarEsqueceuRemedio(idoso1, med1);
+        notificacoes.avisarRemedioTomado(idoso1, med1);
+        System.out.println();
+        notificacoes.avisarRemedioEsquecido(idoso1, med1);
     }
 }
