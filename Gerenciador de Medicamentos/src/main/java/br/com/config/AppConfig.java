@@ -5,6 +5,7 @@ import br.com.adapter.out.notification.ConsoleNotificationAdapter;
 import br.com.adapter.out.persistence.HistoricoCsvAdapter;
 import br.com.adapter.out.persistence.MedicamentoCsvAdapter;
 import br.com.adapter.out.persistence.UsuarioCsvAdapter;
+import br.com.application.service.EditarMedicamentoService;
 import br.com.application.service.RegistrarMedicamentoService;
 import br.com.application.service.RegistrarUsuarioService;
 import br.com.application.service.VerificarAtrasoMedicamentoService;
@@ -23,6 +24,10 @@ public class AppConfig {
     public static RegistrarUsuarioService criarRegistrarUsuarioService() {
         GerarIdPort gerarIdUsuario = new GerarIdPorArquivoAdapter("usuarios.csv");
         return new RegistrarUsuarioService(gerarIdUsuario, usuarioCsvAdapter);
+    }
+
+    public static EditarMedicamentoService criarEditarMedicamentoService() {
+        return new EditarMedicamentoService(medicamentoCsvAdapter);
     }
 
     public static VerificarAtrasoMedicamentoService criarVerificarAtrasoMedicamentoService() {

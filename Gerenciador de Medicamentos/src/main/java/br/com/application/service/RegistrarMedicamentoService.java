@@ -2,9 +2,12 @@ package br.com.application.service;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import br.com.domain.model.Medicamento;
 import br.com.domain.model.TipoMedicamento;
+import br.com.domain.model.Usuario;
 import br.com.domain.port.in.RegistrarMedicamentoCase;
 import br.com.domain.port.out.GerarIdPort;
 import br.com.domain.port.out.SalvarMedicamentoPort;

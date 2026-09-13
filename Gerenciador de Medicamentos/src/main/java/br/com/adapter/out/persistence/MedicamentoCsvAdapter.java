@@ -8,6 +8,7 @@ import java.util.*;
 
 import br.com.domain.model.Medicamento;
 import br.com.domain.model.TipoMedicamento;
+import br.com.domain.model.Usuario;
 import br.com.domain.port.out.SalvarMedicamentoPort;
 
 public class MedicamentoCsvAdapter implements SalvarMedicamentoPort {
@@ -48,6 +49,17 @@ public class MedicamentoCsvAdapter implements SalvarMedicamentoPort {
         }
 
         reescreverArquivo(atualizados);
+    }
+
+    @Override
+    public List<Medicamento> buscarPorId(int id) {
+        List<Medicamento> resultado = new ArrayList<>();
+        for (Medicamento m : listarTodos()) {
+            if (m.getId() == id) {
+                resultado.add(m);
+            }
+        }
+        return resultado;
     }
 
     @Override
