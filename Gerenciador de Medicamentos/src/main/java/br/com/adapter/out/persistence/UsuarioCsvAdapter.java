@@ -46,6 +46,8 @@ public class UsuarioCsvAdapter implements SalvarUsuarioPort {
             }
         }
 
+
+
         for (String linha : lerLinhas(ARQUIVO_VINCULOS)) {
             String[] campos = linha.split(";");
             int idosoId = Integer.parseInt(campos[0]);
@@ -97,6 +99,17 @@ public class UsuarioCsvAdapter implements SalvarUsuarioPort {
         List<Usuario> resultado = new ArrayList<>();
         for (Usuario u : listarTodos()) {
             if (u.getNome().toLowerCase().contains(nome.toLowerCase())) {
+                resultado.add(u);
+            }
+        }
+        return resultado;
+    }
+
+    @Override
+    public List<Usuario> buscarPorId(int id) {
+        List<Usuario> resultado = new ArrayList<>();
+        for (Usuario u : listarTodos()) {
+            if (u.getId() == id) {
                 resultado.add(u);
             }
         }

@@ -36,7 +36,7 @@ public class AppConfig {
 
     public static RegistrarMedicamentoService criarRegistrarMedicamentoService() {
         GerarIdPort gerarIdMedicamento = new GerarIdPorArquivoAdapter("medicamentos.csv");
-        return new RegistrarMedicamentoService(gerarIdMedicamento, medicamentoCsvAdapter);
+        return new RegistrarMedicamentoService(gerarIdMedicamento, medicamentoCsvAdapter, usuarioCsvAdapter);
     }
 
     public static SalvarUsuarioPort getUsuarioPort() {

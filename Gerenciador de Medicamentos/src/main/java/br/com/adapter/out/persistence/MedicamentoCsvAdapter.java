@@ -8,7 +8,6 @@ import java.util.*;
 
 import br.com.domain.model.Medicamento;
 import br.com.domain.model.TipoMedicamento;
-import br.com.domain.model.Usuario;
 import br.com.domain.port.out.SalvarMedicamentoPort;
 
 public class MedicamentoCsvAdapter implements SalvarMedicamentoPort {
