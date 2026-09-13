@@ -86,7 +86,7 @@ Onde as peças são montadas: qual adaptador concreto vai ser usado pra cada por
 
 ## Decisões de arquitetura (ADRs)
 
-As decisões arquiteturais do projeto — o que foi decidido, as alternativas consideradas e o porquê — estão documentadas em ADRs, na pasta [docs/adr/](Gerenciador de Medicamentos/docs/adr).
+As decisões arquiteturais do projeto — o que foi decidido, as alternativas consideradas e o porquê — estão documentadas em ADRs, na pasta `docs/adr/`.
 
 ## Como rodar o projeto
 
