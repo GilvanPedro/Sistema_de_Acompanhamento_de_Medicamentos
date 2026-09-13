@@ -39,9 +39,8 @@ public class HistoricoMedicamento {
 
     @Override
     public String toString() {
-        return "Medicamento: " + medicamento.getNome() +
-                ", Paciente: " + idoso.getNome() +
-                ", Data/Hora: " + dataHoraTomada.toString() +
-                ", Tomou: " + (foiTomado ? "Sim" : "Não");
+        return String.format("[%d] %s | %s | %s | %s",
+                id, idoso.getNome(), medicamento.getNome(), dataHoraTomada,
+                foiTomado ? "Tomou" : "Não tomou");
     }
 }

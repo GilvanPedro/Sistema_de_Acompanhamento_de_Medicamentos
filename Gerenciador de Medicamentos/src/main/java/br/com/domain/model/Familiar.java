@@ -22,4 +22,14 @@ public class Familiar extends Usuario {
     public void adicionarIdosos(Idoso idoso){
         this.idosos.add(idoso);
     }
+
+    @Override
+    public String toString() {
+        String idososCuidados = idosos.isEmpty()
+                ? "Nenhum idoso sob cuidado"
+                : idosos.stream().map(i -> "id " + i.getId()).collect(java.util.stream.Collectors.joining(", "));
+
+        return String.format("[%d] %s | Familiar | Email: %s | Idosos sob cuidado: %s",
+                getId(), getNome(), getEmail(), idososCuidados);
+    }
 }

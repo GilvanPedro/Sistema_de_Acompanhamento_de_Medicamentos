@@ -5,71 +5,142 @@ import br.com.application.service.RegistrarMedicamentoService;
 import br.com.application.service.RegistrarUsuarioService;
 import br.com.config.AppConfig;
 import br.com.domain.model.*;
-import br.com.domain.port.out.NotificarPort;
+import br.com.domain.port.out.*;
 
 import java.time.DayOfWeek;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Main {
     public static void main(String[] args) {
 
         RegistrarUsuarioService registrarUsuarioService = AppConfig.criarRegistrarUsuarioService();
         RegistrarMedicamentoService registrarMedicamentoService = AppConfig.criarRegistrarMedicamentoService();
+        SalvarUsuarioPort usuarioPort = AppConfig.getUsuarioPort();
+        SalvarMedicamentoPort medicamentoPort = AppConfig.getMedicamentoPort();
+        SalvarHistoricoPort historicoPort = AppConfig.getHistoricoPort();
         NotificarPort notificarPort = new ConsoleNotificationAdapter();
 
-        System.out.println("=== Cadastro de usuários ===");
+        System.out.println("=== 1. Cadastro de usuários ===");
 
-        Idoso idoso1 = (Idoso) registrarUsuarioService.registrarIdoso("Maria Silva", "maria@email.com", "123456");
-        Idoso idoso2 = (Idoso) registrarUsuarioService.registrarIdoso("João Souza", "joao@email.com", "654321");
-        Familiar familiar1 = (Familiar) registrarUsuarioService.registrarFamiliar("Ana Silva", "ana@email.com", "abc123");
-
-        System.out.println("Id gerado para Maria: " + idoso1.getId());
-        System.out.println("Id gerado para João: " + idoso2.getId());
-        System.out.println("Id gerado para Ana: " + familiar1.getId());
-
-        System.out.println("\n=== Vinculando idoso e familiar ===");
+        Idoso idoso1 = (Idoso) registrarUsuarioService.registrarIdoso("Pedro Carlos", "pedrocarlos@email.com", "432156");
+        Familiar familiar1 = (Familiar) registrarUsuarioService.registrarFamiliar("Marcos Henrrique", "marcos@email.com", "34b56gf");
 
         idoso1.adicionarFamiliares(familiar1);
         familiar1.adicionarIdosos(idoso1);
+        usuarioPort.salvarVinculo(idoso1.getId(), familiar1.getId());
 
-        System.out.println("Familiares de Maria: " + idoso1.getFamiliares().size());
-        System.out.println("Idosos acompanhados por Ana: " + familiar1.getIdosos().size());
+        System.out.println("Idoso cadastrado: " + idoso1);
+        System.out.println("Familiar cadastrado: " + familiar1);
 
-        System.out.println("\n=== Cadastro de medicamento ===");
+        System.out.println("\n=== 2. Listando todos os usuários (lidos do CSV) ===");
+
+        for (Usuario usuario : usuarioPort.listarTodos()) {
+            System.out.println(usuario);
+        }
+
+        System.out.println("\n=== 3. Buscando por nome ===");
+
+        List<Usuario> encontrados = usuarioPort.buscarPorNome("Maria");
+        for (Usuario usuario : encontrados) {
+            System.out.println("Encontrado: " + usuario);
+        }
+
+        System.out.println("\n=== 4. Idoso com os cuidadores por extenso ===");
+
+        for (Usuario usuario : encontrados) {
+            if (usuario instanceof Idoso idosoEncontrado) {
+                System.out.println(idosoEncontrado);
+                System.out.println("Cuidadores:");
+                for (Familiar familiar : idosoEncontrado.getFamiliares()) {
+                    System.out.println("  - " + familiar);
+                }
+            }
+        }
+
+        System.out.println("\n=== 5. Criando um segundo familiar e vinculando ao mesmo idoso ===");
+
+        Familiar familiar2 = (Familiar) registrarUsuarioService.registrarFamiliar("Carlos Souza", "carlos@email.com", "senha123");
+        idoso1.adicionarFamiliares(familiar2);
+        familiar2.adicionarIdosos(idoso1);
+        usuarioPort.salvarVinculo(idoso1.getId(), familiar2.getId());
+
+        System.out.println("Idoso agora com " + idoso1.getFamiliares().size() + " cuidadores: " + idoso1);
+
+        System.out.println("\n=== 6. Cadastro de medicamento ===");
 
         Medicamento medicamento1 = registrarMedicamentoService.registrarMedicamento(
-                "Losartana",
-                DayOfWeek.MONDAY,
-                LocalTime.of(8, 0),
-                TipoMedicamento.COMPRIMIDO
+                "Losartana", DayOfWeek.MONDAY, LocalTime.of(8, 0), TipoMedicamento.COMPRIMIDO
         );
 
-        System.out.println("Id gerado para o medicamento: " + medicamento1.getId());
-        System.out.println(medicamento1);
+        System.out.println("Medicamento cadastrado: " + medicamento1);
 
-        System.out.println("\n=== Simulando notificações ===");
+        System.out.println("\n=== 7. Listando todos os medicamentos (lidos do CSV) ===");
 
-        notificarPort.lembrarIdoso(idoso1, medicamento1);
-        notificarPort.avisarRemedioTomado(idoso1, medicamento1);
-        notificarPort.avisarRemedioEsquecido(idoso1, medicamento1);
-
-        System.out.println("\n=== Idoso sem familiar vinculado (não deve travar nem imprimir aviso) ===");
-
-        notificarPort.avisarRemedioTomado(idoso2, medicamento1);
-        System.out.println("(nenhuma linha acima significa que a lista de familiares do João está vazia, como esperado)");
-
-        System.out.println("\n=== Testando validação (dados inválidos) ===");
-
-        try {
-            registrarUsuarioService.registrarIdoso("", "emailinvalido", "");
-        } catch (IllegalArgumentException e) {
-            System.out.println("Validação funcionou, erro capturado: " + e.getMessage());
+        for (Medicamento m : medicamentoPort.listarTodos()) {
+            System.out.println(m);
         }
 
-        try {
-            registrarMedicamentoService.registrarMedicamento(null, null, null, null);
-        } catch (IllegalArgumentException e) {
-            System.out.println("Validação funcionou, erro capturado: " + e.getMessage());
+        System.out.println("\n=== 8. Editando o medicamento (ainda direto na porta, sem service próprio) ===");
+
+        Medicamento medicamentoEditado = new Medicamento(
+                medicamento1.getId(), "Dipirona 50mg", LocalTime.of(12, 30), DayOfWeek.SATURDAY, TipoMedicamento.COMPRIMIDO
+        );
+        medicamentoPort.atualizar(medicamentoEditado);
+
+        for (Medicamento m : medicamentoPort.listarTodos()) {
+            System.out.println("Depois da edição: " + m);
         }
+
+        System.out.println("\n=== 9. Registrando um histórico (ainda direto na porta, sem service próprio) ===");
+
+        int idHistorico = AppConfig.getGerarIdHistorico().proximoId();
+        HistoricoMedicamento historico1 = new HistoricoMedicamento(
+                idHistorico, medicamentoEditado, idoso1, LocalDateTime.now(), true
+        );
+        historicoPort.salvar(historico1);
+
+        System.out.println("Histórico salvo: " + historico1);
+
+        System.out.println("\n=== 10. Lendo o histórico de volta do CSV ===");
+
+        Map<Integer, Idoso> mapaIdosos = new HashMap<>();
+        for (Usuario u : usuarioPort.listarTodos()) {
+            if (u instanceof Idoso idoso) {
+                mapaIdosos.put(idoso.getId(), idoso);
+            }
+        }
+
+        Map<Integer, Medicamento> mapaMedicamentos = new HashMap<>();
+        for (Medicamento m : medicamentoPort.listarTodos()) {
+            mapaMedicamentos.put(m.getId(), m);
+        }
+
+        for (HistoricoMedicamento h : historicoPort.listarTodos(mapaIdosos, mapaMedicamentos)) {
+            System.out.println(h);
+        }
+
+        System.out.println("\n=== 11. Simulando notificações ===");
+
+        notificarPort.lembrarIdoso(idoso1, medicamentoEditado);
+        notificarPort.avisarRemedioTomado(idoso1, medicamentoEditado);
+        notificarPort.avisarRemedioEsquecido(idoso1, medicamentoEditado);
+
+        System.out.println("\n=== 12. Excluindo o medicamento ===");
+
+        medicamentoPort.excluir(medicamento1.getId());
+
+        System.out.println("Medicamentos restantes:");
+        for (Medicamento m : medicamentoPort.listarTodos()) {
+            System.out.println(m);
+        }
+        if (medicamentoPort.listarTodos().isEmpty()) {
+            System.out.println("(nenhum — a exclusão funcionou)");
+        }
+
+        System.out.println("\n=== Fim dos testes ===");
     }
 }

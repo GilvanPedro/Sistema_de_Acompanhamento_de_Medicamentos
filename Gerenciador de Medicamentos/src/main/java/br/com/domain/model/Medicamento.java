@@ -56,8 +56,7 @@ public class Medicamento {
 
     @Override
     public String toString() {
-        return "Medicamento: " + nome +
-                ", Tipo de Medicamento: " + tipoMedicamento.getDescricao() +
-                ", Horario Para Tomar: " + horarioMedicamento.toString();
+        return String.format("[%d] %s | %s | %s às %s",
+                id, nome, tipoMedicamento.getDescricao(), diaSemana, horarioMedicamento);
     }
 }

@@ -6,29 +6,24 @@ import br.com.domain.model.Medicamento;
 import br.com.domain.port.out.NotificarPort;
 
 public class ConsoleNotificationAdapter implements NotificarPort {
+    MensagemNotificacao mensagemNotificacao;
 
     @Override
     public void lembrarIdoso(Idoso idoso, Medicamento medicamento) {
-        System.out.println("Aviso para " + idoso.getNome() + ": lembre-se de tomar o remédio: " + medicamento.getNome());
+        System.out.println(mensagemNotificacao.lembrete(idoso, medicamento));
     }
 
     @Override
     public void avisarRemedioTomado(Idoso idoso, Medicamento medicamento) {
         for (Familiar familiar : idoso.getFamiliares()) {
-            System.out.println(
-                    "Aviso para " + familiar.getNome() +
-                            ": O paciente " + idoso.getNome() +
-                            " tomou " + medicamento.getNome());
+            System.out.println(mensagemNotificacao.remedioTomado(familiar.getNome(), idoso, medicamento));
         }
     }
 
     @Override
     public void avisarRemedioEsquecido(Idoso idoso, Medicamento medicamento) {
         for (Familiar familiar : idoso.getFamiliares()) {
-            System.out.println(
-                    "Aviso para " + familiar.getNome() +
-                            ": O paciente " + idoso.getNome() +
-                            " não tomou o medicamento " + medicamento.getNome());
+            System.out.println(mensagemNotificacao.remedioEsquecido(familiar.getNome(), idoso, medicamento));
         }
     }
 }
