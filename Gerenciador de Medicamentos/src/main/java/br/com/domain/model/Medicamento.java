@@ -4,16 +4,22 @@ import java.time.LocalTime;
 import java.time.DayOfWeek;
 
 public class Medicamento {
+    private int id;
     private String nome;
     private LocalTime horarioMedicamento;
     private DayOfWeek diaSemana;
     private  TipoMedicamento tipoMedicamento;
 
-    public Medicamento(String nome, LocalTime horarioMedicamento, DayOfWeek diaSemana, TipoMedicamento tipoMedicamento) {
+    public Medicamento(int id, String nome, LocalTime horarioMedicamento, DayOfWeek diaSemana, TipoMedicamento tipoMedicamento) {
+        this.id = id;
         this.nome = nome;
         this.horarioMedicamento = horarioMedicamento;
         this.diaSemana = diaSemana;
         this.tipoMedicamento = tipoMedicamento;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public String getNome() {
@@ -52,6 +58,6 @@ public class Medicamento {
     public String toString() {
         return "Medicamento: " + nome +
                 ", Tipo de Medicamento: " + tipoMedicamento.getDescricao() +
-                ", Horario Tomado: " + horarioMedicamento.toString();
+                ", Horario Para Tomar: " + horarioMedicamento.toString();
     }
 }

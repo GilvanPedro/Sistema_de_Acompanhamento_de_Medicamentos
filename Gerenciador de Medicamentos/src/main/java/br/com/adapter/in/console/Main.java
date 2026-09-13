@@ -1,67 +1,75 @@
 package br.com.adapter.in.console;
 
 import br.com.adapter.out.notification.ConsoleNotificationAdapter;
+import br.com.application.service.RegistrarMedicamentoService;
+import br.com.application.service.RegistrarUsuarioService;
+import br.com.config.AppConfig;
 import br.com.domain.model.*;
+import br.com.domain.port.out.NotificarPort;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
-import java.util.ArrayList;
 
 public class Main {
     public static void main(String[] args) {
 
-        // 1. Instanciando Idosos e Familiares com listas vazias iniciais
-        Idoso idoso1 = new Idoso(1, "Antônio Silva", "antonio@email.com", "senha123", new ArrayList<>());
-        Idoso idoso2 = new Idoso(2, "Maria Oliveira", "maria@email.com", "senha456", new ArrayList<>());
+        RegistrarUsuarioService registrarUsuarioService = AppConfig.criarRegistrarUsuarioService();
+        RegistrarMedicamentoService registrarMedicamentoService = AppConfig.criarRegistrarMedicamentoService();
+        NotificarPort notificarPort = new ConsoleNotificationAdapter();
 
-        Familiar familiar1 = new Familiar(3, "Carlos Silva", "carlos@email.com", "senha789", new ArrayList<>());
+        System.out.println("=== Cadastro de usuários ===");
 
-        Familiar familiar2 = new Familiar(4, "Ana Maria", "carlos@email.com", "senha789", new ArrayList<>());
+        Idoso idoso1 = (Idoso) registrarUsuarioService.registrarIdoso("Maria Silva", "maria@email.com", "123456");
+        Idoso idoso2 = (Idoso) registrarUsuarioService.registrarIdoso("João Souza", "joao@email.com", "654321");
+        Familiar familiar1 = (Familiar) registrarUsuarioService.registrarFamiliar("Ana Silva", "ana@email.com", "abc123");
 
-        Familiar familiar3 = new Familiar(5, "Carla Auberta", "carlos@email.com", "senha789", new ArrayList<>());
+        System.out.println("Id gerado para Maria: " + idoso1.getId());
+        System.out.println("Id gerado para João: " + idoso2.getId());
+        System.out.println("Id gerado para Ana: " + familiar1.getId());
 
-        // 2. Estabelecendo os vínculos (Relação entre Familiar e Idoso)
-        // Adicionando idosos ao familiar
-        familiar1.adicionarIdosos(idoso1);
-        familiar1.adicionarIdosos(idoso2);
+        System.out.println("\n=== Vinculando idoso e familiar ===");
 
-        // Adicionando familiares aos idosos
         idoso1.adicionarFamiliares(familiar1);
-        idoso1.adicionarFamiliares(familiar3);
-        idoso1.adicionarFamiliares(familiar2);
-        idoso2.adicionarFamiliares(familiar1);
+        familiar1.adicionarIdosos(idoso1);
 
-        // 3. Criando dados de Medicamentos
-        // Utilizando LocalTime e DayOfWeek conforme definido na classe
-        Medicamento med1 = new Medicamento(
+        System.out.println("Familiares de Maria: " + idoso1.getFamiliares().size());
+        System.out.println("Idosos acompanhados por Ana: " + familiar1.getIdosos().size());
+
+        System.out.println("\n=== Cadastro de medicamento ===");
+
+        Medicamento medicamento1 = registrarMedicamentoService.registrarMedicamento(
                 "Losartana",
-                LocalTime.of(8, 0), // 08:00 da manhã
                 DayOfWeek.MONDAY,
+                LocalTime.of(8, 0),
                 TipoMedicamento.COMPRIMIDO
         );
 
-        Medicamento med2 = new Medicamento(
-                "Insulina",
-                LocalTime.of(12, 30), // 12:30
-                DayOfWeek.MONDAY,
-                TipoMedicamento.COMPRIMIDO
-        );
+        System.out.println("Id gerado para o medicamento: " + medicamento1.getId());
+        System.out.println(medicamento1);
 
-        // 4. Testando as saídas no console
-        System.out.println("--- TESTE DE DADOS ---");
-        System.out.println("Idoso: " + idoso1.getNome());
-        System.out.println("Familiares responsaveis de " + idoso1.getNome() + ":");
+        System.out.println("\n=== Simulando notificações ===");
 
-        // Iterando sobre a lista de idosos do familiar
-        for (Usuario u : idoso1.getFamiliares()) {
-            System.out.println("- " + u.getNome());
+        notificarPort.lembrarIdoso(idoso1, medicamento1);
+        notificarPort.avisarRemedioTomado(idoso1, medicamento1);
+        notificarPort.avisarRemedioEsquecido(idoso1, medicamento1);
+
+        System.out.println("\n=== Idoso sem familiar vinculado (não deve travar nem imprimir aviso) ===");
+
+        notificarPort.avisarRemedioTomado(idoso2, medicamento1);
+        System.out.println("(nenhuma linha acima significa que a lista de familiares do João está vazia, como esperado)");
+
+        System.out.println("\n=== Testando validação (dados inválidos) ===");
+
+        try {
+            registrarUsuarioService.registrarIdoso("", "emailinvalido", "");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Validação funcionou, erro capturado: " + e.getMessage());
         }
 
-        System.out.println();
-        ConsoleNotificationAdapter notificacoes = new ConsoleNotificationAdapter();
-
-        notificacoes.avisarRemedioTomado(idoso1, med1);
-        System.out.println();
-        notificacoes.avisarRemedioEsquecido(idoso1, med1);
+        try {
+            registrarMedicamentoService.registrarMedicamento(null, null, null, null);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Validação funcionou, erro capturado: " + e.getMessage());
+        }
     }
 }
