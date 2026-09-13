@@ -1,7 +1,9 @@
 package br.com.adapter.in.console;
 
+import br.com.adapter.in.scheduler.AgendadorVerificacaoAtraso;
 import br.com.adapter.out.notification.ConsoleNotificationAdapter;
 import br.com.application.service.RegistrarMedicamentoService;
+import br.com.application.service.RegistrarTomadaService;
 import br.com.application.service.RegistrarUsuarioService;
 import br.com.config.AppConfig;
 import br.com.domain.model.*;
@@ -73,7 +75,7 @@ public class Main {
         System.out.println("\n=== 6. Cadastro de medicamento ===");
 
         Medicamento medicamento1 = registrarMedicamentoService.registrarMedicamento(
-                "Losartana", DayOfWeek.MONDAY, LocalTime.of(8, 0), TipoMedicamento.COMPRIMIDO
+                "Losartana", DayOfWeek.SUNDAY, LocalTime.of(16, 7), TipoMedicamento.COMPRIMIDO, idoso1.getId()
         );
 
         System.out.println("Medicamento cadastrado: " + medicamento1);
@@ -83,27 +85,6 @@ public class Main {
         for (Medicamento m : medicamentoPort.listarTodos()) {
             System.out.println(m);
         }
-
-        System.out.println("\n=== 8. Editando o medicamento (ainda direto na porta, sem service próprio) ===");
-
-        Medicamento medicamentoEditado = new Medicamento(
-                medicamento1.getId(), "Dipirona 50mg", LocalTime.of(12, 30), DayOfWeek.SATURDAY, TipoMedicamento.COMPRIMIDO
-        );
-        medicamentoPort.atualizar(medicamentoEditado);
-
-        for (Medicamento m : medicamentoPort.listarTodos()) {
-            System.out.println("Depois da edição: " + m);
-        }
-
-        System.out.println("\n=== 9. Registrando um histórico (ainda direto na porta, sem service próprio) ===");
-
-        int idHistorico = AppConfig.getGerarIdHistorico().proximoId();
-        HistoricoMedicamento historico1 = new HistoricoMedicamento(
-                idHistorico, medicamentoEditado, idoso1, LocalDateTime.now(), true
-        );
-        historicoPort.salvar(historico1);
-
-        System.out.println("Histórico salvo: " + historico1);
 
         System.out.println("\n=== 10. Lendo o histórico de volta do CSV ===");
 
@@ -125,9 +106,9 @@ public class Main {
 
         System.out.println("\n=== 11. Simulando notificações ===");
 
-        notificarPort.lembrarIdoso(idoso1, medicamentoEditado);
-        notificarPort.avisarRemedioTomado(idoso1, medicamentoEditado);
-        notificarPort.avisarRemedioEsquecido(idoso1, medicamentoEditado);
+        notificarPort.lembrarIdoso(idoso1, medicamento1);
+        notificarPort.avisarRemedioTomado(idoso1, medicamento1);
+        notificarPort.avisarRemedioEsquecido(idoso1, medicamento1);
 
         System.out.println("\n=== 12. Excluindo o medicamento ===");
 
@@ -142,5 +123,10 @@ public class Main {
         }
 
         System.out.println("\n=== Fim dos testes ===");
+
+        AgendadorVerificacaoAtraso agendador = new AgendadorVerificacaoAtraso(AppConfig.criarVerificarAtrasoMedicamentoService());
+        agendador.iniciar();
+
+        System.out.println("\n=== Agendador rodando — verificando atrasos a cada minuto ===");
     }
 }

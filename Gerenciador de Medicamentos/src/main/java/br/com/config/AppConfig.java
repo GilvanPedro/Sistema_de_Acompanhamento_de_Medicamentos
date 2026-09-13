@@ -1,11 +1,13 @@
 package br.com.config;
 
 import br.com.adapter.out.id.GerarIdPorArquivoAdapter;
+import br.com.adapter.out.notification.ConsoleNotificationAdapter;
 import br.com.adapter.out.persistence.HistoricoCsvAdapter;
 import br.com.adapter.out.persistence.MedicamentoCsvAdapter;
 import br.com.adapter.out.persistence.UsuarioCsvAdapter;
 import br.com.application.service.RegistrarMedicamentoService;
 import br.com.application.service.RegistrarUsuarioService;
+import br.com.application.service.VerificarAtrasoMedicamentoService;
 import br.com.domain.port.out.GerarIdPort;
 import br.com.domain.port.out.SalvarHistoricoPort;
 import br.com.domain.port.out.SalvarMedicamentoPort;
@@ -21,6 +23,10 @@ public class AppConfig {
     public static RegistrarUsuarioService criarRegistrarUsuarioService() {
         GerarIdPort gerarIdUsuario = new GerarIdPorArquivoAdapter("usuarios.csv");
         return new RegistrarUsuarioService(gerarIdUsuario, usuarioCsvAdapter);
+    }
+
+    public static VerificarAtrasoMedicamentoService criarVerificarAtrasoMedicamentoService() {
+        return new VerificarAtrasoMedicamentoService(usuarioCsvAdapter, medicamentoCsvAdapter, historicoCsvAdapter, new ConsoleNotificationAdapter());
     }
 
     public static RegistrarMedicamentoService criarRegistrarMedicamentoService() {
