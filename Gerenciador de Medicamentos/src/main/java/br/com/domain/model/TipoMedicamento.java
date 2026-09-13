@@ -1,4 +1,4 @@
-package br.com.model;
+package br.com.domain.model;
 
 public enum TipoMedicamento {
     COMPRIMIDO("Medicamento em Comprimido"),

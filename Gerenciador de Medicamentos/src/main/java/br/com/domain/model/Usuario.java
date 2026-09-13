@@ -1,4 +1,4 @@
-package br.com.model;
+package br.com.domain.model;
 
 public class Usuario {
     private int id;

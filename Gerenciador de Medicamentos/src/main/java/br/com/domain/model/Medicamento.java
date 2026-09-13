@@ -1,4 +1,4 @@
-package br.com.model;
+package br.com.domain.model;
 
 import java.time.LocalTime;
 import java.time.DayOfWeek;

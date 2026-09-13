@@ -1,7 +1,7 @@
-package br.com;
+package br.com.adapter.in.console;
 
 import br.com.api.NotificacoesApi;
-import br.com.model.*;
+import br.com.domain.model.*;
 // Assumindo que TipoMedicamento é um Enum no seu pacote model
 // import br.com.model.TipoMedicamento;
 

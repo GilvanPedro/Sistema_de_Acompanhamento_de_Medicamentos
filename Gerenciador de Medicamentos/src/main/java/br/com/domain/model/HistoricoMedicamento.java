@@ -1,9 +1,6 @@
-package br.com.model;
+package br.com.domain.model;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 public class HistoricoMedicamento {
     private int id;
