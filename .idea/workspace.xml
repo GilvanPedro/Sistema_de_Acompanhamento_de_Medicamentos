@@ -4,35 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e07bee26-c5e1-421a-8602-ceef1fde862b" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/Sistema_de_Acompanhamento_de_Medicamentos.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/csv-editor.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0000-template.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0001-arquitetura.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0002-modelagem-usuarios.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0003-vinculo-idoso-familiar.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0004-notificacoes-console.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0005-persistencia-partas.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/arquitetura/arquitetura-utilizada.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/out/notification/ConsoleNotificationAdapter.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/port/out/NotificarPort.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/in/console/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/api/NotificacoesApi.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/model/Familiar.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/model/Familiar.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/model/HistoricoMedicamento.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/model/HistoricoMedicamento.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/model/Idoso.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/model/Idoso.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/model/Medicamento.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/model/Medicamento.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/model/TipoMedicamento.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/model/TipoMedicamento.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/model/Usuario.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/model/Usuario.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-    </list>
+    <list default="true" id="e07bee26-c5e1-421a-8602-ceef1fde862b" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -69,23 +41,23 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0" />
-      <entry key="MS500" value="1.0" />
-      <entry key="S2" value="1.0000108759428417" />
-      <entry key="S5" value="1.0103418053928104" />
-      <entry key="S10" value="1.1022353229939803" />
-      <entry key="S30" value="1.603824170641476" />
-      <entry key="S60" value="2.3498230161309532" />
-      <entry key="M2" value="3.423614208554109" />
-      <entry key="M5" value="5.274653659058751" />
-      <entry key="M10" value="8.152646297400622" />
-      <entry key="M15" value="10.927826505863353" />
-      <entry key="M30" value="17.551829466821246" />
-      <entry key="H1" value="24.723130172899396" />
-      <entry key="H2" value="30.307585438257334" />
-      <entry key="H4" value="33.84098393670012" />
-      <entry key="D1" value="37.25840012255211" />
-      <entry key="W1" value="37.89279987616972" />
+      <entry key="MS100" value="1.0000000000003795" />
+      <entry key="MS500" value="1.0046305037174479" />
+      <entry key="S2" value="1.5849994064999318" />
+      <entry key="S5" value="2.9196486465317095" />
+      <entry key="S10" value="4.0293746831521755" />
+      <entry key="S30" value="5.214739045129503" />
+      <entry key="S60" value="5.74161777430719" />
+      <entry key="M2" value="6.674862890213071" />
+      <entry key="M5" value="8.988448176809207" />
+      <entry key="M10" value="12.18142879114402" />
+      <entry key="M15" value="15.100018789399156" />
+      <entry key="M30" value="22.027864953364062" />
+      <entry key="H1" value="29.628902063175886" />
+      <entry key="H2" value="35.630225103920324" />
+      <entry key="H4" value="39.460917748052154" />
+      <entry key="D1" value="43.18836421271443" />
+      <entry key="W1" value="43.88261699273532" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -107,23 +79,23 @@
       <entry key="W1" value="0.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.9395227492140118" />
-      <entry key="MS500" value="0.9876008614453725" />
-      <entry key="S2" value="0.996896550570828" />
-      <entry key="S5" value="1.0090863199492874" />
-      <entry key="S10" value="1.1015691243736443" />
-      <entry key="S30" value="1.6035267955921781" />
-      <entry key="S60" value="2.3496123566977074" />
-      <entry key="M2" value="3.423455933384435" />
-      <entry key="M5" value="5.274268856470365" />
-      <entry key="M10" value="8.151850627111545" />
-      <entry key="M15" value="10.92690706151318" />
-      <entry key="M30" value="17.55097673044534" />
-      <entry key="H1" value="24.722524505024758" />
-      <entry key="H2" value="30.3072191433497" />
-      <entry key="H4" value="33.840781648169624" />
-      <entry key="D1" value="37.258363410249096" />
-      <entry key="W1" value="37.89279455323702" />
+      <entry key="MS100" value="0.9526379980442988" />
+      <entry key="MS500" value="0.9949267994935416" />
+      <entry key="S2" value="1.5810393127254823" />
+      <entry key="S5" value="2.9166290836629325" />
+      <entry key="S10" value="4.027262264735164" />
+      <entry key="S30" value="5.2138193422414725" />
+      <entry key="S60" value="5.741110163678911" />
+      <entry key="M2" value="6.674565849796683" />
+      <entry key="M5" value="8.988119126270496" />
+      <entry key="M10" value="12.180768501822639" />
+      <entry key="M15" value="15.099215430088329" />
+      <entry key="M30" value="22.02706787842434" />
+      <entry key="H1" value="29.628314176961602" />
+      <entry key="H2" value="35.629862525697924" />
+      <entry key="H4" value="39.46071550696128" />
+      <entry key="D1" value="43.18832720010319" />
+      <entry key="W1" value="43.8826116185078" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -144,6 +116,7 @@
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.MCP Project settings loaded": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
