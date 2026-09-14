@@ -6,6 +6,7 @@ import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.*;
 
+import br.com.domain.exception.ArquivoCsvCorrompidoException;
 import br.com.domain.model.Medicamento;
 import br.com.domain.model.TipoMedicamento;
 import br.com.domain.port.out.SalvarMedicamentoPort;
@@ -24,15 +25,19 @@ public class MedicamentoCsvAdapter implements SalvarMedicamentoPort {
         List<Medicamento> resultado = new ArrayList<>();
 
         for (String linha : lerLinhas()) {
-            String[] campos = linha.split(";");
-            int id = Integer.parseInt(campos[0]);
-            int idosoId = Integer.parseInt(campos[1]);
-            String nome = campos[2];
-            LocalTime horario = LocalTime.parse(campos[3]);
-            DayOfWeek diaSemana = DayOfWeek.valueOf(campos[4]);
-            TipoMedicamento tipo = TipoMedicamento.valueOf(campos[5]);
+            try {
+                String[] campos = linha.split(";");
+                int id = Integer.parseInt(campos[0]);
+                int idosoId = Integer.parseInt(campos[1]);
+                String nome = campos[2];
+                LocalTime horario = LocalTime.parse(campos[3]);
+                DayOfWeek diaSemana = DayOfWeek.valueOf(campos[4]);
+                TipoMedicamento tipo = TipoMedicamento.valueOf(campos[5]);
 
-            resultado.add(new Medicamento(id, idosoId, nome, horario, diaSemana, tipo));
+                resultado.add(new Medicamento(id, idosoId, nome, horario, diaSemana, tipo));
+            } catch (RuntimeException e) {
+                throw new ArquivoCsvCorrompidoException(ARQUIVO, linha, e);
+            }
         }
 
         return resultado;

@@ -13,6 +13,6 @@ public class Teste2 {
         System.out.println(medicamento);
 
         EditarUsuarioService editarUsuarioService = AppConfig.criarEditarUsuarioService();
-        editarUsuarioService.editarUsuario(54, "Gilvan Pedro", "pedro.gilvan@email.com", "novaSenha123");
+        editarUsuarioService.editarUsuario(5, "Gilvan Pedro", "pedro.gilvan@email.com", "novaSenha123");
     }
 }

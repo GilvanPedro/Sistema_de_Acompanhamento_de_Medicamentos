@@ -12,21 +12,26 @@ import br.com.domain.port.in.RegistrarMedicamentoCase;
 import br.com.domain.port.out.GerarIdPort;
 import br.com.domain.port.out.SalvarMedicamentoPort;
 import br.com.domain.port.out.SalvarUsuarioPort;
+import br.com.domain.validation.ValidarDadosMedicamento;
 
 public class RegistrarMedicamentoService implements RegistrarMedicamentoCase {
 
     private final GerarIdPort gerarIdPort;
     private final SalvarMedicamentoPort salvarMedicamentoPort;
     private final SalvarUsuarioPort salvarUsuarioPort;
+    private final ValidarDadosMedicamento validarDadosMedicamento;
 
     public RegistrarMedicamentoService(GerarIdPort gerarIdPort, SalvarMedicamentoPort salvarMedicamentoPort, SalvarUsuarioPort salvarUsuarioPort) {
         this.gerarIdPort = gerarIdPort;
         this.salvarMedicamentoPort = salvarMedicamentoPort;
         this.salvarUsuarioPort = salvarUsuarioPort;
+        this.validarDadosMedicamento = new ValidarDadosMedicamento();
     }
 
     @Override
     public Medicamento registrarMedicamento(String nome, DayOfWeek diaSemana, LocalTime horario, TipoMedicamento tipo, int idosoId) {
+        validarDadosMedicamento.validarMedicamento(nome, diaSemana, horario, tipo);
+
         Usuario encontrado = salvarUsuarioPort.buscarPorId(idosoId);
 
         if (encontrado == null) {

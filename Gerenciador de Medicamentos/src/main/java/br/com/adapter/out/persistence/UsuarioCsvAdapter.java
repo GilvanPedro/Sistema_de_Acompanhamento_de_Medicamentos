@@ -4,6 +4,7 @@ import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 
+import br.com.domain.exception.ArquivoCsvCorrompidoException;
 import br.com.domain.model.Familiar;
 import br.com.domain.model.Idoso;
 import br.com.domain.model.Usuario;
@@ -32,32 +33,38 @@ public class UsuarioCsvAdapter implements SalvarUsuarioPort {
         Map<Integer, Familiar> familiares = new HashMap<>();
 
         for (String linha : lerLinhas(ARQUIVO_USUARIOS)) {
-            String[] campos = linha.split(";");
-            int id = Integer.parseInt(campos[0]);
-            String tipo = campos[1];
-            String nome = campos[2];
-            String email = campos[3];
-            String senha = campos[4];
+            try {
+                String[] campos = linha.split(";");
+                int id = Integer.parseInt(campos[0]);
+                String tipo = campos[1];
+                String nome = campos[2];
+                String email = campos[3];
+                String senha = campos[4];
 
-            if (tipo.equals("IDOSO")) {
-                idosos.put(id, new Idoso(id, nome, email, senha));
-            } else {
-                familiares.put(id, new Familiar(id, nome, email, senha));
+                if (tipo.equals("IDOSO")) {
+                    idosos.put(id, new Idoso(id, nome, email, senha));
+                } else {
+                    familiares.put(id, new Familiar(id, nome, email, senha));
+                }
+            } catch (RuntimeException e) {
+                throw new ArquivoCsvCorrompidoException(ARQUIVO_USUARIOS, linha, e);
             }
         }
 
-
-
         for (String linha : lerLinhas(ARQUIVO_VINCULOS)) {
-            String[] campos = linha.split(";");
-            int idosoId = Integer.parseInt(campos[0]);
-            int familiarId = Integer.parseInt(campos[1]);
+            try {
+                String[] campos = linha.split(";");
+                int idosoId = Integer.parseInt(campos[0]);
+                int familiarId = Integer.parseInt(campos[1]);
 
-            Idoso idoso = idosos.get(idosoId);
-            Familiar familiar = familiares.get(familiarId);
-            if (idoso != null && familiar != null) {
-                idoso.adicionarFamiliares(familiar);
-                familiar.adicionarIdosos(idoso);
+                Idoso idoso = idosos.get(idosoId);
+                Familiar familiar = familiares.get(familiarId);
+                if (idoso != null && familiar != null) {
+                    idoso.adicionarFamiliares(familiar);
+                    familiar.adicionarIdosos(idoso);
+                }
+            } catch (RuntimeException e) {
+                throw new ArquivoCsvCorrompidoException(ARQUIVO_VINCULOS, linha, e);
             }
         }
 
@@ -119,12 +126,16 @@ public class UsuarioCsvAdapter implements SalvarUsuarioPort {
         List<String> linhasRestantes = new ArrayList<>();
 
         for (String linha : lerLinhas(ARQUIVO_VINCULOS)) {
-            String[] campos = linha.split(";");
-            int idosoId = Integer.parseInt(campos[0]);
-            int familiarId = Integer.parseInt(campos[1]);
+            try {
+                String[] campos = linha.split(";");
+                int idosoId = Integer.parseInt(campos[0]);
+                int familiarId = Integer.parseInt(campos[1]);
 
-            if (idosoId != id && familiarId != id) {
-                linhasRestantes.add(linha);
+                if (idosoId != id && familiarId != id) {
+                    linhasRestantes.add(linha);
+                }
+            } catch (RuntimeException e) {
+                throw new ArquivoCsvCorrompidoException(ARQUIVO_VINCULOS, linha, e);
             }
         }
 

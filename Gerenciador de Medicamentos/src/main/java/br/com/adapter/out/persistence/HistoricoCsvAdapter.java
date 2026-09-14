@@ -5,6 +5,7 @@ import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import br.com.domain.exception.ArquivoCsvCorrompidoException;
 import br.com.domain.model.HistoricoMedicamento;
 import br.com.domain.model.Idoso;
 import br.com.domain.model.Medicamento;
@@ -47,13 +48,16 @@ public class HistoricoCsvAdapter implements SalvarHistoricoPort {
 
     @Override
     public void excluir(int id) {
-        // remove a linha diretamente pelo id, sem precisar reconstruir os objetos completos
         List<String> restantes = new ArrayList<>();
 
         for (String linha : lerLinhas()) {
-            int idLinha = Integer.parseInt(linha.split(";")[0]);
-            if (idLinha != id) {
-                restantes.add(linha);
+            try {
+                int idLinha = Integer.parseInt(linha.split(";")[0]);
+                if (idLinha != id) {
+                    restantes.add(linha);
+                }
+            } catch (RuntimeException e) {
+                throw new ArquivoCsvCorrompidoException(ARQUIVO, linha, e);
             }
         }
 
@@ -69,21 +73,25 @@ public class HistoricoCsvAdapter implements SalvarHistoricoPort {
     }
 
     private HistoricoMedicamento montarObjeto(String linha, Map<Integer, Idoso> idosos, Map<Integer, Medicamento> medicamentos) {
-        String[] campos = linha.split(";");
-        int id = Integer.parseInt(campos[0]);
-        int idosoId = Integer.parseInt(campos[1]);
-        int medicamentoId = Integer.parseInt(campos[2]);
-        LocalDateTime dataHora = LocalDateTime.parse(campos[3]);
-        boolean foiTomado = Boolean.parseBoolean(campos[4]);
+        try {
+            String[] campos = linha.split(";");
+            int id = Integer.parseInt(campos[0]);
+            int idosoId = Integer.parseInt(campos[1]);
+            int medicamentoId = Integer.parseInt(campos[2]);
+            LocalDateTime dataHora = LocalDateTime.parse(campos[3]);
+            boolean foiTomado = Boolean.parseBoolean(campos[4]);
 
-        Idoso idoso = idosos.get(idosoId);
-        Medicamento medicamento = medicamentos.get(medicamentoId);
+            Idoso idoso = idosos.get(idosoId);
+            Medicamento medicamento = medicamentos.get(medicamentoId);
 
-        if (idoso == null || medicamento == null) {
-            return null;
+            if (idoso == null || medicamento == null) {
+                return null;
+            }
+
+            return new HistoricoMedicamento(id, medicamento, idoso, dataHora, foiTomado);
+        } catch (RuntimeException e) {
+            throw new ArquivoCsvCorrompidoException(ARQUIVO, linha, e);
         }
-
-        return new HistoricoMedicamento(id, medicamento, idoso, dataHora, foiTomado);
     }
 
     private void reescreverArquivo(List<HistoricoMedicamento> historicos) {

@@ -6,19 +6,29 @@
   <component name="ChangeListManager">
     <list default="true" id="e07bee26-c5e1-421a-8602-ceef1fde862b" name="Changes" comment="">
       <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0019-busca-id-retorna-objeto.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0020-unificacao-edicao-usuario.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0021-excecao-busca-id.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0022-validacao-service.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0023-excecao-dados-invalidos.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/exception/ArquivoCsvCorrompidoException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/exception/DadosInvalidosException.java" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/exception/UsuarioNaoEncontradoException.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/csv-editor.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/csv-editor.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/in/console/Teste2.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/in/console/Teste2.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/out/persistence/HistoricoCsvAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/out/persistence/HistoricoCsvAdapter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/out/persistence/MedicamentoCsvAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/out/persistence/MedicamentoCsvAdapter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/out/persistence/UsuarioCsvAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/out/persistence/UsuarioCsvAdapter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/application/service/EditarMedicamentoService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/application/service/EditarMedicamentoService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/application/service/EditarUsuarioService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/application/service/EditarUsuarioService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/application/service/RegistrarMedicamentoService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/application/service/RegistrarMedicamentoService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/application/service/RegistrarUsuarioService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/application/service/RegistrarUsuarioService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/config/AppConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/config/AppConfig.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/port/in/EditarUsuarioCase.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/port/in/EditarUsuarioCase.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/port/out/SalvarMedicamentoPort.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/port/out/SalvarMedicamentoPort.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/port/out/SalvarUsuarioPort.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/port/out/SalvarUsuarioPort.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/validation/ValidarDadosMedicamento.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/validation/ValidarDadosMedicamento.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/validation/ValidarDadosRegistro.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/validation/ValidarDadosUsuario.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/usuarios.csv" beforeDir="false" afterPath="$PROJECT_DIR$/usuarios.csv" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -34,6 +44,7 @@
       <list>
         <option value="Interface" />
         <option value="Class" />
+        <option value="Exception" />
       </list>
     </option>
   </component>
