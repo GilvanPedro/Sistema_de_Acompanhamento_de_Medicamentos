@@ -8,6 +8,6 @@ public interface SalvarMedicamentoPort {
     void salvar(Medicamento medicamento);
     List<Medicamento> listarTodos();
     void atualizar(Medicamento medicamento);
-    List<Medicamento> buscarPorId(int id);
+    Medicamento buscarPorId(int id);
     void excluir(int id);
 }

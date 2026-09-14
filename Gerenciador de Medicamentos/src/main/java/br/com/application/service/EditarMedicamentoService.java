@@ -18,13 +18,11 @@ public class EditarMedicamentoService implements EditarMedicamentoCase {
 
     @Override
     public Medicamento editarMedicamento(int id, String nome, LocalTime horarioMedicamento, DayOfWeek diaMedicamento, TipoMedicamento tipoMedicamento) {
-        List<Medicamento> encontrados = salvarMedicamentoPort.buscarPorId(id);
+        Medicamento medicamento = salvarMedicamentoPort.buscarPorId(id);
 
-        if (encontrados.isEmpty()) {
+        if (medicamento == null) {
             throw new IllegalArgumentException("Medicamento com id " + id + " não encontrado.");
         }
-
-        Medicamento medicamento = encontrados.get(0);
 
         medicamento.setNome(nome);
         medicamento.setHorarioMedicamento(horarioMedicamento);

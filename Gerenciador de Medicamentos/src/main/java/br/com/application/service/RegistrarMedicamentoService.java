@@ -27,13 +27,13 @@ public class RegistrarMedicamentoService implements RegistrarMedicamentoCase {
 
     @Override
     public Medicamento registrarMedicamento(String nome, DayOfWeek diaSemana, LocalTime horario, TipoMedicamento tipo, int idosoId) {
-        List<Usuario> encontrados = salvarUsuarioPort.buscarPorId(idosoId);
+        Usuario encontrado = salvarUsuarioPort.buscarPorId(idosoId);
 
-        if (encontrados.isEmpty()) {
+        if (encontrado == null) {
             throw new IllegalArgumentException("Não existe usuário cadastrado com id " + idosoId + ".");
         }
 
-        if (!(encontrados.get(0) instanceof Idoso)) {
+        if (!(encontrado instanceof Idoso)) {
             throw new IllegalArgumentException("O id " + idosoId + " pertence a um familiar. Apenas idosos podem ter medicamentos cadastrados.");
         }
 

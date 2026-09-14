@@ -106,14 +106,13 @@ public class UsuarioCsvAdapter implements SalvarUsuarioPort {
     }
 
     @Override
-    public List<Usuario> buscarPorId(int id) {
-        List<Usuario> resultado = new ArrayList<>();
+    public Usuario buscarPorId(int id) {
         for (Usuario u : listarTodos()) {
             if (u.getId() == id) {
-                resultado.add(u);
+                return u;
             }
         }
-        return resultado;
+        throw new NoSuchElementException("Usuário com id: " + id + " não encontrado.");
     }
 
     private void removerVinculosDoUsuario(int id) {

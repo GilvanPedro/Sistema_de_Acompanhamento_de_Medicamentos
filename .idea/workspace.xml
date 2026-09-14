@@ -5,23 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e07bee26-c5e1-421a-8602-ceef1fde862b" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0009-crud-persistencia.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0010-busca-usuario-nome.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0011-geracao-id-csv.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0012-dono-medicamento.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0013-registrar-tomada.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0014-verificar-atraso.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0015-agendamento-verificacao-atraso.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0016-busca-id.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0017-editar-medicamentos.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0018-validacao-dono-medicamento.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0019-busca-id-retorna-objeto.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/application/service/EditarUsuarioService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/port/in/EditarUsuarioCase.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/in/console/Teste2.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/in/console/Teste2.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/out/persistence/MedicamentoCsvAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/out/persistence/MedicamentoCsvAdapter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/out/persistence/UsuarioCsvAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/out/persistence/UsuarioCsvAdapter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/application/service/EditarMedicamentoService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/application/service/EditarMedicamentoService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/application/service/RegistrarMedicamentoService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/application/service/RegistrarMedicamentoService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/config/AppConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/config/AppConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/port/out/SalvarMedicamentoPort.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/port/out/SalvarMedicamentoPort.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/port/out/SalvarUsuarioPort.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/port/out/SalvarUsuarioPort.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/medicamentos.csv" beforeDir="false" afterPath="$PROJECT_DIR$/medicamentos.csv" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,12 +43,12 @@
     &quot;assignee&quot;: &quot;GilvanPedro&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/GilvanPedro/Sistema_de_Acompanhamento_de_Medicamentos.git&quot;,
-    &quot;accountId&quot;: &quot;8c3b7214-cd73-4728-b344-44f8433c4533&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/GilvanPedro/Sistema_de_Acompanhamento_de_Medicamentos.git",
+    "accountId": "5e45ca18-1155-43d1-b067-15042aa9f70d"
   }
-}</component>
+}]]></component>
   <component name="McpProjectServerCommands">
     <commands />
     <urls />
@@ -143,7 +137,9 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
     "git-widget-placeholder": "main",
+    "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/gilva/OneDrive/Documentos/Programação/Sistema_de_Acompanhamento_de_Medicamentos",
     "node.js.detected.package.eslint": "true",
@@ -151,9 +147,15 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.pluginManager"
+    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "to.speed.mode.migration.done": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>

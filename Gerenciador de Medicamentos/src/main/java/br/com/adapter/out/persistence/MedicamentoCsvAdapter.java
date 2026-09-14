@@ -51,14 +51,13 @@ public class MedicamentoCsvAdapter implements SalvarMedicamentoPort {
     }
 
     @Override
-    public List<Medicamento> buscarPorId(int id) {
-        List<Medicamento> resultado = new ArrayList<>();
+    public Medicamento buscarPorId(int id) {
         for (Medicamento m : listarTodos()) {
             if (m.getId() == id) {
-                resultado.add(m);
+                return m;
             }
         }
-        return resultado;
+        throw new NoSuchElementException("Medicamento com id: " + id + " não encontrado.");
     }
 
     @Override
