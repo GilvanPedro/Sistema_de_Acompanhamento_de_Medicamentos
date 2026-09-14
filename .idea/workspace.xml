@@ -5,31 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e07bee26-c5e1-421a-8602-ceef1fde862b" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0019-busca-id-retorna-objeto.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0020-unificacao-edicao-usuario.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0021-excecao-busca-id.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0022-validacao-service.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr/ADR0023-excecao-dados-invalidos.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/exception/ArquivoCsvCorrompidoException.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/exception/DadosInvalidosException.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/exception/UsuarioNaoEncontradoException.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/csv-editor.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/csv-editor.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/application/service/ExcluirUsuarioService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/port/in/ExcluirUsuaioCase.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/in/console/Teste2.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/in/console/Teste2.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/out/persistence/HistoricoCsvAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/out/persistence/HistoricoCsvAdapter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/out/persistence/MedicamentoCsvAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/out/persistence/MedicamentoCsvAdapter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/out/persistence/UsuarioCsvAdapter.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/adapter/out/persistence/UsuarioCsvAdapter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/application/service/EditarMedicamentoService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/application/service/EditarMedicamentoService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/application/service/EditarUsuarioService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/application/service/EditarUsuarioService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/application/service/RegistrarMedicamentoService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/application/service/RegistrarMedicamentoService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/application/service/RegistrarUsuarioService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/application/service/RegistrarUsuarioService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/config/AppConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/config/AppConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/port/in/EditarUsuarioCase.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/port/in/EditarUsuarioCase.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/port/out/SalvarMedicamentoPort.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/port/out/SalvarMedicamentoPort.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/port/out/SalvarUsuarioPort.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/port/out/SalvarUsuarioPort.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/validation/ValidarDadosMedicamento.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/validation/ValidarDadosMedicamento.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/validation/ValidarDadosRegistro.java" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/src/main/java/br/com/domain/validation/ValidarDadosUsuario.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/target/classes/br/com/adapter/in/console/Teste2.class" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/target/classes/br/com/adapter/in/console/Teste2.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Gerenciador de Medicamentos/target/classes/br/com/config/AppConfig.class" beforeDir="false" afterPath="$PROJECT_DIR$/Gerenciador de Medicamentos/target/classes/br/com/config/AppConfig.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/usuarios.csv" beforeDir="false" afterPath="$PROJECT_DIR$/usuarios.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vinculos.csv" beforeDir="false" afterPath="$PROJECT_DIR$/vinculos.csv" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -37,14 +21,14 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="27" />
+    <option name="cachedIndexableFilesCount" value="89" />
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
+        <option value="Exception" />
         <option value="Interface" />
         <option value="Class" />
-        <option value="Exception" />
       </list>
     </option>
   </component>
@@ -61,7 +45,7 @@
   <component name="GithubPullRequestsUISettings"><![CDATA[{
   "selectedUrlAndAccountId": {
     "url": "https://github.com/GilvanPedro/Sistema_de_Acompanhamento_de_Medicamentos.git",
-    "accountId": "5e45ca18-1155-43d1-b067-15042aa9f70d"
+    "accountId": "8c3b7214-cd73-4728-b344-44f8433c4533"
   }
 }]]></component>
   <component name="McpProjectServerCommands">
@@ -70,61 +54,61 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0000000000000822" />
-      <entry key="MS500" value="1.0024146455420417" />
-      <entry key="S2" value="1.236297628338557" />
-      <entry key="S5" value="1.7592694827852162" />
-      <entry key="S10" value="2.4805113784496915" />
-      <entry key="S30" value="4.673055068064884" />
-      <entry key="S60" value="7.134328072893513" />
-      <entry key="M2" value="12.372537553543028" />
-      <entry key="M5" value="27.583412153463126" />
-      <entry key="M10" value="42.44697419215534" />
-      <entry key="M15" value="51.186879669238074" />
-      <entry key="M30" value="66.83524428701136" />
-      <entry key="H1" value="83.17308729454766" />
-      <entry key="H2" value="97.16699301588658" />
-      <entry key="H4" value="106.803725057083" />
-      <entry key="D1" value="116.75563033689163" />
-      <entry key="W1" value="118.67367719628542" />
+      <entry key="MS100" value="1.0" />
+      <entry key="MS500" value="1.0" />
+      <entry key="S2" value="1.000000009656011" />
+      <entry key="S5" value="1.0008218290503994" />
+      <entry key="S10" value="1.0393412548407825" />
+      <entry key="S30" value="1.5647705310146431" />
+      <entry key="S60" value="2.507266116216421" />
+      <entry key="M2" value="4.877234225467506" />
+      <entry key="M5" value="12.528860651404361" />
+      <entry key="M10" value="26.225696497344977" />
+      <entry key="M15" value="38.643148600168146" />
+      <entry key="M30" value="64.7675738487092" />
+      <entry key="H1" value="92.1617746814542" />
+      <entry key="H2" value="115.165900070739" />
+      <entry key="H4" value="130.95039989317502" />
+      <entry key="D1" value="147.30012550372672" />
+      <entry key="W1" value="150.46170875617466" />
     </decayedCancelled>
     <decayedSelected>
-      <entry key="MS100" value="3.211616167947502E-121" />
-      <entry key="MS500" value="7.975683905407308E-25" />
-      <entry key="S2" value="1.200379662646818E-6" />
-      <entry key="S5" value="0.00804363603710547" />
-      <entry key="S10" value="0.17591984728205523" />
-      <entry key="S30" value="1.7949654506324235" />
-      <entry key="S60" value="4.102474669632156" />
-      <entry key="M2" value="7.208550728603402" />
-      <entry key="M5" value="11.386661370856821" />
-      <entry key="M10" value="13.926068662471032" />
-      <entry key="M15" value="15.186357784369585" />
-      <entry key="M30" value="16.993288409222707" />
-      <entry key="H1" value="18.27950340726415" />
-      <entry key="H2" value="19.07344356010542" />
-      <entry key="H4" value="19.51833135079172" />
-      <entry key="D1" value="19.916996626435687" />
-      <entry key="W1" value="19.988073277919028" />
+      <entry key="MS100" value="0.0" />
+      <entry key="MS500" value="1.4574761866923904E-148" />
+      <entry key="S2" value="1.2070592869170286E-37" />
+      <entry key="S5" value="2.4710999597728312E-15" />
+      <entry key="S10" value="7.947972000111623E-8" />
+      <entry key="S30" value="0.008767490259093381" />
+      <entry key="S60" value="0.16820672785173166" />
+      <entry key="M2" value="0.9022664826971496" />
+      <entry key="M5" value="3.880733384612543" />
+      <entry key="M10" value="8.832970996793938" />
+      <entry key="M15" value="12.67205142156241" />
+      <entry key="M30" value="19.32493014194021" />
+      <entry key="H1" value="24.565435593344652" />
+      <entry key="H2" value="27.943065518689878" />
+      <entry key="H4" value="29.876319253773694" />
+      <entry key="D1" value="31.631829569207937" />
+      <entry key="W1" value="31.94704190196503" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="6.18871752801531E-5" />
-      <entry key="MS500" value="0.1440292359371847" />
-      <entry key="S2" value="0.704157967333028" />
-      <entry key="S5" value="1.3579279575342302" />
-      <entry key="S10" value="2.330363828328385" />
-      <entry key="S30" value="6.219821673456776" />
-      <entry key="S60" value="11.021206032964585" />
-      <entry key="M2" value="19.39541627765817" />
-      <entry key="M5" value="38.83549192877532" />
-      <entry key="M10" value="56.28137423358554" />
-      <entry key="M15" value="66.30328008711737" />
-      <entry key="M30" value="83.78699482366056" />
-      <entry key="H1" value="101.42938797279763" />
-      <entry key="H2" value="116.22804857391793" />
-      <entry key="H4" value="126.31563387850125" />
-      <entry key="D1" value="136.6715214218447" />
-      <entry key="W1" value="138.6615916298461" />
+      <entry key="MS100" value="0.8705505632961241" />
+      <entry key="MS500" value="0.9726549474122855" />
+      <entry key="S2" value="0.9930925050460108" />
+      <entry key="S5" value="0.9980511482469799" />
+      <entry key="S10" value="1.0379051284178442" />
+      <entry key="S30" value="1.571789947659099" />
+      <entry key="S60" value="2.6657641494709337" />
+      <entry key="M2" value="5.754439694881311" />
+      <entry key="M5" value="16.367021248593666" />
+      <entry key="M10" value="35.00802502629138" />
+      <entry key="M15" value="51.26485994157258" />
+      <entry key="M30" value="84.05180387845623" />
+      <entry key="H1" value="116.7002683287495" />
+      <entry key="H2" value="143.09325428227785" />
+      <entry key="H4" value="160.81819997445925" />
+      <entry key="D1" value="178.93043225472564" />
+      <entry key="W1" value="182.40853043351223" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -139,33 +123,33 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "Application.Main.executor": "Run",
-    "Application.Teste2.executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.MCP Project settings loaded": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "main",
-    "junie.onboarding.icon.badge.shown": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/gilva/OneDrive/Documentos/Programação/Sistema_de_Acompanhamento_de_Medicamentos",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.pluginManager",
-    "to.speed.mode.migration.done": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
+    &quot;Application.Teste2.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/gilva/OneDrive/Documentos/Programação/Sistema_de_Acompanhamento_de_Medicamentos&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/Gerenciador de Medicamentos/docs/adr" />

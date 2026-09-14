@@ -40,6 +40,10 @@ public class AppConfig {
         return new RegistrarMedicamentoService(gerarIdMedicamento, medicamentoCsvAdapter, usuarioCsvAdapter);
     }
 
+    public static ExcluirUsuarioService criarExcluirUsuarioService() {
+        return new ExcluirUsuarioService(usuarioCsvAdapter);
+    }
+
     public static SalvarUsuarioPort getUsuarioPort() {
         return usuarioCsvAdapter;
     }
