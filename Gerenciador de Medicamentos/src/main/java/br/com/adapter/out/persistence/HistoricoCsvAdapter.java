@@ -72,6 +72,19 @@ public class HistoricoCsvAdapter implements SalvarHistoricoPort {
         }
     }
 
+    @Override
+    public List<HistoricoMedicamento> listarHistoricoPorIdoso(int idIdoso, Map<Integer, Idoso> idosos, Map<Integer, Medicamento> medicamentos) {
+        List<HistoricoMedicamento> resultado = new ArrayList<>();
+
+        for(String linha : lerLinhas()){
+            HistoricoMedicamento historico = montarObjeto(linha, idosos, medicamentos);
+            if(historico != null && historico.getIdoso().getId() == idIdoso){
+                resultado.add(historico);
+            }
+        }
+        return resultado;
+    }
+
     private HistoricoMedicamento montarObjeto(String linha, Map<Integer, Idoso> idosos, Map<Integer, Medicamento> medicamentos) {
         try {
             String[] campos = linha.split(";");

@@ -48,6 +48,10 @@ public class AppConfig {
         return new ExcluirMedicamentoService(medicamentoCsvAdapter);
     }
 
+    public static BuscarHistoricoPorIdosoService criarBuscarHistoricoPorIdosoService() {
+        return new BuscarHistoricoPorIdosoService(usuarioCsvAdapter, medicamentoCsvAdapter, historicoCsvAdapter);
+    }
+
     public static SalvarUsuarioPort getUsuarioPort() {
         return usuarioCsvAdapter;
     }

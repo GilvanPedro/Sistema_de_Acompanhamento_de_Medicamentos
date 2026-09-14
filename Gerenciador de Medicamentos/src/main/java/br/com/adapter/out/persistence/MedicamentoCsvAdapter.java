@@ -71,16 +71,32 @@ public class MedicamentoCsvAdapter implements SalvarMedicamentoPort {
 
     @Override
     public void excluir(int id) {
-        List<Medicamento> todos = listarTodos();
-        List<Medicamento> restantes = new ArrayList<>();
+        List<String> restantes = new ArrayList<>();
 
-        for (Medicamento m : todos) {
-            if (m.getId() != id) {
-                restantes.add(m);
+        for (String linha : lerLinhas()) {
+            try {
+                int idLinha = Integer.parseInt(linha.split(";")[0]);
+                if (idLinha != id) {
+                    restantes.add(linha);
+                }
+            } catch (RuntimeException e) {
+                throw new ArquivoCsvCorrompidoException(ARQUIVO, linha, e);
             }
         }
 
-        reescreverArquivo(restantes);
+        reescreverLinhasBrutas(ARQUIVO, restantes);
+    }
+
+    private void reescreverLinhasBrutas(String arquivo, List<String> linhas) {
+        try (BufferedWriter writer = Files.newBufferedWriter(
+                Paths.get(arquivo), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+            for (String linha : linhas) {
+                writer.write(linha);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Erro ao reescrever " + arquivo, e);
+        }
     }
 
     private void reescreverArquivo(List<Medicamento> medicamentos) {

@@ -90,17 +90,33 @@ public class UsuarioCsvAdapter implements SalvarUsuarioPort {
 
     @Override
     public void excluir(int id) {
-        List<Usuario> todos = listarTodos();
-        List<Usuario> restantes = new ArrayList<>();
+        List<String> restantes = new ArrayList<>();
 
-        for (Usuario u : todos) {
-            if (u.getId() != id) {
-                restantes.add(u);
+        for (String linha : lerLinhas(ARQUIVO_USUARIOS)) {
+            try {
+                int idLinha = Integer.parseInt(linha.split(";")[0]);
+                if (idLinha != id) {
+                    restantes.add(linha);
+                }
+            } catch (RuntimeException e) {
+                throw new ArquivoCsvCorrompidoException(ARQUIVO_USUARIOS, linha, e);
             }
         }
 
-        reescreverArquivoUsuarios(restantes);
+        reescreverLinhasBrutas(ARQUIVO_USUARIOS, restantes);
         removerVinculosDoUsuario(id);
+    }
+
+    private void reescreverLinhasBrutas(String arquivo, List<String> linhas) {
+        try (BufferedWriter writer = Files.newBufferedWriter(
+                Paths.get(arquivo), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+            for (String linha : linhas) {
+                writer.write(linha);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Erro ao reescrever " + arquivo, e);
+        }
     }
 
     @Override
