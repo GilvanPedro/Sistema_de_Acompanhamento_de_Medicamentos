@@ -9,11 +9,13 @@ import br.com.domain.model.Familiar;
 import br.com.domain.model.Idoso;
 import br.com.domain.model.Usuario;
 import br.com.domain.port.out.SalvarUsuarioPort;
+import br.com.domain.util.LeituraCsvUtil;
 
 public class UsuarioCsvAdapter implements SalvarUsuarioPort {
 
     private static final String ARQUIVO_USUARIOS = "usuarios.csv";
     private static final String ARQUIVO_VINCULOS = "vinculos.csv";
+    private static LeituraCsvUtil leituraCsvUtil = new LeituraCsvUtil();
 
     @Override
     public void salvar(Usuario usuario) {
@@ -114,12 +116,14 @@ public class UsuarioCsvAdapter implements SalvarUsuarioPort {
 
     @Override
     public Usuario buscarPorId(int id) {
-        for (Usuario u : listarTodos()) {
-            if (u.getId() == id) {
-                return u;
-            }
-        }
-        throw new NoSuchElementException("Usuário com id: " + id + " não encontrado.");
+        return leituraCsvUtil.buscarPrimeiro(
+                ARQUIVO_USUARIOS,
+                linha -> {
+                    String[] campos = linha.split(";");
+                    return Integer.parseInt(campos[0]) == id;
+                },
+                this::converterLinhaParaUsuario
+        ).orElseThrow(() -> new NoSuchElementException("Usuário com id: " + id + " não encontrado."));
     }
 
     private void removerVinculosDoUsuario(int id) {
@@ -187,6 +191,25 @@ public class UsuarioCsvAdapter implements SalvarUsuarioPort {
             return Files.readAllLines(caminho);
         } catch (IOException e) {
             throw new RuntimeException("Erro ao ler " + arquivo, e);
+        }
+    }
+
+    private Usuario converterLinhaParaUsuario(String linha) {
+        try {
+            String[] campos = linha.split(";");
+            int id = Integer.parseInt(campos[0]);
+            String tipo = campos[1];
+            String nome = campos[2];
+            String email = campos[3];
+            String senha = campos[4];
+
+            if ("IDOSO".equalsIgnoreCase(tipo)) {
+                return new Idoso(id, nome, email, senha);
+            } else {
+                return new Familiar(id, nome, email, senha);
+            }
+        } catch (RuntimeException e) {
+            throw new ArquivoCsvCorrompidoException(ARQUIVO_USUARIOS, linha, e);
         }
     }
 }

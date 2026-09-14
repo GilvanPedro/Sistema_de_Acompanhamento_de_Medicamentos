@@ -10,10 +10,12 @@ import br.com.domain.exception.ArquivoCsvCorrompidoException;
 import br.com.domain.model.Medicamento;
 import br.com.domain.model.TipoMedicamento;
 import br.com.domain.port.out.SalvarMedicamentoPort;
+import br.com.domain.util.LeituraCsvUtil;
 
 public class MedicamentoCsvAdapter implements SalvarMedicamentoPort {
 
     private static final String ARQUIVO = "medicamentos.csv";
+    private static LeituraCsvUtil leituraCsvUtil = new LeituraCsvUtil();
 
     @Override
     public void salvar(Medicamento medicamento) {
@@ -57,12 +59,14 @@ public class MedicamentoCsvAdapter implements SalvarMedicamentoPort {
 
     @Override
     public Medicamento buscarPorId(int id) {
-        for (Medicamento m : listarTodos()) {
-            if (m.getId() == id) {
-                return m;
-            }
-        }
-        throw new NoSuchElementException("Medicamento com id: " + id + " não encontrado.");
+        return leituraCsvUtil.buscarPrimeiro(
+                ARQUIVO,
+                linha -> {
+                    String[] campos = linha.split(";");
+                    return Integer.parseInt(campos[0]) == id;
+                },
+                this::converterLinhaParaMedicamento
+        ).orElseThrow(() -> new NoSuchElementException("Medicamento com id: " + id + " não encontrado."));
     }
 
     @Override
@@ -119,6 +123,22 @@ public class MedicamentoCsvAdapter implements SalvarMedicamentoPort {
             return Files.readAllLines(caminho);
         } catch (IOException e) {
             throw new RuntimeException("Erro ao ler " + ARQUIVO, e);
+        }
+    }
+
+    private Medicamento converterLinhaParaMedicamento(String linha) {
+        try {
+            String[] campos = linha.split(";");
+            int id = Integer.parseInt(campos[0]);
+            int idosoId = Integer.parseInt(campos[1]);
+            String nome = campos[2];
+            LocalTime horario = LocalTime.parse(campos[3]);
+            DayOfWeek diaSemana = DayOfWeek.valueOf(campos[4]);
+            TipoMedicamento tipo = TipoMedicamento.valueOf(campos[5]);
+
+            return new Medicamento(id, idosoId, nome, horario, diaSemana, tipo);
+        } catch (RuntimeException e) {
+            throw new ArquivoCsvCorrompidoException(ARQUIVO, linha, e);
         }
     }
 }
