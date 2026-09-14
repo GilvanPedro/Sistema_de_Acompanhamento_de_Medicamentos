@@ -5,11 +5,9 @@ import br.com.adapter.out.notification.ConsoleNotificationAdapter;
 import br.com.adapter.out.persistence.HistoricoCsvAdapter;
 import br.com.adapter.out.persistence.MedicamentoCsvAdapter;
 import br.com.adapter.out.persistence.UsuarioCsvAdapter;
+import br.com.adapter.out.security.BcryptSenhaAdapter;
 import br.com.application.service.*;
-import br.com.domain.port.out.GerarIdPort;
-import br.com.domain.port.out.SalvarHistoricoPort;
-import br.com.domain.port.out.SalvarMedicamentoPort;
-import br.com.domain.port.out.SalvarUsuarioPort;
+import br.com.domain.port.out.*;
 
 public class AppConfig {
 
@@ -17,10 +15,12 @@ public class AppConfig {
     private static final SalvarMedicamentoPort medicamentoCsvAdapter = new MedicamentoCsvAdapter();
     private static final SalvarHistoricoPort historicoCsvAdapter = new HistoricoCsvAdapter();
     private static final GerarIdPort gerarIdHistorico = new GerarIdPorArquivoAdapter("historico.csv");
+    private static final CriptografarSenhaPort criptografarSenhaPort = new BcryptSenhaAdapter();
+
 
     public static RegistrarUsuarioService criarRegistrarUsuarioService() {
         GerarIdPort gerarIdUsuario = new GerarIdPorArquivoAdapter("usuarios.csv");
-        return new RegistrarUsuarioService(gerarIdUsuario, usuarioCsvAdapter);
+        return new RegistrarUsuarioService(gerarIdUsuario, usuarioCsvAdapter, criptografarSenhaPort);
     }
 
     public static EditarMedicamentoService criarEditarMedicamentoService() {
@@ -28,7 +28,7 @@ public class AppConfig {
     }
 
     public static EditarUsuarioService criarEditarUsuarioService() {
-        return new EditarUsuarioService(usuarioCsvAdapter);
+        return new EditarUsuarioService(usuarioCsvAdapter, criptografarSenhaPort);
     }
 
     public static VerificarAtrasoMedicamentoService criarVerificarAtrasoMedicamentoService() {

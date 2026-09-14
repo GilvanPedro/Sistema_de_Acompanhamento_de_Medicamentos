@@ -13,8 +13,8 @@ import br.com.domain.util.LeituraCsvUtil;
 
 public class UsuarioCsvAdapter implements SalvarUsuarioPort {
 
-    private static final String ARQUIVO_USUARIOS = "usuarios.csv";
-    private static final String ARQUIVO_VINCULOS = "vinculos.csv";
+    private static final String ARQUIVO_USUARIOS = "arquivos/usuarios.csv";
+    private static final String ARQUIVO_VINCULOS = "arquivos/vinculos.csv";
     private static LeituraCsvUtil leituraCsvUtil = new LeituraCsvUtil();
 
     @Override

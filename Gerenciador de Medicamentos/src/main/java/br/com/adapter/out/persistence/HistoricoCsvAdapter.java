@@ -13,7 +13,7 @@ import br.com.domain.port.out.SalvarHistoricoPort;
 
 public class HistoricoCsvAdapter implements SalvarHistoricoPort {
 
-    private static final String ARQUIVO = "historico.csv";
+    private static final String ARQUIVO = "arquivos/historico.csv";
 
     @Override
     public void salvar(HistoricoMedicamento historico) {
