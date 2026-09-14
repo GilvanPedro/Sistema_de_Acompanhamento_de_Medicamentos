@@ -44,6 +44,10 @@ public class AppConfig {
         return new ExcluirUsuarioService(usuarioCsvAdapter);
     }
 
+    public static ExcluirMedicamentoService criarExcluirMedicamentoService() {
+        return new ExcluirMedicamentoService(medicamentoCsvAdapter);
+    }
+
     public static SalvarUsuarioPort getUsuarioPort() {
         return usuarioCsvAdapter;
     }
