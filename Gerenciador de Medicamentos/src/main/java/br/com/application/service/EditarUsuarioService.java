@@ -1,11 +1,11 @@
 package br.com.application.service;
 
-import br.com.adapter.out.persistence.UsuarioCsvAdapter;
-import br.com.domain.model.Familiar;
-import br.com.domain.model.Idoso;
+import br.com.domain.exception.UsuarioNaoEncontradoException;
 import br.com.domain.model.Usuario;
 import br.com.domain.port.in.EditarUsuarioCase;
 import br.com.domain.port.out.SalvarUsuarioPort;
+
+import java.util.NoSuchElementException;
 
 public class EditarUsuarioService implements EditarUsuarioCase {
     private final SalvarUsuarioPort salvarUsuario;
@@ -15,31 +15,25 @@ public class EditarUsuarioService implements EditarUsuarioCase {
     }
 
     @Override
-    public Usuario editarIdoso(int id, String nome, String email, String senha) {
-        Idoso editarIdoso = (Idoso) buscarUsuario(id);
+    public Usuario editarUsuario(int id, String nome, String email, String senha) {
+        Usuario usuario = salvarUsuario.buscarPorId(id);
 
-        editarIdoso.setNome(nome);
-        editarIdoso.setEmail(email);
-        editarIdoso.setSenha(senha);
+        usuario.setNome(nome);
+        usuario.setEmail(email);
+        usuario.setSenha(senha);
 
-        salvarUsuario.atualizar(editarIdoso);
-        return editarIdoso;
+        salvarUsuario.atualizar(usuario);
+
+        return usuario;
     }
 
-    @Override
-    public Usuario editarFamiliar(int id, String nome, String email, String senha) {
-        Familiar editarFamiliar = (Familiar) buscarUsuario(id);
-
-        editarFamiliar.setNome(nome);
-        editarFamiliar.setEmail(email);
-        editarFamiliar.setSenha(senha);
-
-        salvarUsuario.atualizar(editarFamiliar);
-        return editarFamiliar;
-    }
-
-    private Usuario buscarUsuario(int id){
-        Usuario usuarioBuscado = salvarUsuario.buscarPorId(id);
-        return usuarioBuscado;
+    private Usuario buscarUsuario(int id) {
+        try {
+            return salvarUsuario.buscarPorId(id);
+        } catch (NoSuchElementException e) {
+            throw new UsuarioNaoEncontradoException(id);
+        }
     }
 }
+
+

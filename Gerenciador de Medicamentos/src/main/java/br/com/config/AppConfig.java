@@ -5,10 +5,7 @@ import br.com.adapter.out.notification.ConsoleNotificationAdapter;
 import br.com.adapter.out.persistence.HistoricoCsvAdapter;
 import br.com.adapter.out.persistence.MedicamentoCsvAdapter;
 import br.com.adapter.out.persistence.UsuarioCsvAdapter;
-import br.com.application.service.EditarMedicamentoService;
-import br.com.application.service.RegistrarMedicamentoService;
-import br.com.application.service.RegistrarUsuarioService;
-import br.com.application.service.VerificarAtrasoMedicamentoService;
+import br.com.application.service.*;
 import br.com.domain.port.out.GerarIdPort;
 import br.com.domain.port.out.SalvarHistoricoPort;
 import br.com.domain.port.out.SalvarMedicamentoPort;
@@ -28,6 +25,10 @@ public class AppConfig {
 
     public static EditarMedicamentoService criarEditarMedicamentoService() {
         return new EditarMedicamentoService(medicamentoCsvAdapter);
+    }
+
+    public static EditarUsuarioService criarEditarUsuarioService() {
+        return new EditarUsuarioService(usuarioCsvAdapter);
     }
 
     public static VerificarAtrasoMedicamentoService criarVerificarAtrasoMedicamentoService() {

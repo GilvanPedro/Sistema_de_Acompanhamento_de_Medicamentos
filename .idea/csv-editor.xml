@@ -17,6 +17,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/usuarios.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value=";" />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\historico.csv">
           <value>
             <Attribute>
