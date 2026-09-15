@@ -34,10 +34,6 @@ public class RegistrarMedicamentoService implements RegistrarMedicamentoCase {
 
         Usuario encontrado = salvarUsuarioPort.buscarPorId(idosoId);
 
-        if (encontrado == null) {
-            throw new IllegalArgumentException("Não existe usuário cadastrado com id " + idosoId + ".");
-        }
-
         if (!(encontrado instanceof Idoso)) {
             throw new IllegalArgumentException("O id " + idosoId + " pertence a um familiar. Apenas idosos podem ter medicamentos cadastrados.");
         }

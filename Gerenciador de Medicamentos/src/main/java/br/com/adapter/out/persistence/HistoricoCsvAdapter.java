@@ -1,7 +1,5 @@
 package br.com.adapter.out.persistence;
 
-import java.io.*;
-import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -10,21 +8,22 @@ import br.com.domain.model.HistoricoMedicamento;
 import br.com.domain.model.Idoso;
 import br.com.domain.model.Medicamento;
 import br.com.domain.port.out.SalvarHistoricoPort;
+import br.com.domain.util.ArquivoCsvUtil;
 
 public class HistoricoCsvAdapter implements SalvarHistoricoPort {
 
-    private static final String ARQUIVO = "arquivos/historico.csv";
+    private static final String ARQUIVO = "arquivo/historico.csv";
 
     @Override
     public void salvar(HistoricoMedicamento historico) {
-        escreverLinha(montarLinha(historico));
+        ArquivoCsvUtil.escreverLinha(ARQUIVO, montarLinha(historico));
     }
 
     @Override
     public List<HistoricoMedicamento> listarTodos(Map<Integer, Idoso> idosos, Map<Integer, Medicamento> medicamentos) {
         List<HistoricoMedicamento> resultado = new ArrayList<>();
 
-        for (String linha : lerLinhas()) {
+        for (String linha : ArquivoCsvUtil.lerLinhas(ARQUIVO)) {
             HistoricoMedicamento historico = montarObjeto(linha, idosos, medicamentos);
             if (historico != null) {
                 resultado.add(historico);
@@ -50,7 +49,7 @@ public class HistoricoCsvAdapter implements SalvarHistoricoPort {
     public void excluir(int id) {
         List<String> restantes = new ArrayList<>();
 
-        for (String linha : lerLinhas()) {
+        for (String linha : ArquivoCsvUtil.lerLinhas(ARQUIVO)) {
             try {
                 int idLinha = Integer.parseInt(linha.split(";")[0]);
                 if (idLinha != id) {
@@ -61,27 +60,20 @@ public class HistoricoCsvAdapter implements SalvarHistoricoPort {
             }
         }
 
-        try (BufferedWriter writer = Files.newBufferedWriter(
-                Paths.get(ARQUIVO), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-            for (String linha : restantes) {
-                writer.write(linha);
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Erro ao reescrever " + ARQUIVO, e);
-        }
+        ArquivoCsvUtil.reescreverLinhas(ARQUIVO, restantes);
     }
 
     @Override
     public List<HistoricoMedicamento> listarHistoricoPorIdoso(int idIdoso, Map<Integer, Idoso> idosos, Map<Integer, Medicamento> medicamentos) {
         List<HistoricoMedicamento> resultado = new ArrayList<>();
 
-        for(String linha : lerLinhas()){
+        for (String linha : ArquivoCsvUtil.lerLinhas(ARQUIVO)) {
             HistoricoMedicamento historico = montarObjeto(linha, idosos, medicamentos);
-            if(historico != null && historico.getIdoso().getId() == idIdoso){
+            if (historico != null && historico.getIdoso().getId() == idIdoso) {
                 resultado.add(historico);
             }
         }
+
         return resultado;
     }
 
@@ -108,15 +100,11 @@ public class HistoricoCsvAdapter implements SalvarHistoricoPort {
     }
 
     private void reescreverArquivo(List<HistoricoMedicamento> historicos) {
-        try (BufferedWriter writer = Files.newBufferedWriter(
-                Paths.get(ARQUIVO), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-            for (HistoricoMedicamento h : historicos) {
-                writer.write(montarLinha(h));
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Erro ao reescrever " + ARQUIVO, e);
+        List<String> linhas = new ArrayList<>();
+        for (HistoricoMedicamento h : historicos) {
+            linhas.add(montarLinha(h));
         }
+        ArquivoCsvUtil.reescreverLinhas(ARQUIVO, linhas);
     }
 
     private String montarLinha(HistoricoMedicamento historico) {
@@ -125,27 +113,5 @@ public class HistoricoCsvAdapter implements SalvarHistoricoPort {
                 historico.getMedicamento().getId() + ";" +
                 historico.getDataHoraTomada() + ";" +
                 historico.isFoiTomado();
-    }
-
-    private void escreverLinha(String linha) {
-        try (BufferedWriter writer = Files.newBufferedWriter(
-                Paths.get(ARQUIVO), StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
-            writer.write(linha);
-            writer.newLine();
-        } catch (IOException e) {
-            throw new RuntimeException("Erro ao salvar em " + ARQUIVO, e);
-        }
-    }
-
-    private List<String> lerLinhas() {
-        Path caminho = Paths.get(ARQUIVO);
-        if (!Files.exists(caminho)) {
-            return new ArrayList<>();
-        }
-        try {
-            return Files.readAllLines(caminho);
-        } catch (IOException e) {
-            throw new RuntimeException("Erro ao ler " + ARQUIVO, e);
-        }
     }
 }
