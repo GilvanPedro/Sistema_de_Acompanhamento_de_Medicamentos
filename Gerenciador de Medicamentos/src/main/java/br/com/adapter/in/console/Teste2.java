@@ -29,7 +29,7 @@ public class Teste2 {
 
         System.out.println("\n=== 5.2. Editando apenas o email do idoso ===");
 
-        editarUsuarioService.editarUsuario(idoso1.getId(), null, "pedro.santos@email.com", null);
+        editarUsuarioService.editarUsuario(idoso1.getId(), null, "pedro.final@email.com", null);
         System.out.println("Depois de editar só o email: " + usuarioPort.buscarPorId(idoso1.getId()));
 
         System.out.println("\n=== 5.3. Editando apenas a senha do idoso ===");
@@ -39,7 +39,7 @@ public class Teste2 {
 
         System.out.println("\n=== 5.4. Editando os três campos de uma vez ===");
 
-        editarUsuarioService.editarUsuario(idoso1.getId(), "Pedro Carlos Final", "pedro.final@email.com", "senhaFinal789");
+        editarUsuarioService.editarUsuario(idoso1.getId(), "Pedro Carlos Final Completo", "pedro.finalcompleto@email.com", "senhaFinalCompleta789");
         System.out.println("Depois de editar tudo: " + usuarioPort.buscarPorId(idoso1.getId()));
 
         System.out.println("\n=== 5.5. Tentando editar sem mudar nada (os três null) ===");
