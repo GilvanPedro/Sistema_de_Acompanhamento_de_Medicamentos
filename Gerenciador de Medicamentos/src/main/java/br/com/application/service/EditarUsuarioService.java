@@ -1,5 +1,6 @@
 package br.com.application.service;
 
+import br.com.domain.exception.DadosInvalidosException;
 import br.com.domain.exception.UsuarioNaoEncontradoException;
 import br.com.domain.model.Usuario;
 import br.com.domain.port.in.EditarUsuarioCase;
@@ -22,11 +23,31 @@ public class EditarUsuarioService implements EditarUsuarioCase {
 
     @Override
     public Usuario editarUsuario(int id, String nome, String email, String senha) {
-        Usuario usuario = salvarUsuario.buscarPorId(id);
+        Usuario usuario = buscarUsuario(id);
 
-        usuario.setNome(nome);
-        usuario.setEmail(email);
-        usuario.setSenha(criptografarSenhaPort.criptografarSenha(senha));
+        if (nome != null) {
+            validarDadosUsuario.validarNome(nome);
+            usuario.setNome(nome);
+        }
+
+        if (email != null) {
+            validarDadosUsuario.validarEmail(email);
+
+            Usuario usuarioComEmail = salvarUsuario.buscarPorEmail(email);
+            if (usuarioComEmail != null && usuarioComEmail.getId() != id) {
+                throw new DadosInvalidosException("Já existe um usuário cadastrado com o email " + email + ".");
+            }
+            usuario.setEmail(email);
+        }
+
+        if (senha != null) {
+            validarDadosUsuario.validarSenha(senha);
+
+            boolean senhaMudou = !criptografarSenhaPort.verificarSenha(senha, usuario.getSenha());
+            if (senhaMudou) {
+                usuario.setSenha(criptografarSenhaPort.criptografarSenha(senha));
+            }
+        }
 
         salvarUsuario.atualizar(usuario);
 

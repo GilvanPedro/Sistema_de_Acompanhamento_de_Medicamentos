@@ -1,7 +1,8 @@
 package br.com.application.service;
 
-import br.com.domain.model.Idoso;
+import br.com.domain.exception.DadosInvalidosException;
 import br.com.domain.model.Familiar;
+import br.com.domain.model.Idoso;
 import br.com.domain.model.Usuario;
 import br.com.domain.port.in.RegistrarUsuarioCase;
 import br.com.domain.port.out.CriptografarSenhaPort;
@@ -27,6 +28,10 @@ public class RegistrarUsuarioService implements RegistrarUsuarioCase {
     public Usuario registrarIdoso(String nome, String email, String senha) {
         validarDadosUsuario.validarUsuario(nome, email, senha);
 
+        if (salvarUsuarioPort.buscarPorEmail(email) != null) {
+            throw new DadosInvalidosException("Já existe um usuário cadastrado com o email " + email + ".");
+        }
+
         int novoId = gerarIdPort.proximoId();
         Idoso idoso = new Idoso(novoId, nome, email, criptografarSenhaPort.criptografarSenha(senha));
         salvarUsuarioPort.salvar(idoso);
@@ -36,6 +41,10 @@ public class RegistrarUsuarioService implements RegistrarUsuarioCase {
     @Override
     public Usuario registrarFamiliar(String nome, String email, String senha) {
         validarDadosUsuario.validarUsuario(nome, email, senha);
+
+        if (salvarUsuarioPort.buscarPorEmail(email) != null) {
+            throw new DadosInvalidosException("Já existe um usuário cadastrado com o email " + email + ".");
+        }
 
         int novoId = gerarIdPort.proximoId();
         Familiar familiar = new Familiar(novoId, nome, email, criptografarSenhaPort.criptografarSenha(senha));

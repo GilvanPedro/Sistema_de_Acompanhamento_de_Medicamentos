@@ -142,6 +142,16 @@ public class UsuarioCsvAdapter implements SalvarUsuarioPort {
         ).orElseThrow(() -> new NoSuchElementException("Usuário com id: " + id + " não encontrado."));
     }
 
+    @Override
+    public Usuario buscarPorEmail(String email) {
+        for (Usuario u : listarTodos()) {
+            if (u.getEmail().equalsIgnoreCase(email)) {
+                return u;
+            }
+        }
+        return null;
+    }
+
     private void removerVinculosDoUsuario(int id) {
         List<String> linhasRestantes = new ArrayList<>();
 

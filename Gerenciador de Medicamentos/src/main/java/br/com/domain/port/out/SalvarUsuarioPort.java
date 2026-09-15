@@ -11,4 +11,5 @@ public interface SalvarUsuarioPort {
     void excluir(int id);
     List<Usuario> buscarPorNome(String nome);
     Usuario buscarPorId(int id);
+    Usuario buscarPorEmail(String email);
 }
