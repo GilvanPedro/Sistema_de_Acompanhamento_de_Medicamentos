@@ -124,7 +124,7 @@ public class UsuarioCsvAdapter implements SalvarUsuarioPort {
 
     @Override
     public Usuario buscarPorId(int id) {
-        return LeituraCsvUtil.buscarPrimeiro(
+        Usuario usuario = LeituraCsvUtil.buscarPrimeiro(
                 ARQUIVO_USUARIOS,
                 linha -> {
                     String[] campos = linha.split(";");
@@ -132,6 +132,45 @@ public class UsuarioCsvAdapter implements SalvarUsuarioPort {
                 },
                 this::converterLinhaParaUsuario
         ).orElseThrow(() -> new NoSuchElementException("Usuário com id: " + id + " não encontrado."));
+
+        popularVinculos(usuario);
+
+        return usuario;
+    }
+
+    private void popularVinculos(Usuario usuario) {
+        for (String linha : ArquivoCsvUtil.lerLinhas(ARQUIVO_VINCULOS)) {
+            try {
+                String[] campos = linha.split(";");
+                int idosoId = Integer.parseInt(campos[0]);
+                int familiarId = Integer.parseInt(campos[1]);
+
+                if (usuario instanceof Idoso idoso && idoso.getId() == idosoId) {
+                    buscarUsuarioBasico(familiarId)
+                            .filter(Familiar.class::isInstance)
+                            .map(Familiar.class::cast)
+                            .ifPresent(idoso::adicionarFamiliares);
+                } else if (usuario instanceof Familiar familiar && familiar.getId() == familiarId) {
+                    buscarUsuarioBasico(idosoId)
+                            .filter(Idoso.class::isInstance)
+                            .map(Idoso.class::cast)
+                            .ifPresent(familiar::adicionarIdosos);
+                }
+            } catch (RuntimeException e) {
+                throw new ArquivoCsvCorrompidoException(ARQUIVO_VINCULOS, linha, e);
+            }
+        }
+    }
+
+    private Optional<Usuario> buscarUsuarioBasico(int id) {
+        return LeituraCsvUtil.buscarPrimeiro(
+                ARQUIVO_USUARIOS,
+                linha -> {
+                    String[] campos = linha.split(";");
+                    return Integer.parseInt(campos[0]) == id;
+                },
+                this::converterLinhaParaUsuario
+        );
     }
 
     private void removerVinculosDoUsuario(int id) {
