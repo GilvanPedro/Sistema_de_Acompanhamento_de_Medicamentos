@@ -13,7 +13,7 @@ import br.com.domain.util.LeituraCsvUtil;
 
 public class MedicamentoCsvAdapter implements SalvarMedicamentoPort {
 
-    private static final String ARQUIVO = "arquivo/medicamentos.csv";
+    private static final String ARQUIVO = "arquivos/medicamentos.csv";
 
     @Override
     public void salvar(Medicamento medicamento) {

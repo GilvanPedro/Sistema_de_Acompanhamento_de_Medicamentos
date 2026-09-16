@@ -25,6 +25,15 @@ public class RegistrarTomadaService implements RegistrarTomadaCase {
     public HistoricoMedicamento registrarTomada(Idoso idoso, Medicamento medicamento, boolean tomou) {
         int novoId = gerarIdPort.proximoId();
         HistoricoMedicamento historico = new HistoricoMedicamento(novoId, medicamento, idoso, LocalDateTime.now(), tomou);
-        return null;
+
+        salvarHistoricoPort.salvar(historico);
+
+        if (tomou) {
+            notificarPort.avisarRemedioTomado(idoso, medicamento);
+        } else {
+            notificarPort.avisarRemedioEsquecido(idoso, medicamento);
+        }
+
+        return historico;
     }
 }

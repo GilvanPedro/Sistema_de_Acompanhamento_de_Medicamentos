@@ -23,6 +23,10 @@ public class AppConfig {
         return new RegistrarUsuarioService(gerarIdUsuario, usuarioCsvAdapter, criptografarSenhaPort);
     }
 
+    public static RegistrarTomadaService criarRegistrarTomadaService() {
+        return new RegistrarTomadaService(gerarIdHistorico, historicoCsvAdapter, new ConsoleNotificationAdapter());
+    }
+
     public static EditarMedicamentoService criarEditarMedicamentoService() {
         return new EditarMedicamentoService(medicamentoCsvAdapter);
     }

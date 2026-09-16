@@ -1,50 +1,58 @@
 package br.com.adapter.in.console;
 
 import br.com.adapter.out.persistence.UsuarioCsvAdapter;
-import br.com.application.service.EditarUsuarioService;
 import br.com.application.service.RegistrarMedicamentoService;
-import br.com.application.service.RegistrarUsuarioService;
+import br.com.application.service.RegistrarTomadaService;
 import br.com.config.AppConfig;
 import br.com.domain.model.*;
-import br.com.domain.port.out.*;
+import br.com.domain.port.out.SalvarHistoricoPort;
 
 import java.time.DayOfWeek;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Teste2 {
     public static void main(String[] args) {
-        System.out.println("\n=== 5.1. Editando apenas o nome do idoso ===");
 
-        EditarUsuarioService editarUsuarioService = AppConfig.criarEditarUsuarioService();
+        System.out.println("\n=== Testando RegistrarTomadaService ===");
         UsuarioCsvAdapter usuarioCsvAdapter = new UsuarioCsvAdapter();
-        SalvarUsuarioPort usuarioPort = new UsuarioCsvAdapter();
 
-        Usuario idoso1 = usuarioCsvAdapter.buscarPorId(1);
+        Idoso idoso = (Idoso) usuarioCsvAdapter.buscarPorId(1);
 
-                editarUsuarioService.editarUsuario(idoso1.getId(), "Pedro Carlos Santos", null, null);
-        System.out.println("Depois de editar só o nome: " + usuarioPort.buscarPorId(idoso1.getId()));
+        RegistrarMedicamentoService registrarMedicamentoService = AppConfig.criarRegistrarMedicamentoService();
+        Medicamento medicamentoTeste = registrarMedicamentoService.registrarMedicamento(
+                "Teste Historico", DayOfWeek.MONDAY, LocalTime.of(8, 0), TipoMedicamento.COMPRIMIDO, idoso.getId()
+        );
+        System.out.println("Medicamento de teste criado: " + medicamentoTeste);
 
-        System.out.println("\n=== 5.2. Editando apenas o email do idoso ===");
+        Map<Integer, Idoso> idososMap = new HashMap<>();
+        for (Usuario u : usuarioCsvAdapter.listarTodos()) {
+            if (u instanceof Idoso i) {
+                idososMap.put(i.getId(), i);
+            }
+        }
 
-        editarUsuarioService.editarUsuario(idoso1.getId(), null, "pedro.final@email.com", null);
-        System.out.println("Depois de editar só o email: " + usuarioPort.buscarPorId(idoso1.getId()));
+        Map<Integer, Medicamento> medicamentosMap = new HashMap<>();
+        for (Medicamento m : AppConfig.getMedicamentoPort().listarTodos()) {
+            medicamentosMap.put(m.getId(), m);
+        }
 
-        System.out.println("\n=== 5.3. Editando apenas a senha do idoso ===");
+        SalvarHistoricoPort historicoPort = AppConfig.getHistoricoPort();
+        int quantidadeAntes = historicoPort.listarHistoricoPorIdoso(idoso.getId(), idososMap, medicamentosMap).size();
+        System.out.println("Registros de histórico ANTES: " + quantidadeAntes);
 
-        editarUsuarioService.editarUsuario(idoso1.getId(), null, null, "novaSenha456");
-        System.out.println("Depois de editar só a senha: " + usuarioPort.buscarPorId(idoso1.getId()));
+        RegistrarTomadaService registrarTomadaService = AppConfig.criarRegistrarTomadaService();
+        HistoricoMedicamento historicoRegistrado = registrarTomadaService.registrarTomada(idoso, medicamentoTeste, true);
+        System.out.println("Retorno do service: " + historicoRegistrado);
 
-        System.out.println("\n=== 5.4. Editando os três campos de uma vez ===");
+        int quantidadeDepois = historicoPort.listarHistoricoPorIdoso(idoso.getId(), idososMap, medicamentosMap).size();
+        System.out.println("Registros de histórico DEPOIS: " + quantidadeDepois);
 
-        editarUsuarioService.editarUsuario(idoso1.getId(), "Pedro Carlos Final Completo", "pedro.finalcompleto@email.com", "senhaFinalCompleta789");
-        System.out.println("Depois de editar tudo: " + usuarioPort.buscarPorId(idoso1.getId()));
-
-        System.out.println("\n=== 5.5. Tentando editar sem mudar nada (os três null) ===");
-
-        editarUsuarioService.editarUsuario(idoso1.getId(), null, null, null);
-        System.out.println("Depois de editar sem mudar nada: " + usuarioPort.buscarPorId(idoso1.getId()));
+        if (historicoRegistrado != null && quantidadeDepois == quantidadeAntes + 1) {
+            System.out.println("OK: RegistrarTomadaService salvou o histórico corretamente.");
+        } else {
+            System.out.println("FALHOU: o histórico não foi salvo como esperado.");
+        }
     }
 }
