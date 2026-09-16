@@ -14,7 +14,6 @@ public class UsuarioCsvAdapter implements SalvarUsuarioPort {
 
     private static final String ARQUIVO_USUARIOS = "arquivo/usuarios.csv";
     private static final String ARQUIVO_VINCULOS = "arquivo/vinculos.csv";
-    private static LeituraCsvUtil leituraCsvUtil = new LeituraCsvUtil();
 
     @Override
     public void salvar(Usuario usuario) {
@@ -125,7 +124,7 @@ public class UsuarioCsvAdapter implements SalvarUsuarioPort {
 
     @Override
     public Usuario buscarPorId(int id) {
-        return leituraCsvUtil.buscarPrimeiro(
+        return LeituraCsvUtil.buscarPrimeiro(
                 ARQUIVO_USUARIOS,
                 linha -> {
                     String[] campos = linha.split(";");

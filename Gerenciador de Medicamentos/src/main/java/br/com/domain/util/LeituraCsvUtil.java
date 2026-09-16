@@ -21,7 +21,6 @@ public class LeituraCsvUtil {
             String linha;
             while ((linha = reader.readLine()) != null) {
                 if (condicao.test(linha)) {
-                    // Parada antecipada: retorna assim que encontra o registro desejado
                     return Optional.of(mapeador.apply(linha));
                 }
             }

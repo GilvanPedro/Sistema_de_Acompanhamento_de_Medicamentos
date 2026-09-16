@@ -14,7 +14,6 @@ import br.com.domain.util.LeituraCsvUtil;
 public class MedicamentoCsvAdapter implements SalvarMedicamentoPort {
 
     private static final String ARQUIVO = "arquivo/medicamentos.csv";
-    private static LeituraCsvUtil leituraCsvUtil = new LeituraCsvUtil();
 
     @Override
     public void salvar(Medicamento medicamento) {
@@ -58,7 +57,7 @@ public class MedicamentoCsvAdapter implements SalvarMedicamentoPort {
 
     @Override
     public Medicamento buscarPorId(int id) {
-        return leituraCsvUtil.buscarPrimeiro(
+        return LeituraCsvUtil.buscarPrimeiro(
                 ARQUIVO,
                 linha -> {
                     String[] campos = linha.split(";");
