@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Scanner;
 
 import br.com.application.service.EditarMedicamentoService;
+import br.com.application.service.ExcluirMedicamentoService;
 import br.com.application.service.RegistrarMedicamentoService;
 import br.com.config.AppConfig;
 import br.com.domain.exception.DadosInvalidosException;
@@ -22,12 +23,14 @@ public class PainelMedicamentos {
     private final Idoso idoso;
     private final RegistrarMedicamentoService registrarMedicamentoService;
     private final EditarMedicamentoService editarMedicamentoService;
+    private final ExcluirMedicamentoService excluirMedicamentoService;
 
     public PainelMedicamentos(Scanner scanner, Idoso idoso) {
         this.scanner = scanner;
         this.idoso = idoso;
         this.registrarMedicamentoService = AppConfig.criarRegistrarMedicamentoService();
         this.editarMedicamentoService = AppConfig.criarEditarMedicamentoService();
+        this.excluirMedicamentoService = AppConfig.criarExcluirMedicamentoService();
     }
 
     public void exibir() {
@@ -37,6 +40,7 @@ public class PainelMedicamentos {
             System.out.println("1 - Ver medicamentos");
             System.out.println("2 - Cadastrar medicamento");
             System.out.println("3 - Editar medicamento");
+            System.out.println("4 - Excluir medicamento");
             System.out.println("0 - Voltar");
             System.out.print("Escolha uma opção: ");
 
@@ -44,6 +48,7 @@ public class PainelMedicamentos {
                 case "1" -> listar();
                 case "2" -> cadastrar();
                 case "3" -> editar();
+                case "4" -> excluir();
                 case "0" -> continuar = false;
                 default -> System.out.println("Opção inválida.");
             }
@@ -139,5 +144,35 @@ public class PainelMedicamentos {
         } catch (DadosInvalidosException | MedicamentoNaoEncontradoException | IllegalArgumentException e) {
             System.out.println("Erro ao editar: " + e.getMessage());
         }
+    }
+
+    private void excluir() {
+        List<Medicamento> medicamentos = medicamentosDoIdoso();
+        if (medicamentos.isEmpty()) {
+            System.out.println("Nenhum medicamento cadastrado ainda.");
+            return;
+        }
+
+        for (int i = 0; i < medicamentos.size(); i++) {
+            System.out.println((i + 1) + " - " + medicamentos.get(i));
+        }
+        System.out.print("Qual medicamento excluir? ");
+
+        int indice;
+        try {
+            indice = Integer.parseInt(scanner.nextLine()) - 1;
+        } catch (NumberFormatException e) {
+            System.out.println("Opção inválida.");
+            return;
+        }
+
+        if (indice < 0 || indice >= medicamentos.size()) {
+            System.out.println("Opção inválida.");
+            return;
+        }
+
+        Medicamento selecionado = medicamentos.get(indice);
+        excluirMedicamentoService.excluirMedicamento(selecionado.getId());
+        System.out.println("Medicamento excluído: " + selecionado.getNome());
     }
 }

@@ -26,13 +26,17 @@ public class AppConfig {
         return new VerificarNotificacoesIdosoService(medicamentoCsvAdapter, historicoCsvAdapter);
     }
 
+    public static CriarVinculoService criarCriarVinculoService() {
+        return new CriarVinculoService(usuarioCsvAdapter);
+    }
+
     public static RegistrarUsuarioService criarRegistrarUsuarioService() {
         GerarIdPort gerarIdUsuario = new GerarIdPorArquivoAdapter("arquivos/usuarios.csv");
         return new RegistrarUsuarioService(gerarIdUsuario, usuarioCsvAdapter, criptografarSenhaPort);
     }
 
     public static RegistrarTomadaService criarRegistrarTomadaService() {
-        return new RegistrarTomadaService(gerarIdHistorico, historicoCsvAdapter, new ConsoleNotificationAdapter());
+        return new RegistrarTomadaService(gerarIdHistorico, historicoCsvAdapter);
     }
 
     public static EditarMedicamentoService criarEditarMedicamentoService() {
