@@ -1,9 +1,13 @@
 package br.com.adapter.in.console;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
+import br.com.application.service.RegistrarTomadaService;
 import br.com.application.service.VerificarNotificacoesIdosoService;
 import br.com.config.AppConfig;
+import br.com.domain.model.HistoricoMedicamento;
 import br.com.domain.model.Idoso;
 import br.com.domain.model.Medicamento;
 import br.com.domain.model.NotificacaoMedicamento;
@@ -13,16 +17,33 @@ public class TelaIdoso {
     private final Scanner scanner;
     private final Idoso idoso;
     private final VerificarNotificacoesIdosoService verificarNotificacoesIdosoService;
+    private final RegistrarTomadaService registrarTomadaService;
 
     public TelaIdoso(Scanner scanner, Idoso idoso) {
         this.scanner = scanner;
         this.idoso = idoso;
         this.verificarNotificacoesIdosoService = AppConfig.criarVerificarNotificacoesIdosoService();
+        this.registrarTomadaService = AppConfig.criarRegistrarTomadaService();
     }
 
     public void exibir() {
         exibirNotificacoes();
-        new PainelMedicamentos(scanner, idoso).exibir();
+
+        boolean continuar = true;
+        while (continuar) {
+            System.out.println("\n=== Área do idoso: " + idoso.getNome() + " ===");
+            System.out.println("1 - Gerenciar medicamentos (ver, cadastrar, editar)");
+            System.out.println("2 - Marcar remédio como tomado");
+            System.out.println("0 - Deslogar");
+            System.out.print("Escolha uma opção: ");
+
+            switch (scanner.nextLine()) {
+                case "1" -> new PainelMedicamentos(scanner, idoso).exibir();
+                case "2" -> marcarComoTomado();
+                case "0" -> continuar = false;
+                default -> System.out.println("Opção inválida.");
+            }
+        }
     }
 
     private void exibirNotificacoes() {
@@ -34,5 +55,41 @@ public class TelaIdoso {
                 case ESQUECIDO -> System.out.println("Atenção: você ainda não tomou " + m.getNome() + ", previsto para " + m.getHorarioMedicamento() + ".");
             }
         }
+    }
+
+    private void marcarComoTomado() {
+        List<Medicamento> medicamentos = new ArrayList<>();
+        for (Medicamento m : AppConfig.getMedicamentoPort().listarTodos()) {
+            if (m.getIdosoId() == idoso.getId()) {
+                medicamentos.add(m);
+            }
+        }
+
+        if (medicamentos.isEmpty()) {
+            System.out.println("Nenhum medicamento cadastrado ainda.");
+            return;
+        }
+
+        for (int i = 0; i < medicamentos.size(); i++) {
+            System.out.println((i + 1) + " - " + medicamentos.get(i));
+        }
+        System.out.print("Qual medicamento você tomou? ");
+
+        int indice;
+        try {
+            indice = Integer.parseInt(scanner.nextLine()) - 1;
+        } catch (NumberFormatException e) {
+            System.out.println("Opção inválida.");
+            return;
+        }
+
+        if (indice < 0 || indice >= medicamentos.size()) {
+            System.out.println("Opção inválida.");
+            return;
+        }
+
+        Medicamento medicamento = medicamentos.get(indice);
+        HistoricoMedicamento historico = registrarTomadaService.registrarTomada(idoso, medicamento, true);
+        System.out.println("Registrado: você tomou " + medicamento.getNome() + " às " + historico.getDataHoraTomada() + ".");
     }
 }
