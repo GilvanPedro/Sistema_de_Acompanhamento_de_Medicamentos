@@ -14,12 +14,20 @@ public class AppConfig {
     private static final SalvarUsuarioPort usuarioCsvAdapter = new UsuarioCsvAdapter();
     private static final SalvarMedicamentoPort medicamentoCsvAdapter = new MedicamentoCsvAdapter();
     private static final SalvarHistoricoPort historicoCsvAdapter = new HistoricoCsvAdapter();
-    private static final GerarIdPort gerarIdHistorico = new GerarIdPorArquivoAdapter("historico.csv");
+    private static final GerarIdPort gerarIdHistorico = new GerarIdPorArquivoAdapter("arquivos/historico.csv");
     private static final CriptografarSenhaPort criptografarSenhaPort = new BcryptSenhaAdapter();
 
 
+    public static RealizarLoginService criarRealizarLoginService() {
+        return new RealizarLoginService(usuarioCsvAdapter, criptografarSenhaPort);
+    }
+
+    public static VerificarNotificacoesIdosoService criarVerificarNotificacoesIdosoService() {
+        return new VerificarNotificacoesIdosoService(medicamentoCsvAdapter, historicoCsvAdapter);
+    }
+
     public static RegistrarUsuarioService criarRegistrarUsuarioService() {
-        GerarIdPort gerarIdUsuario = new GerarIdPorArquivoAdapter("usuarios.csv");
+        GerarIdPort gerarIdUsuario = new GerarIdPorArquivoAdapter("arquivos/usuarios.csv");
         return new RegistrarUsuarioService(gerarIdUsuario, usuarioCsvAdapter, criptografarSenhaPort);
     }
 
@@ -40,7 +48,7 @@ public class AppConfig {
     }
 
     public static RegistrarMedicamentoService criarRegistrarMedicamentoService() {
-        GerarIdPort gerarIdMedicamento = new GerarIdPorArquivoAdapter("medicamentos.csv");
+        GerarIdPort gerarIdMedicamento = new GerarIdPorArquivoAdapter("arquivos/medicamentos.csv");
         return new RegistrarMedicamentoService(gerarIdMedicamento, medicamentoCsvAdapter, usuarioCsvAdapter);
     }
 
