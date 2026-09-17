@@ -1,4 +1,4 @@
-# ADR-0039 — Notificações por consulta (pull), específicas para quem está logado
+# ADR-0040 — Notificações por consulta (pull), específicas para quem está logado
 
 ## Status
 

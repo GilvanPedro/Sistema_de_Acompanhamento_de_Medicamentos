@@ -1,4 +1,4 @@
-# ADR-0037 — Login com mensagem genérica para credenciais inválidas
+# ADR-0038 — Login com mensagem genérica para credenciais inválidas
 
 ## Status
 

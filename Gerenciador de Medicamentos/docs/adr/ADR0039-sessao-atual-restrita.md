@@ -1,4 +1,4 @@
-# ADR-0038 — `SessaoAtual` restrita ao adapter de console
+# ADR-0039 — `SessaoAtual` restrita ao adapter de console
 
 ## Status
 

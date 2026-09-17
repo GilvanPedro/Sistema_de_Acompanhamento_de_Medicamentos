@@ -1,4 +1,4 @@
-# ADR-0040 — Remoção do disparo direto de notificação em `RegistrarTomadaService`
+# ADR-0041 — Remoção do disparo direto de notificação em `RegistrarTomadaService`
 
 ## Status
 
