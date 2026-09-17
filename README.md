@@ -1,21 +1,29 @@
 # Sistema de Acompanhamento de Medicamentos (CuidaMed)
 
-Protótipo de backend de um sistema pensado para ajudar idosos e seus familiares a não esquecerem de tomar os medicamentos na hora certa.
+Aplicação de terminal pensada para ajudar idosos e seus familiares a não esquecerem de tomar os medicamentos na hora certa.
 
-A ideia por trás é simples: cada idoso tem um ou mais familiares vinculados, cada medicamento tem um horário e um dia da semana marcados, e o sistema simula o aviso — pro idoso, na hora de tomar, e pro familiar, quando o remédio for ou não tomado.
-
-Neste estágio o projeto já segue a Arquitetura Hexagonal, com cadastro de usuários e medicamentos validado e com geração automática de id. Ainda não há persistência, API ou interface gráfica — os dados existem só durante a execução, via um cenário de teste no console.
+A ideia por trás é simples: cada idoso tem um ou mais familiares vinculados, cada medicamento tem um horário e um dia da semana marcados, e o sistema avisa — pro idoso, na hora de tomar, e pro familiar, quando o remédio for ou não tomado. Cada pessoa faz login com seu próprio usuário e só vê o que é relevante pra ela.
 
 ## O que já está pronto
 
-- **Modelagem de usuários** com herança: `Usuario` como base, e `Idoso` e `Familiar` estendendo essa classe
-- **Vínculo entre idoso e familiar** — um idoso pode ter vários familiares responsáveis, e um familiar pode acompanhar vários idosos
-- **Cadastro de medicamentos** (`Medicamento`), com nome, horário (`LocalTime`), dia da semana (`DayOfWeek`) e tipo (`TipoMedicamento`: comprimido, gotas, injeção ou outro)
-- **Histórico de medicamentos** (`HistoricoMedicamento`), guardando se o medicamento foi ou não tomado, e em que data e hora
-- **Cadastro validado de usuários e medicamentos**, via `RegistrarUsuarioService` e `RegistrarMedicamentoService`, com verificações de nome, e-mail e dados obrigatórios antes da criação
-- **Geração automática de id**, via a porta `GerarIdPort` e o adapter `GerarIdEmMemoriaAdapter` (contador em memória, um por tipo de entidade)
-- **Simulação de notificações**, via `NotificarPort` e o adapter `ConsoleNotificationAdapter`, com três avisos possíveis: lembrete pro idoso, aviso de remédio tomado e aviso de remédio esquecido — por enquanto tudo impresso no console
-- **`AppConfig`**, montando cada serviço com sua respectiva implementação de porta
+**Aplicação de terminal completa**, com login, cadastro e navegação por menus:
+- Cadastro como idoso ou familiar, e login por email e senha (senha protegida com hash BCrypt, nunca guardada em texto puro)
+- Depois de logado, a pessoa pode deslogar e voltar pra tela inicial sem encerrar o programa
+- **Se for idoso**: cadastra e edita os próprios medicamentos, e vê as notificações relevantes pra ele (lembrete de horário, confirmação de que já tomou, ou aviso de atraso)
+- **Se for familiar**: vê a lista de idosos que acompanha, e pode cadastrar e editar medicamentos de qualquer um deles, além de ver o status (tomado ou atrasado) de cada um
+- As telas ficam organizadas em classes próprias, cada uma com uma responsabilidade (login, menu principal, área do idoso, área do familiar, painel de medicamentos compartilhado entre idoso e familiar)
+
+**Modelagem e regras de negócio:**
+- `Usuario` como base, com `Idoso` e `Familiar` estendendo essa classe
+- Vínculo entre idoso e familiar (um idoso pode ter vários familiares, um familiar pode acompanhar vários idosos)
+- Medicamento com dono (`idosoId`), validado no cadastro — só é aceito se o id pertencer a um idoso de verdade
+- Histórico de medicamentos, guardando se cada remédio foi ou não tomado, e quando
+- Cadastro e edição validados (nome, e-mail, e-mail duplicado, dados obrigatórios), com edição parcial: só os campos informados são alterados, o resto permanece como estava
+- Geração de id sequencial, lida a partir do maior id já persistido — continua de onde parou entre execuções
+- Verificação de atraso na tomada, com tolerância de 10 minutos, checando o dia da semana e se o remédio já foi confirmado no dia
+- Um agendador roda essa verificação automaticamente a cada minuto, pra o sistema ficar sempre em dia mesmo sem ninguém interagindo
+
+**Persistência real em arquivos CSV** (pasta `arquivos/`, na raiz do módulo): usuários, vínculos, medicamentos e histórico sobrevivem entre execuções, com suporte completo a criar, listar, buscar, editar e excluir.
 
 ## Arquitetura do projeto (Hexagonal / Ports & Adapters)
 
@@ -24,6 +32,10 @@ O projeto segue o padrão **Ports & Adapters (Hexagonal)**: a regra de negócio 
 ```
 Gerenciador de Medicamentos/
 │
+├── arquivos/                   (dados persistidos em CSV)
+│
+├── docs/adr/                   (decisões de arquitetura registradas)
+│
 ├── src/main/java/br/com/
 │   │
 │   ├── domain/
@@ -31,7 +43,9 @@ Gerenciador de Medicamentos/
 │   │   ├── port/
 │   │   │   ├── in/
 │   │   │   └── out/
-│   │   └── validation/
+│   │   ├── validation/
+│   │   ├── exception/
+│   │   └── util/
 │   │
 │   ├── application/
 │   │   └── service/
@@ -39,12 +53,14 @@ Gerenciador de Medicamentos/
 │   ├── adapter/
 │   │   ├── in/
 │   │   │   ├── console/
+│   │   │   ├── scheduler/
 │   │   │   └── web/            (futuro)
 │   │   │
 │   │   └── out/
 │   │       ├── id/
 │   │       ├── notification/
-│   │       └── persistence/    (futuro)
+│   │       ├── persistence/
+│   │       └── security/
 │   │
 │   └── config/
 │
@@ -52,33 +68,38 @@ Gerenciador de Medicamentos/
 ```
 
 ### `domain/model/`
-Classes que representam o negócio de verdade: `Usuario`, `Idoso`, `Familiar`, `Medicamento`, `TipoMedicamento`, `HistoricoMedicamento`. São classes puras — sem anotação de banco, sem import de framework, sem nada que amarre com tecnologia.
+Classes que representam o negócio de verdade: `Usuario`, `Idoso`, `Familiar`, `Medicamento`, `TipoMedicamento`, `HistoricoMedicamento`, `NotificacaoMedicamento`, `TipoNotificacao`. São classes puras — sem anotação de banco, sem import de framework, sem nada que amarre com tecnologia.
 
 ### `domain/port/in/`
-As **portas de entrada**: interfaces que descrevem o que o sistema é capaz de fazer, do ponto de vista de quem usa. Hoje: `RegistrarUsuarioCase`, `RegistrarMedicamentoCase`. Não importa se quem chama é um console, uma API REST ou um app mobile — a porta é sempre a mesma.
+As **portas de entrada**: interfaces que descrevem o que o sistema é capaz de fazer, do ponto de vista de quem usa — cadastrar, editar, excluir, registrar tomada, realizar login, verificar notificações. Não importa se quem chama é um console, uma API REST ou um app mobile — a porta é sempre a mesma.
 
 ### `domain/port/out/`
-As **portas de saída**: interfaces que descrevem o que o sistema *precisa* que alguém faça por ele, mas sem dizer como. Hoje: `NotificarPort` (precisa notificar alguém, não importa se é console, e-mail ou Firebase) e `GerarIdPort` (precisa gerar um id, não importa se é um contador em memória ou um banco de dados).
+As **portas de saída**: interfaces que descrevem o que o sistema *precisa* que alguém faça por ele, mas sem dizer como — salvar/buscar usuário, medicamento e histórico, gerar id, notificar, criptografar senha.
 
-### `domain/validation/`
-Regras de validação dos dados de cadastro, independentes de tecnologia: `ValidarDadosRegistro`, `ValidarDadosMedicamento`, `ValidarEmail`, `ValidarInformacoesVazias`. Ficam no domínio porque são regra de negócio pura — não tem nada de console, web ou banco nessas verificações.
+### `domain/validation/` e `domain/exception/`
+Regras de validação e exceções de domínio, independentes de tecnologia — não tem nada de console, web ou CSV nelas.
+
+### `domain/util/`
+Utilitários reaproveitados pelos adapters de persistência: leitura/escrita de arquivo CSV, busca com parada antecipada, conversão de entrada de texto (como o dia da semana em português).
 
 ### `application/service/`
-A implementação das portas de entrada. É onde a lógica de negócio de fato acontece — valida os dados, gera o id e cria o objeto de domínio. Hoje: `RegistrarUsuarioService` e `RegistrarMedicamentoService`.
+A implementação das portas de entrada — onde a lógica de negócio de fato acontece.
 
 ### `adapter/in/`
-As implementações concretas de "como o mundo de fora aciona o sistema":
-- `console/` — o cenário de teste rodando na mão (`Main.java`)
+Como o mundo de fora aciona o sistema:
+- `console/` — a aplicação de terminal completa: `TerminalApp` (ponto de entrada), `TelaLogin`, `SessaoAtual`, `MenuPrincipal`, `TelaIdoso`, `TelaFamiliar`, `PainelMedicamentos`
+- `scheduler/` — o agendador que roda a verificação de atraso automaticamente
 - `web/` — futuro: controllers de uma API REST
 
 ### `adapter/out/`
-As implementações concretas de "como o sistema fala com o mundo de fora":
-- `id/` — hoje o `GerarIdEmMemoriaAdapter` (contador em memória); amanhã pode entrar um gerador baseado no CSV ou no banco de dados
-- `notification/` — hoje o `ConsoleNotificationAdapter` (imprime no console); amanhã pode entrar o `FirebaseNotificacaoAdapter`
-- `persistence/` — ainda não existe; é onde entrará a leitura e escrita dos dados (CSV, como primeira etapa planejada)
+Como o sistema fala com o mundo de fora:
+- `id/` — geração de id lendo o maior valor já persistido no CSV
+- `notification/` — infraestrutura de notificação (hoje sem uso ativo — o terminal consulta notificações sob demanda em vez de recebê-las como evento; ver ADRs)
+- `persistence/` — leitura e escrita dos quatro arquivos CSV
+- `security/` — hash de senha com BCrypt
 
 ### `config/`
-Onde as peças são montadas: qual adaptador concreto vai ser usado pra cada porta. É a única parte do sistema que "conhece" tanto o domínio quanto os adaptadores ao mesmo tempo — o resto do código nunca sabe qual implementação está rodando por trás da interface.
+Onde as peças são montadas: qual adaptador concreto vai ser usado pra cada porta.
 
 ---
 
@@ -101,15 +122,14 @@ cd "Gerenciador de Medicamentos"
 mvn compile exec:java -Dexec.mainClass="br.com.adapter.in.console.TerminalApp"
 ```
 
-Isso vai rodar o cenário de teste que está na classe `Main`, cadastrando idosos, familiares e medicamentos através dos serviços de aplicação, e imprimindo no console as notificações simuladas.
+Isso abre a aplicação de terminal: uma tela inicial pra fazer login ou se cadastrar (como idoso ou familiar), e, depois de logado, um menu de acordo com o tipo de usuário — área do idoso (cadastrar/editar medicamentos, ver notificações) ou área do familiar (ver os idosos acompanhados e gerenciar os medicamentos deles). Os dados ficam salvos em `arquivos/` e continuam disponíveis na próxima vez que o programa for executado.
 
 ## Próximos passos
 
-- Persistência dos dados em arquivos CSV (hoje tudo existe só durante a execução)
-- Serviços de edição (`Atualizar...Service`), separados dos serviços de cadastro
 - API para expor as funcionalidades
-- Integração real com Firebase para notificações
-- Interface para idosos e familiares
+- Integração real com Firebase para notificações (hoje a notificação é só consultada dentro do próprio terminal)
+- Interface gráfica ou web, além do terminal
+- Testes automatizados (ainda não existe nenhum)
 
 ## Licença
 

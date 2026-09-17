@@ -109,4 +109,4 @@ A exibição do dia da semana (saída) continua em inglês. Se for necessário e
 
 ## Responsáveis
 
-- [Nome]
+- Gilvan Pedro
