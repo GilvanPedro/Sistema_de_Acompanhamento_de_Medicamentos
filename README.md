@@ -109,6 +109,79 @@ Onde as peças são montadas: qual adaptador concreto vai ser usado pra cada por
 
 As decisões arquiteturais do projeto — o que foi decidido, as alternativas consideradas e o porquê — estão documentadas em ADRs, na pasta `docs/adr/`.
 
+# Arquitetura do Sistema
+
+```mermaid
+flowchart TD
+
+subgraph group_inbound["Inbound adapters"]
+  node_terminal["Terminal app<br/>console entrypoint"]
+  node_login_ui["Login screen<br/>console UI"]
+  node_medication_panel["Medication panel<br/>role-aware console UI"]
+  node_lateness_scheduler(("Lateness scheduler<br/>scheduled input"))
+end
+
+subgraph group_application["Application"]
+  node_app_config{{"Composition root<br/>dependency wiring"}}
+  node_user_access["Registration &amp; login<br/>application services"]
+  node_medication_lifecycle["Medication lifecycle<br/>application services"]
+  node_dose_history["Dose registration<br/>application service"]
+  node_lateness_check["Lateness verification<br/>application service"]
+  node_session["Current session<br/>process session"]
+end
+
+subgraph group_domain["Domain"]
+  node_domain_model["Users, medication &amp; history<br/>domain model"]
+  node_medication_validation["Medication validation<br/>domain validation"]
+  node_ports["Use-case &amp; persistence ports<br/>domain contracts"]
+end
+
+subgraph group_outbound["Outbound adapters"]
+  node_password_crypto["BCrypt password adapter<br/>security adapter"]
+  node_user_csv["User CSV adapter<br/>persistence adapter"]
+  node_medication_csv["Medication CSV adapter<br/>persistence adapter"]
+  node_history_csv["History CSV adapter<br/>persistence adapter"]
+  node_csv_files[("Local CSV files<br/>operational data store")]
+end
+
+node_terminal -->|"boots"| node_app_config
+node_terminal -->|"shows"| node_login_ui
+node_login_ui -->|"registers / authenticates"| node_user_access
+node_user_access -->|"sets authenticated user"| node_session
+node_session -->|"controls role view"| node_medication_panel
+node_medication_panel -->|"manages medication"| node_medication_lifecycle
+node_medication_panel -->|"confirms dose"| node_dose_history
+node_lateness_scheduler -->|"runs every minute"| node_lateness_check
+node_user_access -->|"depends on"| node_ports
+node_medication_lifecycle -->|"depends on"| node_ports
+node_dose_history -->|"depends on"| node_ports
+node_lateness_check -->|"depends on"| node_ports
+node_medication_lifecycle -->|"validates"| node_medication_validation
+node_user_access -->|"hashes / verifies passwords"| node_password_crypto
+node_ports -.->|"implemented by"| node_user_csv
+node_ports -.->|"implemented by"| node_medication_csv
+node_ports -.->|"implemented by"| node_history_csv
+node_user_csv -->|"reads / writes"| node_csv_files
+node_medication_csv -->|"reads / writes"| node_csv_files
+node_history_csv -->|"reads / writes"| node_csv_files
+node_user_access -->|"uses"| node_domain_model
+node_medication_lifecycle -->|"uses"| node_domain_model
+node_dose_history -->|"records"| node_domain_model
+node_lateness_check -->|"evaluates"| node_domain_model
+
+classDef toneNeutral fill:#f8fafc,stroke:#334155,stroke-width:1.5px,color:#0f172a
+classDef toneBlue fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#172554
+classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
+classDef toneMint fill:#dcfce7,stroke:#16a34a,stroke-width:1.5px,color:#14532d
+classDef toneRose fill:#ffe4e6,stroke:#e11d48,stroke-width:1.5px,color:#881337
+classDef toneIndigo fill:#e0e7ff,stroke:#4f46e5,stroke-width:1.5px,color:#312e81
+classDef toneTeal fill:#ccfbf1,stroke:#0f766e,stroke-width:1.5px,color:#134e4a
+class node_terminal,node_login_ui,node_medication_panel,node_lateness_scheduler toneBlue
+class node_app_config,node_user_access,node_medication_lifecycle,node_dose_history,node_lateness_check,node_session toneAmber
+class node_domain_model,node_medication_validation,node_ports toneMint
+class node_password_crypto,node_user_csv,node_medication_csv,node_history_csv,node_csv_files toneRose
+```
+
 ## Como rodar o projeto
 
 ### Pré-requisitos
