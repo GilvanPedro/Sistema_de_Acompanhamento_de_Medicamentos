@@ -98,7 +98,7 @@ As decisões arquiteturais do projeto — o que foi decidido, as alternativas co
 
 ```bash
 cd "Gerenciador de Medicamentos"
-mvn compile exec:java -Dexec.mainClass="br.com.adapter.in.console.Main"
+mvn compile exec:java -Dexec.mainClass="br.com.adapter.in.console.TerminalApp"
 ```
 
 Isso vai rodar o cenário de teste que está na classe `Main`, cadastrando idosos, familiares e medicamentos através dos serviços de aplicação, e imprimindo no console as notificações simuladas.

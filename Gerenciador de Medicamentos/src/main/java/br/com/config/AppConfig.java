@@ -21,7 +21,11 @@ public class AppConfig {
     public static RealizarLoginService criarRealizarLoginService() {
         return new RealizarLoginService(usuarioCsvAdapter, criptografarSenhaPort);
     }
-    
+
+    public static VerificarNotificacoesIdosoService criarVerificarNotificacoesIdosoService() {
+        return new VerificarNotificacoesIdosoService(medicamentoCsvAdapter, historicoCsvAdapter);
+    }
+
     public static RegistrarUsuarioService criarRegistrarUsuarioService() {
         GerarIdPort gerarIdUsuario = new GerarIdPorArquivoAdapter("arquivos/usuarios.csv");
         return new RegistrarUsuarioService(gerarIdUsuario, usuarioCsvAdapter, criptografarSenhaPort);
