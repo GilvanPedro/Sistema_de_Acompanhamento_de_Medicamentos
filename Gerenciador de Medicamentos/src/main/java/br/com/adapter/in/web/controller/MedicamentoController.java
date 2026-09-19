@@ -1,6 +1,7 @@
 package br.com.adapter.in.web.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -9,14 +10,18 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.adapter.in.web.auth.Acesso;
+import br.com.adapter.in.web.auth.FiltroAutenticacao;
+import br.com.adapter.in.web.idempotencia.ChavesDeIdempotencia;
 import br.com.adapter.in.web.dto.Dtos.HistoricoDto;
 import br.com.adapter.in.web.dto.Dtos.MedicamentoDto;
 import br.com.adapter.in.web.dto.Dtos.MedicamentoRequest;
 import br.com.adapter.in.web.dto.Dtos.NotificacaoDto;
+import br.com.adapter.in.web.dto.Dtos.TomadaRequest;
 import br.com.application.service.BuscarHistoricoPorIdosoService;
 import br.com.application.service.EditarMedicamentoService;
 import br.com.application.service.ExcluirMedicamentoService;
@@ -34,7 +39,11 @@ import jakarta.servlet.http.HttpServletRequest;
 @RequestMapping("/api/v1")
 class MedicamentoController {
 
+    private static final java.util.regex.Pattern CHAVE_VALIDA = java.util.regex.Pattern.compile("[A-Za-z0-9-]{8,64}");
+
     private final Acesso acesso;
+    private final ChavesDeIdempotencia chaves;
+    private final br.com.adapter.in.web.push.NotificadorPush push;
     private final SalvarMedicamentoPort medicamentos;
     private final RegistrarMedicamentoService registrar;
     private final EditarMedicamentoService editar;
@@ -45,8 +54,11 @@ class MedicamentoController {
 
     MedicamentoController(Acesso acesso, SalvarMedicamentoPort medicamentos, RegistrarMedicamentoService registrar,
                           EditarMedicamentoService editar, ExcluirMedicamentoService excluir, RegistrarTomadaService tomada,
-                          BuscarHistoricoPorIdosoService historico, VerificarNotificacoesIdosoService notificacoes) {
+                          BuscarHistoricoPorIdosoService historico, VerificarNotificacoesIdosoService notificacoes,
+                          ChavesDeIdempotencia chaves, br.com.adapter.in.web.push.NotificadorPush push) {
         this.acesso = acesso;
+        this.chaves = chaves;
+        this.push = push;
         this.medicamentos = medicamentos;
         this.registrar = registrar;
         this.editar = editar;
@@ -64,38 +76,72 @@ class MedicamentoController {
 
     @PostMapping("/idosos/{idosoId}/medicamentos")
     ResponseEntity<MedicamentoDto> cadastrar(@PathVariable("idosoId") int idosoId, @RequestBody MedicamentoRequest corpo,
+                                             @RequestHeader(value = "Idempotency-Key", required = false) String chave,
                                              HttpServletRequest requisicao) {
         Idoso idoso = acesso.idosoAcessivel(requisicao, idosoId);
         exigirCorpo(corpo);
+
+        // Reenvio do mesmo pedido (o app repete quando a resposta se perde, e pode estar sem internet no meio):
+        // devolve o remédio que aquela chave já criou, em vez de criar outro.
+        Integer usuarioId = (Integer) requisicao.getAttribute(FiltroAutenticacao.ATRIBUTO_USUARIO_ID);
+        if (chave != null) {
+            if (!CHAVE_VALIDA.matcher(chave).matches()) {
+                throw new DadosInvalidosException("Idempotency-Key inválida.");
+            }
+            Optional<Integer> jaCriado = chaves.buscar(usuarioId, chave);
+            if (jaCriado.isPresent()) {
+                return ResponseEntity.ok(MedicamentoDto.de(medicamentos.buscarPorId(jaCriado.get())));
+            }
+        }
+
         Medicamento criado = registrar.registrarMedicamento(corpo.nome(), corpo.diaSemana(), corpo.horario(),
                 corpo.tipo(), idoso.getId());
+        if (chave != null) {
+            chaves.salvar(usuarioId, chave, criado.getId());
+        }
+        avisarDono(usuarioId, idoso.getId());
         return ResponseEntity.status(201).body(MedicamentoDto.de(criado));
+    }
+
+    /** Quando um familiar mexe nos remédios, o aparelho do idoso acorda para atualizar os alarmes. */
+    private void avisarDono(int autorId, int idosoId) {
+        if (autorId != idosoId) {
+            push.avisarNovidade(idosoId);
+        }
     }
 
     /** Edição parcial: só os campos enviados mudam. */
     @PatchMapping("/medicamentos/{id}")
     MedicamentoDto editar(@PathVariable("id") int id, @RequestBody MedicamentoRequest corpo, HttpServletRequest requisicao) {
         exigirCorpo(corpo);
-        acesso.idosoAcessivel(requisicao, medicamentos.buscarPorId(id).getIdosoId());
-        return MedicamentoDto.de(editar.editarMedicamento(id, corpo.nome(), corpo.horario(), corpo.diaSemana(), corpo.tipo()));
+        int idosoId = acesso.idosoAcessivel(requisicao, medicamentos.buscarPorId(id).getIdosoId()).getId();
+        MedicamentoDto editado = MedicamentoDto.de(editar.editarMedicamento(id, corpo.nome(), corpo.horario(), corpo.diaSemana(), corpo.tipo()));
+        avisarDono((Integer) requisicao.getAttribute(FiltroAutenticacao.ATRIBUTO_USUARIO_ID), idosoId);
+        return editado;
     }
 
     @DeleteMapping("/medicamentos/{id}")
     ResponseEntity<Void> excluir(@PathVariable("id") int id, HttpServletRequest requisicao) {
-        acesso.idosoAcessivel(requisicao, medicamentos.buscarPorId(id).getIdosoId());
+        int idosoId = acesso.idosoAcessivel(requisicao, medicamentos.buscarPorId(id).getIdosoId()).getId();
         excluir.excluirMedicamento(id);
+        avisarDono((Integer) requisicao.getAttribute(FiltroAutenticacao.ATRIBUTO_USUARIO_ID), idosoId);
         return ResponseEntity.noContent().build();
     }
 
     /** O idoso marca que tomou o remédio (só ele, e só os próprios remédios). */
     @PostMapping("/medicamentos/{id}/tomadas")
-    ResponseEntity<HistoricoDto> registrarTomada(@PathVariable("id") int id, HttpServletRequest requisicao) {
+    ResponseEntity<HistoricoDto> registrarTomada(@PathVariable("id") int id,
+                                                 @RequestBody(required = false) TomadaRequest corpo,
+                                                 HttpServletRequest requisicao) {
         Idoso idoso = acesso.idosoLogado(requisicao);
         Medicamento medicamento = medicamentos.buscarPorId(id);
         if (medicamento.getIdosoId() != idoso.getId()) {
             throw new br.com.adapter.in.web.erro.AcessoNegadoException("Esse remédio não é seu.");
         }
-        return ResponseEntity.status(201).body(HistoricoDto.de(tomada.registrarTomada(idoso, medicamento, true)));
+        java.time.LocalDateTime quando = corpo == null ? null : corpo.dataHora();
+        HistoricoDto criado = HistoricoDto.de(tomada.registrarTomada(idoso, medicamento, true, quando));
+        idoso.getFamiliares().forEach(f -> push.avisarNovidade(f.getId()));
+        return ResponseEntity.status(201).body(criado);
     }
 
     @GetMapping("/idosos/{idosoId}/historico")

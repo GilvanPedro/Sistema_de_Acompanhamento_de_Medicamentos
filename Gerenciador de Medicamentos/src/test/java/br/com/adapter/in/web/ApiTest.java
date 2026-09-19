@@ -1,10 +1,12 @@
 package br.com.adapter.in.web;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -36,6 +38,8 @@ class ApiTest {
     MockMvc mvc;
     @Autowired
     ObjectMapper json;
+    @Autowired
+    PortasEmMemoria.Aparelhos aparelhos;
 
     /** Cria uma conta com e-mail único (cada teste usa contas próprias) e entra; devolve o login. */
     private Sessao criarConta(String tipo, String nome) throws Exception {
@@ -351,6 +355,120 @@ class ApiTest {
                 .andExpect(status().isAccepted()).andReturn().getResponse().getContentAsString();
         org.junit.jupiter.api.Assertions.assertEquals(adicionou, semConta);
         mvc.perform(com(get("/api/v1/me/familiares"), idoso)).andExpect(jsonPath("$[0].id").value(familiar.id()));
+    }
+
+    @Test
+    void tomadaAceitaAHoraRealDoToqueERecusaHoraNoFuturoOuMuitoAntiga() throws Exception {
+        Sessao idoso = criarConta("IDOSO", "Dona Hora");
+        int id = cadastrarMedicamento(idoso, "Enalapril");
+        java.time.LocalDateTime duasHorasAtras = java.time.LocalDateTime.now().minusHours(2).withNano(0);
+
+        // a hora que vale é a do toque (mesmo que o pedido chegue horas depois, por falta de internet)
+        mvc.perform(com(post("/api/v1/medicamentos/" + id + "/tomadas"), idoso).contentType(MediaType.APPLICATION_JSON)
+                        .content(corpo(Map.of("dataHora", duasHorasAtras.toString()))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.dataHora").value(org.hamcrest.Matchers.startsWith(duasHorasAtras.toString().substring(0, 16))));
+        // no mesmo dia, vale uma tomada só
+        mvc.perform(com(post("/api/v1/medicamentos/" + id + "/tomadas"), idoso).contentType(MediaType.APPLICATION_JSON)
+                .content(corpo(Map.of("dataHora", duasHorasAtras.plusMinutes(1).toString())))).andExpect(status().isBadRequest());
+
+        int outro = cadastrarMedicamento(idoso, "Atenolol");
+        mvc.perform(com(post("/api/v1/medicamentos/" + outro + "/tomadas"), idoso).contentType(MediaType.APPLICATION_JSON)
+                .content(corpo(Map.of("dataHora", java.time.LocalDateTime.now().plusHours(1).toString())))).andExpect(status().isBadRequest());
+        mvc.perform(com(post("/api/v1/medicamentos/" + outro + "/tomadas"), idoso).contentType(MediaType.APPLICATION_JSON)
+                .content(corpo(Map.of("dataHora", java.time.LocalDateTime.now().minusDays(8).toString())))).andExpect(status().isBadRequest());
+        // sem corpo continua valendo "agora"
+        mvc.perform(com(post("/api/v1/medicamentos/" + outro + "/tomadas"), idoso)).andExpect(status().isCreated());
+    }
+
+    @Test
+    void cadastrarComAMesmaChaveDeIdempotenciaNaoDuplicaOMedicamento() throws Exception {
+        Sessao idoso = criarConta("IDOSO", "Seu Reenvio");
+        String medicamento = corpo(Map.of("nome", "Sinvastatina", "diaSemana", "MONDAY", "horario", "20:00", "tipo", "COMPRIMIDO"));
+
+        String primeira = mvc.perform(com(post("/api/v1/idosos/" + idoso.id() + "/medicamentos"), idoso)
+                        .header("Idempotency-Key", "chave-de-teste-0001").contentType(MediaType.APPLICATION_JSON).content(medicamento))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        // o app reenvia (a resposta se perdeu): recebe o mesmo remédio, sem criar outro
+        String segunda = mvc.perform(com(post("/api/v1/idosos/" + idoso.id() + "/medicamentos"), idoso)
+                        .header("Idempotency-Key", "chave-de-teste-0001").contentType(MediaType.APPLICATION_JSON).content(medicamento))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        org.junit.jupiter.api.Assertions.assertEquals(json.readTree(primeira).get("id"), json.readTree(segunda).get("id"));
+        mvc.perform(com(get("/api/v1/idosos/" + idoso.id() + "/medicamentos"), idoso)).andExpect(jsonPath("$.length()").value(1));
+
+        // outra chave é outro remédio; chave malformada é recusada; sem chave continua como antes
+        mvc.perform(com(post("/api/v1/idosos/" + idoso.id() + "/medicamentos"), idoso)
+                .header("Idempotency-Key", "chave-de-teste-0002").contentType(MediaType.APPLICATION_JSON).content(medicamento)).andExpect(status().isCreated());
+        mvc.perform(com(post("/api/v1/idosos/" + idoso.id() + "/medicamentos"), idoso)
+                .header("Idempotency-Key", "curta").contentType(MediaType.APPLICATION_JSON).content(medicamento)).andExpect(status().isBadRequest());
+        mvc.perform(com(post("/api/v1/idosos/" + idoso.id() + "/medicamentos"), idoso)
+                .contentType(MediaType.APPLICATION_JSON).content(medicamento)).andExpect(status().isCreated());
+        mvc.perform(com(get("/api/v1/idosos/" + idoso.id() + "/medicamentos"), idoso)).andExpect(jsonPath("$.length()").value(3));
+    }
+
+    @Test
+    void aparelhoRegistradoRecebePushDeTomadaPedidoEMudancaNosRemedios() throws Exception {
+        Sessao idoso = criarConta("IDOSO", "Dona Alzira");
+        Sessao familiar = criarConta("FAMILIAR", "Neto Beto");
+
+        // sem token (ou com token enorme) é recusado; sem login também
+        mvc.perform(com(put("/api/v1/me/dispositivos"), idoso).contentType(MediaType.APPLICATION_JSON)
+                .content(corpo(Map.of("token", " ")))).andExpect(status().isBadRequest());
+        mvc.perform(put("/api/v1/me/dispositivos").contentType(MediaType.APPLICATION_JSON)
+                .content(corpo(Map.of("token", "abc")))).andExpect(status().isUnauthorized());
+        mvc.perform(com(put("/api/v1/me/dispositivos"), familiar).contentType(MediaType.APPLICATION_JSON)
+                .content(corpo(Map.of("token", "token-familiar")))).andExpect(status().isNoContent());
+
+        // pedido de vínculo acorda o idoso; aceitar acorda o familiar
+        aparelhos.avisados.clear();
+        mvc.perform(com(post("/api/v1/vinculos/pedidos"), familiar).contentType(MediaType.APPLICATION_JSON)
+                .content(corpo(Map.of("email", idoso.email())))).andExpect(status().isAccepted());
+        assertEquals(java.util.List.of(idoso.id()), aparelhos.avisados);
+        aparelhos.avisados.clear();
+        mvc.perform(com(post("/api/v1/vinculos/pedidos/" + familiar.id() + "/aceitar"), idoso)).andExpect(status().isNoContent());
+        assertEquals(java.util.List.of(familiar.id()), aparelhos.avisados);
+
+        // o familiar mexe nos remédios: o idoso é avisado; o próprio idoso mexendo não se avisa
+        aparelhos.avisados.clear();
+        int id = cadastrarMedicamento(idoso, "Losartana");
+        assertEquals(java.util.List.of(), aparelhos.avisados);
+        mvc.perform(com(patch("/api/v1/medicamentos/" + id), familiar).contentType(MediaType.APPLICATION_JSON)
+                .content(corpo(Map.of("nome", "Losartana 50")))).andExpect(status().isOk());
+        assertEquals(java.util.List.of(idoso.id()), aparelhos.avisados);
+
+        // a tomada acorda o familiar
+        aparelhos.avisados.clear();
+        mvc.perform(com(post("/api/v1/medicamentos/" + id + "/tomadas"), idoso)).andExpect(status().isCreated());
+        assertEquals(java.util.List.of(familiar.id()), aparelhos.avisados);
+    }
+
+    @Test
+    void sairDaContaOuExcluiLaTiraOAparelhoDaLista() throws Exception {
+        Sessao familiar = criarConta("FAMILIAR", "Tia Rita");
+        Sessao outra = criarConta("FAMILIAR", "Tio Rui");
+        String token = "tk-" + UUID.randomUUID();
+        mvc.perform(com(put("/api/v1/me/dispositivos"), familiar).contentType(MediaType.APPLICATION_JSON)
+                .content(corpo(Map.of("token", token)))).andExpect(status().isNoContent());
+        assertEquals(java.util.List.of(token), aparelhos.tokensDe(familiar.id()));
+
+        // outra conta não consegue remover o token alheio
+        mvc.perform(com(delete("/api/v1/me/dispositivos"), outra).contentType(MediaType.APPLICATION_JSON)
+                .content(corpo(Map.of("token", token)))).andExpect(status().isNoContent());
+        assertEquals(1, aparelhos.tokensDe(familiar.id()).size());
+
+        mvc.perform(com(delete("/api/v1/me/dispositivos"), familiar).contentType(MediaType.APPLICATION_JSON)
+                .content(corpo(Map.of("token", token)))).andExpect(status().isNoContent());
+        assertEquals(0, aparelhos.tokensDe(familiar.id()).size());
+
+        // token passa de uma conta para outra (mesmo aparelho, outro login); excluir a conta limpa os tokens dela
+        mvc.perform(com(put("/api/v1/me/dispositivos"), familiar).contentType(MediaType.APPLICATION_JSON)
+                .content(corpo(Map.of("token", token)))).andExpect(status().isNoContent());
+        mvc.perform(com(put("/api/v1/me/dispositivos"), outra).contentType(MediaType.APPLICATION_JSON)
+                .content(corpo(Map.of("token", token)))).andExpect(status().isNoContent());
+        assertEquals(0, aparelhos.tokensDe(familiar.id()).size());
+        mvc.perform(com(delete("/api/v1/me"), outra).contentType(MediaType.APPLICATION_JSON)
+                .content(corpo(Map.of("senha", SENHA)))).andExpect(status().isNoContent());
+        assertEquals(0, aparelhos.tokensDe(outra.id()).size());
     }
 
     @Test

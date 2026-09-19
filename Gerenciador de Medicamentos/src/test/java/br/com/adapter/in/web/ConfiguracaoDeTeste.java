@@ -55,6 +55,17 @@ class ConfiguracaoDeTeste {
     }
 
     @Bean
+    br.com.adapter.in.web.idempotencia.ChavesDeIdempotencia chavesDeIdempotencia() {
+        return new PortasEmMemoria.Chaves();
+    }
+
+    @Bean
+    /** Faz as vezes de Dispositivos e de NotificadorPush (anota quem foi avisado). */
+    PortasEmMemoria.Aparelhos aparelhos() {
+        return new PortasEmMemoria.Aparelhos();
+    }
+
+    @Bean
     JwtService jwtService() {
         return new JwtService("segredo-somente-para-testes-com-mais-de-32-caracteres");
     }

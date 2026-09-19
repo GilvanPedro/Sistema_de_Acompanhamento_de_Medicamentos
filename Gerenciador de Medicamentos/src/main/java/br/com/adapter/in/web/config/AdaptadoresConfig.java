@@ -10,6 +10,13 @@ import org.springframework.context.annotation.Profile;
 import br.com.adapter.in.web.auth.JwtService;
 import br.com.adapter.in.web.auth.RefreshTokenJdbcStore;
 import br.com.adapter.in.web.auth.RefreshTokenStore;
+import br.com.adapter.in.web.idempotencia.ChavesDeIdempotencia;
+import br.com.adapter.in.web.idempotencia.ChavesDeIdempotenciaJdbc;
+import br.com.adapter.in.web.push.Dispositivos;
+import br.com.adapter.in.web.push.DispositivosJdbc;
+import br.com.adapter.in.web.push.FcmNotificadorPush;
+import br.com.adapter.in.web.push.NotificadorPush;
+import br.com.adapter.in.web.push.NotificadorPushDesligado;
 import br.com.adapter.out.id.GerarIdPostgresAdapter;
 import br.com.adapter.out.persistence.postgres.ConexaoPostgres;
 import br.com.adapter.out.persistence.postgres.HistoricoPostgresAdapter;
@@ -67,6 +74,23 @@ class AdaptadoresConfig {
     @Bean
     RefreshTokenStore refreshTokenStore(DataSource dataSource) {
         return new RefreshTokenJdbcStore(dataSource);
+    }
+
+    @Bean
+    ChavesDeIdempotencia chavesDeIdempotencia(DataSource dataSource) {
+        return new ChavesDeIdempotenciaJdbc(dataSource);
+    }
+
+    @Bean
+    Dispositivos dispositivos(DataSource dataSource) {
+        return new DispositivosJdbc(dataSource);
+    }
+
+    /** Push só liga se FIREBASE_CREDENCIAIS (JSON da conta de serviço) estiver definida; senão, nada é enviado. */
+    @Bean
+    NotificadorPush notificadorPush(Dispositivos dispositivos) {
+        String credenciais = Ambiente.valor("FIREBASE_CREDENCIAIS");
+        return credenciais == null ? new NotificadorPushDesligado() : new FcmNotificadorPush(dispositivos, credenciais);
     }
 
     @Bean

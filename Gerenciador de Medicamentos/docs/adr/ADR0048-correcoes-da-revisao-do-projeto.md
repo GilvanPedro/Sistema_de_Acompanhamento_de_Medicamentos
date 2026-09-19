@@ -34,7 +34,7 @@ Com a API no ar (ADR-0047) e o repositório público, foi feita uma revisão do 
 10. **Meia-noite.** Novo auxiliar `OcorrenciasMedicamento`, usado pelos dois serviços de aviso: um remédio das 23h50 continua contando como atrasado depois da meia-noite, por até 3 horas, e uma tomada feita depois da meia-noite cobre o horário do dia anterior. Os serviços recebem o `Clock` por construtor, o que permite testar horários. Para remédios de outros horários, o comportamento é o mesmo de antes.
 11. **Cadastro simultâneo com o mesmo e-mail:** o índice único do banco já impedia o duplicado, mas a resposta era um erro interno; agora vira "Já existe um usuário cadastrado com esse e-mail" (também na edição).
 12. **Modo CSV:** nomes com `;` ou quebra de linha (que corromperiam o arquivo) são recusados; a pasta `arquivos/` é criada se não existir; os métodos dos adaptadores CSV passam a ser sincronizados dentro do programa.
-13. **Dados pessoais no Git.** O repositório é **público** e os CSVs de `arquivos/` estavam versionados: 14 commits com nomes, e-mails (15 fictícios `@email.com` e 3 de Gmail) e hashes BCrypt. Os quatro arquivos saíram do controle de versão (continuam na máquina de quem os usa) e `arquivos/*.csv` entrou no `.gitignore`. **O histórico antigo continua com esses dados**; apagá-lo exige reescrever o histórico e forçar o push, o que foi deixado para decisão do dono do repositório (ver Observações).
+13. **Dados pessoais no Git.** O repositório é **público** e os CSVs de `arquivos/` estavam versionados: 14 commits com nomes, e-mails (15 fictícios `@email.com` e 3 de Gmail) e hashes BCrypt. Os quatro arquivos saíram do controle de versão (continuam na máquina de quem os usa) e `arquivos/*.csv` entrou no `.gitignore`. **O histórico antigo continua com esses dados**, por decisão do dono do repositório: os commits são antigos e os CSVs eram apenas dados de teste, então não vale reescrever o histórico e forçar o push (ver Observações).
 
 ## Alternativas consideradas
 
@@ -80,11 +80,11 @@ Com a API no ar (ADR-0047) e o repositório público, foi feita uma revisão do 
 
 1. Executar `V3__uma_tomada_por_remedio_por_dia.sql` no SQL Editor da Neon (antes, conferir que não há tomadas duplicadas de dias anteriores; o índice não é criado se houver).
 2. Enviar o código ao GitHub para o Render publicar a nova versão.
-3. Decidir sobre a limpeza do histórico do Git (item 13).
+3. (Decidido) Manter o histórico do Git como está.
 
 ## Observações
 
-- **Limpeza do histórico do Git (item 13).** Reescrever o histórico (por exemplo com `git filter-repo --path arquivos --invert-paths`) e forçar o push apaga os dados antigos do repositório, mas muda todos os commits, quebra clones e forks existentes e não apaga cópias que alguém já tenha baixado. Como os e-mails de Gmail e os hashes já estiveram públicos, também vale trocar a senha de qualquer conta real que esteja nesses arquivos.
+- **Histórico do Git (item 13): mantido como está.** Reescrever o histórico (por exemplo com `git filter-repo --path arquivos --invert-paths`) e forçar o push apaga os dados antigos do repositório, mas muda todos os commits, quebra clones e forks existentes e não apaga cópias que alguém já tenha baixado. Como os e-mails de Gmail e os hashes já estiveram públicos, também vale trocar a senha de qualquer conta real que esteja nesses arquivos.
 - Pendências que continuam: limpar tokens de renovação expirados, cobrir os adaptadores PostgreSQL com testes automatizados e, no cadastro do app, consentimento e política de privacidade (LGPD).
 
 ## Data

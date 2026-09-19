@@ -31,14 +31,16 @@ class UsuarioController {
     private final ExcluirUsuarioService excluir;
     private final TokenService tokens;
     private final ConfirmacaoDeSenha confirmacao;
+    private final br.com.adapter.in.web.push.Dispositivos dispositivos;
 
     UsuarioController(Acesso acesso, EditarUsuarioService editar, ExcluirUsuarioService excluir, TokenService tokens,
-                      ConfirmacaoDeSenha confirmacao) {
+                      ConfirmacaoDeSenha confirmacao, br.com.adapter.in.web.push.Dispositivos dispositivos) {
         this.acesso = acesso;
         this.editar = editar;
         this.excluir = excluir;
         this.tokens = tokens;
         this.confirmacao = confirmacao;
+        this.dispositivos = dispositivos;
     }
 
     @GetMapping
@@ -74,6 +76,7 @@ class UsuarioController {
         confirmacao.exigir(atual, corpo == null ? null : corpo.senha());
         excluir.excluirUsuario(atual.getId());
         tokens.revogarTodos(atual.getId());
+        dispositivos.removerTodos(atual.getId());
         return ResponseEntity.noContent().build();
     }
 

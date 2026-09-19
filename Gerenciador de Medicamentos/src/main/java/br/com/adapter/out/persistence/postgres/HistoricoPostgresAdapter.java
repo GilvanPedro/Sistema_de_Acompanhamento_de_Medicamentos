@@ -43,7 +43,7 @@ public class HistoricoPostgresAdapter implements SalvarHistoricoPort {
         } catch (SQLException e) {
             if (UNIQUE_VIOLATION.equals(e.getSQLState())) {
                 // índice ux_historico_tomada_por_dia: dois pedidos ao mesmo tempo não registram duas tomadas no dia
-                throw new DadosInvalidosException("Você já registrou que tomou " + historico.getMedicamento().getNome() + " hoje.");
+                throw new DadosInvalidosException("Você já registrou que tomou " + historico.getMedicamento().getNome() + " nesse dia.");
             }
             throw new ErroBancoDadosException("salvar histórico", e);
         }

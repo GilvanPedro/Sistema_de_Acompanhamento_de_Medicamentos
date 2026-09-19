@@ -3,3 +3,6 @@ target/
 *.class
 *.iml
 .env
+
+# Dados do modo CSV (contêm dados pessoais e hashes de senha): nunca versionar.
+arquivos/*.csv

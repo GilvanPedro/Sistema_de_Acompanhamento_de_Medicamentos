@@ -234,6 +234,55 @@ final class PortasEmMemoria {
         }
     }
 
+    static class Aparelhos implements br.com.adapter.in.web.push.Dispositivos, br.com.adapter.in.web.push.NotificadorPush {
+        final Map<String, Integer> tokens = new HashMap<>();
+        final java.util.List<Integer> avisados = new java.util.ArrayList<>();
+
+        @Override
+        public void registrar(int usuarioId, String token) {
+            tokens.put(token, usuarioId);
+        }
+
+        @Override
+        public void remover(int usuarioId, String token) {
+            tokens.remove(token, usuarioId);
+        }
+
+        @Override
+        public void removerTodos(int usuarioId) {
+            tokens.values().removeIf(id -> id == usuarioId);
+        }
+
+        @Override
+        public void descartar(String token) {
+            tokens.remove(token);
+        }
+
+        @Override
+        public java.util.List<String> tokensDe(int usuarioId) {
+            return tokens.entrySet().stream().filter(e -> e.getValue() == usuarioId).map(Map.Entry::getKey).toList();
+        }
+
+        @Override
+        public void avisarNovidade(int usuarioId) {
+            avisados.add(usuarioId);
+        }
+    }
+
+    static class Chaves implements br.com.adapter.in.web.idempotencia.ChavesDeIdempotencia {
+        private final Map<String, Integer> chaves = new HashMap<>();
+
+        @Override
+        public Optional<Integer> buscar(int usuarioId, String chave) {
+            return Optional.ofNullable(chaves.get(usuarioId + "|" + chave));
+        }
+
+        @Override
+        public void salvar(int usuarioId, String chave, int recursoId) {
+            chaves.putIfAbsent(usuarioId + "|" + chave, recursoId);
+        }
+    }
+
     static class Tokens implements RefreshTokenStore {
         private final Map<String, RefreshRegistro> registros = new HashMap<>();
 

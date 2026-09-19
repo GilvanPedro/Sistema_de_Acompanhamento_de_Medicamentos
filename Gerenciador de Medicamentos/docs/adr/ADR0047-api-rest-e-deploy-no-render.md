@@ -49,7 +49,7 @@ A classe `Acesso` cumpre o papel que a `SessaoAtual` tem no terminal. **A cada r
 | Autenticação | `POST auth/registro`, `auth/login`, `auth/renovar`, `auth/sair` |
 | Conta | `GET/PATCH/DELETE me` (trocar senha ou e-mail e excluir exigem a senha atual), `GET me/idosos`, `GET me/familiares` |
 | Medicamentos | `GET/POST idosos/{id}/medicamentos`, `PATCH/DELETE medicamentos/{id}` |
-| Tomadas e avisos | `POST medicamentos/{id}/tomadas`, `GET idosos/{id}/historico`, `GET idosos/{id}/notificacoes` |
+| Tomadas e avisos | `POST medicamentos/{id}/tomadas` (aceita a hora real da tomada, ver ADR-0049), `GET idosos/{id}/historico`, `GET idosos/{id}/notificacoes` |
 | Vínculos | `POST/GET vinculos/pedidos`, `POST vinculos/pedidos/{familiarId}/aceitar\|recusar`, `POST me/familiares`, `DELETE me/familiares/{familiarId}` |
 | Saúde | `GET saude` (pública, sem dados) |
 

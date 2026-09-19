@@ -37,6 +37,10 @@ public final class Dtos {
     public record MedicamentoRequest(String nome, DayOfWeek diaSemana, LocalTime horario, TipoMedicamento tipo) { }
 
     public record EmailRequest(String email) { }
+    public record DispositivoRequest(String token) { }
+
+    /** Corpo opcional: a hora em que o idoso realmente tomou (o app manda a hora do toque, mesmo sem internet). */
+    public record TomadaRequest(LocalDateTime dataHora) { }
 
     // ---- saída
     public record UsuarioDto(int id, String tipo, String nome, String email) {

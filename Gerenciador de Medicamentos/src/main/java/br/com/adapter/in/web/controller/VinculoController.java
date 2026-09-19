@@ -33,12 +33,15 @@ class VinculoController {
     private final GerenciarVinculoService gerenciar;
     private final CriarVinculoService criar;
     private final SalvarUsuarioPort usuarios;
+    private final br.com.adapter.in.web.push.NotificadorPush push;
 
-    VinculoController(Acesso acesso, GerenciarVinculoService gerenciar, CriarVinculoService criar, SalvarUsuarioPort usuarios) {
+    VinculoController(Acesso acesso, GerenciarVinculoService gerenciar, CriarVinculoService criar, SalvarUsuarioPort usuarios,
+                       br.com.adapter.in.web.push.NotificadorPush push) {
         this.acesso = acesso;
         this.gerenciar = gerenciar;
         this.criar = criar;
         this.usuarios = usuarios;
+        this.push = push;
     }
 
     /**
@@ -52,6 +55,7 @@ class VinculoController {
         if (alvo instanceof Idoso idoso) {
             try {
                 gerenciar.solicitarVinculo(familiar.getId(), idoso.getId());
+                push.avisarNovidade(idoso.getId());
             } catch (DadosInvalidosException e) {
                 // já vinculado ou já pedido: não conta ao cliente
             }
@@ -68,6 +72,7 @@ class VinculoController {
     @PostMapping("/vinculos/pedidos/{familiarId}/aceitar")
     ResponseEntity<Void> aceitar(@PathVariable("familiarId") int familiarId, HttpServletRequest requisicao) {
         gerenciar.aceitarPedido(acesso.idosoLogado(requisicao).getId(), familiarId);
+        push.avisarNovidade(familiarId);
         return ResponseEntity.noContent().build();
     }
 
@@ -88,6 +93,7 @@ class VinculoController {
         if (alvo instanceof Familiar familiar) {
             try {
                 criar.criarVinculo(idoso.getId(), familiar.getId());
+                push.avisarNovidade(familiar.getId());
             } catch (DadosInvalidosException e) {
                 // já vinculado: não conta ao cliente
             }
