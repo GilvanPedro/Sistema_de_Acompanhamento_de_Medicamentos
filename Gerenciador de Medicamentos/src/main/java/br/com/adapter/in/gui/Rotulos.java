@@ -3,11 +3,8 @@ package br.com.adapter.in.gui;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 
-import br.com.domain.exception.CredenciaisInvalidasException;
-import br.com.domain.exception.DadosInvalidosException;
-import br.com.domain.exception.MedicamentoNaoEncontradoException;
-import br.com.domain.exception.UsuarioNaoEncontradoException;
-import br.com.domain.model.Medicamento;
+import br.com.adapter.in.gui.api.ApiException;
+import br.com.adapter.in.gui.api.Remedio;
 import br.com.domain.model.TipoMedicamento;
 
 /** Textos em português para mostrar na tela. */
@@ -38,8 +35,8 @@ final class Rotulos {
         };
     }
 
-    static String detalhe(Medicamento m) {
-        return tipo(m.getTipoMedicamento()) + "  ·  " + dia(m.getDiaSemana()) + ", " + m.getHorarioMedicamento();
+    static String detalhe(Remedio m) {
+        return tipo(m.tipo()) + "  ·  " + dia(m.dia()) + ", " + m.horario();
     }
 
     static String primeiroNome(String nome) {
@@ -52,11 +49,9 @@ final class Rotulos {
         return dia(data.getDayOfWeek()).toLowerCase() + ", " + data.getDayOfMonth() + " de " + MESES[data.getMonthValue() - 1];
     }
 
-    /** Mensagem amigável para o erro; erros inesperados não mostram detalhes técnicos. */
+    /** Mensagem para mostrar: a da API (já em português); erros inesperados não mostram detalhes técnicos. */
     static String erro(RuntimeException e) {
-        if (e instanceof DadosInvalidosException || e instanceof CredenciaisInvalidasException
-                || e instanceof UsuarioNaoEncontradoException || e instanceof MedicamentoNaoEncontradoException
-                || e instanceof IllegalArgumentException || e instanceof UnsupportedOperationException) {
+        if (e instanceof ApiException) {
             return e.getMessage();
         }
         return "Não foi possível concluir agora. Tente de novo.";

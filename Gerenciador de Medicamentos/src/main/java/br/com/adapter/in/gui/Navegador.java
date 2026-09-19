@@ -8,18 +8,23 @@ import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.LayoutManager;
-import java.util.NoSuchElementException;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.WindowConstants;
 
+import br.com.adapter.in.gui.Cartao.Tom;
 import br.com.adapter.in.gui.Tema.Papel;
-import br.com.config.AppConfig;
-import br.com.domain.model.Idoso;
-import br.com.domain.model.Usuario;
+import br.com.adapter.in.gui.api.ApiException;
+import br.com.adapter.in.gui.api.ClienteApi;
+import br.com.adapter.in.gui.api.Conta;
+import br.com.config.Ambiente;
 
 /** Janela principal: barra superior (letra, modo claro/escuro, sair) e a tela atual. */
 public class Navegador {
@@ -31,7 +36,17 @@ public class Navegador {
     private final Botao modo = Botao.barra(textoModo());
     private final Botao sair = Botao.barra("Sair");
     private final JPanel barra = criarBarra();
-    private Usuario usuario;
+    private Conta usuario;
+    private final ClienteApi api = new ClienteApi(Ambiente.valor("CUIDAMED_API_URL", URL_DA_API));
+    /** Muda a cada tela mostrada: resposta que chega depois de a pessoa ter ido para outra tela é descartada. */
+    private int geracao;
+
+    /** A API no Render (plano gratuito: hiberna, e a primeira resposta pode levar cerca de um minuto). */
+    static final String URL_DA_API = "https://sistema-de-acompanhamento-de-medicamentos.onrender.com/api/v1";
+
+    public ClienteApi api() {
+        return api;
+    }
 
     public void iniciar() {
         janela = new JFrame("CuidaMed");
@@ -57,6 +72,9 @@ public class Navegador {
         atualizarBarra();
         inicio();
         janela.setVisible(true);
+        Thread aquecimento = new Thread(api::acordarServidor, "acordar-servidor");
+        aquecimento.setDaemon(true);
+        aquecimento.start();
     }
 
     private JPanel criarBarra() {
@@ -168,6 +186,7 @@ public class Navegador {
 
     /** Troca a tela atual. */
     public void mostrar(Pagina pagina) {
+        geracao++;
         palco.removeAll();
         palco.add(pagina, BorderLayout.CENTER);
         Tema.aplicar(pagina);
@@ -183,30 +202,130 @@ public class Navegador {
         });
     }
 
-    public Usuario usuario() {
+    public Conta usuario() {
         return usuario;
     }
 
-    public void entrar(Usuario novo) {
+    /**
+     * Busca dados na API fora da thread da tela (o servidor pode demorar) e só então monta a tela. Enquanto isso mostra
+     * "Carregando". Se der erro, mostra o motivo com "Tentar de novo"; se a sessão acabou, volta para o início.
+     */
+    public <T> void carregar(Supplier<T> busca, Function<T, Pagina> montar) {
+        mostrar(new Pagina("CuidaMed", "Carregando…", null));
+        int minha = geracao;
+        executar(busca, dados -> {
+            if (minha == geracao) {
+                mostrar(montar.apply(dados));
+            }
+        }, erro -> {
+            if (minha == geracao) {
+                falhouCarregando(erro, () -> carregar(busca, montar));
+            }
+        });
+    }
+
+    /**
+     * Faz uma ação da tela atual (salvar, excluir...) fora da thread da tela. Os retornos só rodam se a pessoa ainda
+     * estiver nesta tela; se a sessão acabou, volta para o início.
+     */
+    public <T> void fazer(Supplier<T> acao, Consumer<T> aoConcluir, Consumer<ApiException> aoFalhar) {
+        int minha = geracao;
+        janela.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
+        executar(acao, dados -> {
+            janela.setCursor(java.awt.Cursor.getDefaultCursor());
+            if (minha == geracao) {
+                aoConcluir.accept(dados);
+            }
+        }, erro -> {
+            janela.setCursor(java.awt.Cursor.getDefaultCursor());
+            if (minha != geracao) {
+                return;
+            }
+            if (erro.sessaoPerdida() && usuario != null) {
+                sessaoPerdida();
+            } else {
+                aoFalhar.accept(erro);
+            }
+        });
+    }
+
+    private <T> void executar(Supplier<T> tarefa, Consumer<T> ok, Consumer<ApiException> erro) {
+        new SwingWorker<T, Void>() {
+            @Override
+            protected T doInBackground() {
+                return tarefa.get();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    ok.accept(get());
+                } catch (java.util.concurrent.ExecutionException e) {
+                    Throwable causa = e.getCause();
+                    erro.accept(causa instanceof ApiException a ? a
+                            : new ApiException(0, "Não foi possível concluir agora. Tente de novo."));
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }.execute();
+    }
+
+    private void falhouCarregando(ApiException erro, Runnable tentarDeNovo) {
+        if (erro.sessaoPerdida() && usuario != null) {
+            sessaoPerdida();
+            return;
+        }
+        Pagina tela = new Pagina("Não foi possível carregar", null, null);
+        tela.aviso(erro.getMessage(), Tom.ERRO);
+        Botao denovo = Botao.primario("Tentar de novo");
+        denovo.addActionListener(e -> tentarDeNovo.run());
+        Botao sair = Botao.secundario(usuario != null ? "Sair da conta" : "Voltar ao início");
+        sair.addActionListener(e -> sair());
+        tela.adicionar(denovo);
+        tela.adicionar(sair);
+        mostrar(tela);
+    }
+
+    private void sessaoPerdida() {
+        usuario = null;
+        atualizarBarra();
+        Pagina inicio = new TelaInicio(this);
+        inicio.aviso("Sua sessão terminou. Entre de novo.", Tom.AVISO);
+        mostrar(inicio);
+    }
+
+    /** Depois do login: só segue para a tela inicial se a conta já aceitou a política de privacidade. */
+    public void entrar(Conta novo) {
         usuario = novo;
         atualizarBarra();
-        home();
+        mostrar(new Pagina("CuidaMed", "Carregando…", null));
+        int minha = geracao;
+        executar(api::politicaAceita, aceita -> {
+            if (minha != geracao) {
+                return;
+            }
+            if (aceita) {
+                home();
+            } else {
+                mostrar(new TelaAceiteDaPolitica(this));
+            }
+        }, erro -> {
+            if (minha == geracao) {
+                falhouCarregando(erro, () -> entrar(novo));
+            }
+        });
     }
 
     public void sair() {
+        if (api.logado()) {
+            Thread saida = new Thread(api::sair, "sair");
+            saida.setDaemon(true);
+            saida.start();
+        }
         usuario = null;
         atualizarBarra();
         inicio();
-    }
-
-    /** Recarrega o usuário do arquivo (para enxergar vínculos e dados novos). */
-    public Usuario atualizarUsuario() {
-        try {
-            usuario = AppConfig.getUsuarioPort().buscarPorId(usuario.getId());
-        } catch (NoSuchElementException e) {
-            sair();
-        }
-        return usuario;
     }
 
     public void inicio() {
@@ -218,14 +337,28 @@ public class Navegador {
     }
 
     public void home(String aviso) {
-        Usuario atual = atualizarUsuario();
+        Conta atual = usuario;
         if (atual == null) {
             return;
         }
-        Pagina tela = atual instanceof Idoso idoso ? new TelaHomeIdoso(this, idoso) : new TelaHomeFamiliar(this, atual);
-        if (aviso != null) {
-            tela.aviso(aviso, Cartao.Tom.OK);
+        if (atual.ehIdoso()) {
+            carregar(() -> TelaHomeIdoso.buscar(api, atual), dados -> {
+                usuario = dados.idoso();
+                Pagina tela = new TelaHomeIdoso(this, dados);
+                if (aviso != null) {
+                    tela.aviso(aviso, Tom.OK);
+                }
+                return tela;
+            });
+        } else {
+            carregar(() -> TelaHomeFamiliar.buscar(api, atual), dados -> {
+                usuario = dados.familiar();
+                Pagina tela = new TelaHomeFamiliar(this, dados);
+                if (aviso != null) {
+                    tela.aviso(aviso, Tom.OK);
+                }
+                return tela;
+            });
         }
-        mostrar(tela);
     }
 }

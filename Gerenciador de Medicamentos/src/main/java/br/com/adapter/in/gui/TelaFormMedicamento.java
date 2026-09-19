@@ -8,20 +8,15 @@ import javax.swing.ButtonGroup;
 import javax.swing.JTextField;
 
 import br.com.adapter.in.gui.Cartao.Tom;
-import br.com.application.service.EditarMedicamentoService;
-import br.com.application.service.RegistrarMedicamentoService;
-import br.com.config.AppConfig;
-import br.com.domain.model.Idoso;
-import br.com.domain.model.Medicamento;
+import br.com.adapter.in.gui.api.Conta;
+import br.com.adapter.in.gui.api.Remedio;
 import br.com.domain.model.TipoMedicamento;
 
 /** Formulário para cadastrar ou editar um remédio, sem digitar hora nem dia: tudo por botões. */
 class TelaFormMedicamento extends Pagina {
 
-    TelaFormMedicamento(Navegador nav, Idoso idoso, Medicamento existente, Consumer<String> aoVoltar) {
+    TelaFormMedicamento(Navegador nav, Conta idoso, Remedio existente, Consumer<String> aoVoltar) {
         super(existente == null ? "Novo remédio" : "Editar remédio", null, () -> aoVoltar.accept(null));
-        RegistrarMedicamentoService registrar = AppConfig.criarRegistrarMedicamentoService();
-        EditarMedicamentoService editar = AppConfig.criarEditarMedicamentoService();
 
         JTextField nome = Campo.texto();
         TipoMedicamento[] tipos = TipoMedicamento.values();
@@ -46,11 +41,11 @@ class TelaFormMedicamento extends Pagina {
         if (existente == null) {
             botoesTipo[0].setSelected(true);
         } else {
-            nome.setText(existente.getNome());
-            botoesTipo[existente.getTipoMedicamento().ordinal()].setSelected(true);
-            botoesDia[existente.getDiaSemana().ordinal()].setSelected(true);
-            hora.definir(existente.getHorarioMedicamento().getHour());
-            minuto.definir(existente.getHorarioMedicamento().getMinute());
+            nome.setText(existente.nome());
+            botoesTipo[existente.tipo().ordinal()].setSelected(true);
+            botoesDia[existente.dia().ordinal()].setSelected(true);
+            hora.definir(existente.horario().getHour());
+            minuto.definir(existente.horario().getMinute());
         }
 
         Botao salvar = Botao.primario(existente == null ? "Salvar remédio" : "Salvar mudanças");
@@ -78,16 +73,13 @@ class TelaFormMedicamento extends Pagina {
             }
             LocalTime horario = LocalTime.of(hora.valor(), minuto.valor());
             String nomeFinal = nome.getText().trim();
-            try {
-                if (existente == null) {
-                    registrar.registrarMedicamento(nomeFinal, dias[diaEscolhido], horario, tipos[tipoEscolhido], idoso.getId());
-                } else {
-                    editar.editarMedicamento(existente.getId(), nomeFinal, horario, dias[diaEscolhido], tipos[tipoEscolhido]);
-                }
-                aoVoltar.accept(nomeFinal + " foi salvo.");
-            } catch (RuntimeException ex) {
-                aviso(Rotulos.erro(ex), Tom.ERRO);
-            }
+            DayOfWeek dia = dias[diaEscolhido];
+            TipoMedicamento tipo = tipos[tipoEscolhido];
+            nav.fazer(() -> existente == null
+                            ? nav.api().cadastrarRemedio(idoso.id(), nomeFinal, dia, horario, tipo)
+                            : nav.api().editarRemedio(existente.id(), nomeFinal, dia, horario, tipo),
+                    salvo -> aoVoltar.accept(nomeFinal + " foi salvo."),
+                    erro -> aviso(erro.getMessage(), Tom.ERRO));
         });
         Botao cancelar = Botao.secundario("Cancelar");
         cancelar.addActionListener(e -> aoVoltar.accept(null));

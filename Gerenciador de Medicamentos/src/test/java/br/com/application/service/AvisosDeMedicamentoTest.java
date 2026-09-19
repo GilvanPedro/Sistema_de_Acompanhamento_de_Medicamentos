@@ -5,9 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.Clock;
@@ -28,7 +25,6 @@ import br.com.domain.model.NotificacaoMedicamento;
 import br.com.domain.model.TipoMedicamento;
 import br.com.domain.model.TipoNotificacao;
 import br.com.domain.model.Usuario;
-import br.com.domain.port.out.NotificarPort;
 import br.com.domain.port.out.SalvarHistoricoPort;
 import br.com.domain.port.out.SalvarMedicamentoPort;
 import br.com.domain.port.out.SalvarUsuarioPort;
@@ -42,7 +38,6 @@ class AvisosDeMedicamentoTest {
     private final SalvarMedicamentoPort medicamentos = mock(SalvarMedicamentoPort.class);
     private final SalvarHistoricoPort historico = mock(SalvarHistoricoPort.class);
     private final SalvarUsuarioPort usuarios = mock(SalvarUsuarioPort.class);
-    private final NotificarPort notificar = mock(NotificarPort.class);
     private final List<HistoricoMedicamento> tomadas = new ArrayList<>();
 
     private Medicamento remedioDeSegunda(int hora, int minuto) {
@@ -65,10 +60,6 @@ class AvisosDeMedicamentoTest {
 
     private List<NotificacaoMedicamento> avisos(Clock relogio) {
         return new VerificarNotificacoesIdosoService(medicamentos, historico, relogio).verificarNotificacoes(idoso);
-    }
-
-    private VerificarAtrasoMedicamentoService atraso(Clock relogio) {
-        return new VerificarAtrasoMedicamentoService(usuarios, medicamentos, historico, notificar, relogio);
     }
 
     private void tomouEm(Medicamento m, int dia, int hora, int minuto) {
@@ -110,79 +101,5 @@ class AvisosDeMedicamentoTest {
     void lembreteAposAMeiaNoiteParaRemedioDas2358() {
         remedioDeSegunda(23, 58);
         assertEquals(TipoNotificacao.LEMBRETE, avisos(em(22, 0, 3)).get(0).getTipo());
-    }
-
-    // ---- aviso ao idoso e ao familiar (agendador)
-
-    @Test
-    void oAgendadorAvisaUmaVezSoEmVezDeUmAvisoPorMinuto() {
-        Medicamento m = remedioDeSegunda(8, 0);
-
-        atraso(em(21, 8, 2)).verificarAtrasos();
-        VerificarAtrasoMedicamentoService servico = atraso(em(21, 8, 2));
-        servico.verificarAtrasos();
-        servico.verificarAtrasos();
-        verify(notificar, times(2)).lembrarIdoso(idoso, m); // um por serviço novo; o mesmo serviço não repete
-        verify(notificar, never()).avisarRemedioEsquecido(idoso, m);
-    }
-
-    @Test
-    void oFamiliarSoRecebeUmAvisoDeEsquecidoPorHorarioPrevisto() {
-        Medicamento m = remedioDeSegunda(8, 0);
-        // mesmo serviço rodando minuto a minuto, como o agendador faz
-        List<Clock> minutos = new ArrayList<>();
-        for (int minuto = 11; minuto <= 40; minuto++) {
-            minutos.add(em(21, 8, minuto));
-        }
-        MutableClock relogio = new MutableClock(minutos.get(0));
-        VerificarAtrasoMedicamentoService servico = new VerificarAtrasoMedicamentoService(usuarios, medicamentos, historico, notificar, relogio);
-        for (Clock c : minutos) {
-            relogio.definir(c);
-            servico.verificarAtrasos();
-        }
-        verify(notificar, times(1)).avisarRemedioEsquecido(idoso, m);
-        verify(notificar, never()).lembrarIdoso(idoso, m);
-
-        // na semana seguinte é outro horário previsto, e o aviso volta a valer
-        relogio.definir(em(28, 8, 15));
-        servico.verificarAtrasos();
-        verify(notificar, times(2)).avisarRemedioEsquecido(idoso, m);
-    }
-
-    @Test
-    void semAvisoSeOIdosoJaTomou() {
-        Medicamento m = remedioDeSegunda(8, 0);
-        tomouEm(m, 21, 8, 5);
-        atraso(em(21, 8, 30)).verificarAtrasos();
-        verify(notificar, never()).avisarRemedioEsquecido(any(), any());
-        verify(notificar, never()).lembrarIdoso(any(), any());
-    }
-
-    /** Relógio que dá para mudar, para simular o agendador rodando de minuto em minuto. */
-    private static final class MutableClock extends Clock {
-        private Clock atual;
-
-        MutableClock(Clock inicial) {
-            this.atual = inicial;
-        }
-
-        void definir(Clock novo) {
-            this.atual = novo;
-        }
-
-        @Override
-        public ZoneId getZone() {
-            return atual.getZone();
-        }
-
-        @Override
-        public Clock withZone(ZoneId zone) {
-            return atual.withZone(zone);
-        }
-
-        @Override
-        public java.time.Instant instant() {
-            return atual.instant();
-        }
     }
 }

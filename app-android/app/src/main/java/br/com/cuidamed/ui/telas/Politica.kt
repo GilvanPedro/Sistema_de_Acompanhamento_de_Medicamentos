@@ -59,7 +59,7 @@ fun TelaPolitica(destinos: Destinos) {
 fun CaixaDeAceite(marcado: Boolean, aoMudar: (Boolean) -> Unit, aoLer: () -> Unit) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Checkbox(checked = marcado, onCheckedChange = aoMudar)
-        Text("Li e aceito a política de privacidade, inclusive o uso dos meus dados de saúde (remédios).", style = MaterialTheme.typography.bodyLarge)
+        Text("Li e aceito as políticas de privacidade", style = MaterialTheme.typography.bodyLarge)
     }
     BotaoGrande("Ler a política de privacidade", aoLer, estilo = EstiloDoBotao.SECUNDARIO)
 }

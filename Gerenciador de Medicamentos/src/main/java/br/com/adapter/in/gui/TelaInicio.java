@@ -4,16 +4,12 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
 import br.com.adapter.in.gui.Cartao.Tom;
-import br.com.application.service.RealizarLoginService;
-import br.com.config.AppConfig;
-import br.com.domain.model.Usuario;
 
 /** Primeira tela: entrar com e-mail e senha, ou criar uma conta. */
 class TelaInicio extends Pagina {
 
     TelaInicio(Navegador nav) {
         super("Bem-vindo ao CuidaMed", "Acompanhe os remédios com tranquilidade.", null);
-        RealizarLoginService loginService = AppConfig.criarRealizarLoginService();
 
         JTextField email = Campo.texto();
         JPasswordField senha = Campo.senha();
@@ -27,12 +23,11 @@ class TelaInicio extends Pagina {
                 aviso("Digite seu e-mail e sua senha para entrar.", Tom.AVISO);
                 return;
             }
-            try {
-                Usuario usuario = loginService.realizarLogin(email.getText().trim(), new String(senha.getPassword()));
-                nav.entrar(usuario);
-            } catch (RuntimeException ex) {
-                aviso(Rotulos.erro(ex), Tom.ERRO);
-            }
+            String emailDigitado = email.getText().trim();
+            String senhaDigitada = new String(senha.getPassword());
+            aviso("Entrando… se o servidor estiver descansando, pode levar até um minuto.", Tom.AVISO);
+            nav.fazer(() -> nav.api().login(emailDigitado, senhaDigitada), nav::entrar,
+                    erro -> aviso(erro.getMessage(), Tom.ERRO));
         });
 
         Cartao entrada = new Cartao();

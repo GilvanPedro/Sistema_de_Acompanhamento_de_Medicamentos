@@ -7,14 +7,8 @@ import javax.swing.JTextField;
 
 import br.com.adapter.in.gui.Cartao.Tom;
 import br.com.adapter.in.gui.Tema.Papel;
-import br.com.application.service.CriarVinculoService;
-import br.com.application.service.GerenciarVinculoService;
-import br.com.config.AppConfig;
-import br.com.domain.exception.DadosInvalidosException;
-import br.com.domain.model.Familiar;
-import br.com.domain.model.Idoso;
-import br.com.domain.model.PedidoVinculo;
-import br.com.domain.model.Usuario;
+import br.com.adapter.in.gui.api.Conta;
+import br.com.adapter.in.gui.api.Pedido;
 
 /**
  * Vínculo entre idoso e familiar. O familiar pede para acompanhar um idoso e o idoso precisa aceitar
@@ -24,44 +18,46 @@ class TelaVinculo extends Pagina {
 
     private static final DateTimeFormatter QUANDO = DateTimeFormatter.ofPattern("dd/MM 'às' HH:mm");
 
-    TelaVinculo(Navegador nav, Usuario usuario, Runnable voltar, String mensagem) {
-        super(usuario instanceof Idoso ? "Meus familiares" : "Pessoas que eu acompanho", null, voltar);
-        boolean souIdoso = usuario instanceof Idoso;
-        CriarVinculoService criarVinculo = AppConfig.criarCriarVinculoService();
-        GerenciarVinculoService gerenciar = AppConfig.criarGerenciarVinculoService();
+    /** O que a tela precisa do servidor: pedidos recebidos (só o idoso) e as pessoas já vinculadas. */
+    record Dados(List<Pedido> pedidos, List<Conta> vinculados) { }
+
+    static void abrir(Navegador nav, Conta usuario, Runnable voltar, String mensagem) {
+        nav.carregar(() -> usuario.ehIdoso()
+                        ? new Dados(nav.api().pedidosRecebidos(), nav.api().meusFamiliares())
+                        : new Dados(List.of(), nav.api().meusIdosos()),
+                dados -> new TelaVinculo(nav, usuario, dados, voltar, mensagem));
+    }
+
+    TelaVinculo(Navegador nav, Conta usuario, Dados dados, Runnable voltar, String mensagem) {
+        super(usuario.ehIdoso() ? "Meus familiares" : "Pessoas que eu acompanho", null, voltar);
+        boolean souIdoso = usuario.ehIdoso();
 
         if (souIdoso) {
-            mostrarPedidos(nav, (Idoso) usuario, gerenciar, voltar);
-        }
-
-        List<? extends Usuario> vinculados = souIdoso ? ((Idoso) usuario).getFamiliares() : ((Familiar) usuario).getIdosos();
-        if (souIdoso) {
+            mostrarPedidos(nav, usuario, dados.pedidos(), voltar);
             adicionar(Texto.secao("Quem acompanha você"));
         }
-        if (vinculados.isEmpty()) {
+        if (dados.vinculados().isEmpty()) {
             Cartao vazio = new Cartao();
             vazio.add(Texto.corpo(souIdoso ? "Nenhum familiar vinculado ainda." : "Você ainda não acompanha ninguém."));
             adicionar(vazio);
         }
-        for (Usuario v : vinculados) {
+        for (Conta v : dados.vinculados()) {
             Cartao c = new Cartao();
-            c.add(new Texto(v.getNome(), 26, true, Papel.TEXTO));
-            c.add(Texto.suave(v.getEmail()));
+            c.add(new Texto(v.nome(), 26, true, Papel.TEXTO));
+            c.add(Texto.suave(v.email()));
             if (souIdoso) {
                 Botao remover = Botao.perigo("Remover");
                 remover.addActionListener(e -> {
                     boolean sim = Dialogos.confirmar(nav.janela(), "Remover este familiar?",
-                            v.getNome() + " deixará de ver seus remédios e avisos.", "Sim, remover", "Não, manter");
+                            v.nome() + " deixará de ver seus remédios e avisos.", "Sim, remover", "Não, manter");
                     if (!sim) {
                         return;
                     }
-                    try {
-                        gerenciar.removerFamiliar(usuario.getId(), v.getId());
-                        nav.atualizarUsuario();
-                        nav.mostrar(new TelaVinculo(nav, nav.usuario(), voltar, v.getNome() + " foi removido."));
-                    } catch (RuntimeException ex) {
-                        aviso(Rotulos.erro(ex), Tom.ERRO);
-                    }
+                    nav.fazer(() -> {
+                        nav.api().removerFamiliar(v.id());
+                        return null;
+                    }, ok -> abrir(nav, usuario, voltar, v.nome() + " foi removido."),
+                            erro -> aviso(erro.getMessage(), Tom.ERRO));
                 });
                 c.add(remover);
             }
@@ -76,26 +72,10 @@ class TelaVinculo extends Pagina {
                 aviso("Digite o e-mail " + (souIdoso ? "do familiar." : "do idoso."), Tom.AVISO);
                 return;
             }
-            try {
-                Usuario outro = localizar(entrada);
-                if (souIdoso && !(outro instanceof Familiar)) {
-                    throw new DadosInvalidosException("Essa conta é de um idoso. Digite o e-mail de um familiar.");
-                }
-                if (!souIdoso && !(outro instanceof Idoso)) {
-                    throw new DadosInvalidosException("Essa conta é de um familiar. Digite o e-mail de um idoso.");
-                }
-                if (souIdoso) {
-                    criarVinculo.criarVinculo(usuario.getId(), outro.getId());
-                    nav.atualizarUsuario();
-                    nav.mostrar(new TelaVinculo(nav, nav.usuario(), voltar, "Pronto! " + outro.getNome() + " agora acompanha você."));
-                } else {
-                    gerenciar.solicitarVinculo(usuario.getId(), outro.getId());
-                    nav.mostrar(new TelaVinculo(nav, nav.usuario(), voltar,
-                            "Pedido enviado para " + outro.getNome() + ". A pessoa tem 24 horas para aceitar."));
-                }
-            } catch (RuntimeException ex) {
-                aviso(Rotulos.erro(ex), Tom.ERRO);
-            }
+            // O servidor responde igual exista a conta ou não (não revela quem usa o sistema): mostramos o que ele diz.
+            nav.fazer(() -> souIdoso ? nav.api().adicionarFamiliar(entrada) : nav.api().pedirVinculo(entrada),
+                    resposta -> abrir(nav, usuario, voltar, resposta),
+                    erro -> aviso(erro.getMessage(), Tom.ERRO));
         });
 
         Cartao novo = new Cartao();
@@ -116,53 +96,35 @@ class TelaVinculo extends Pagina {
     }
 
     /** Pedidos de familiares que querem acompanhar o idoso e aguardam a resposta dele. */
-    private void mostrarPedidos(Navegador nav, Idoso idoso, GerenciarVinculoService gerenciar, Runnable voltar) {
-        List<PedidoVinculo> pedidos = gerenciar.listarPedidosPendentes(idoso.getId());
+    private void mostrarPedidos(Navegador nav, Conta idoso, List<Pedido> pedidos, Runnable voltar) {
         if (pedidos.isEmpty()) {
             return;
         }
         adicionar(Texto.secao("Pedidos para acompanhar você"));
-        for (PedidoVinculo pedido : pedidos) {
-            Familiar familiar = pedido.getFamiliar();
+        for (Pedido pedido : pedidos) {
+            Conta familiar = pedido.familiar();
             Cartao c = new Cartao(Tom.AVISO);
-            c.add(new Texto(familiar.getNome() + " quer acompanhar você.", 24, true, Papel.TEXTO));
-            c.add(Texto.suave(familiar.getEmail() + "  ·  pedido de " + pedido.getSolicitadoEm().format(QUANDO)));
+            c.add(new Texto(familiar.nome() + " quer acompanhar você.", 24, true, Papel.TEXTO));
+            c.add(Texto.suave(familiar.email() + "  ·  pedido de " + pedido.solicitadoEm().format(QUANDO)));
             Botao aceitar = Botao.sucesso("Aceitar");
-            aceitar.addActionListener(e -> responder(nav, idoso, familiar, true, gerenciar, voltar));
+            aceitar.addActionListener(e -> responder(nav, idoso, familiar, true, voltar));
             Botao recusar = Botao.perigo("Recusar");
-            recusar.addActionListener(e -> responder(nav, idoso, familiar, false, gerenciar, voltar));
+            recusar.addActionListener(e -> responder(nav, idoso, familiar, false, voltar));
             c.add(Ui.linha(2, aceitar, recusar));
             adicionar(c);
         }
     }
 
-    private void responder(Navegador nav, Idoso idoso, Familiar familiar, boolean aceitar,
-                           GerenciarVinculoService gerenciar, Runnable voltar) {
-        try {
+    private void responder(Navegador nav, Conta idoso, Conta familiar, boolean aceitar, Runnable voltar) {
+        nav.fazer(() -> {
             if (aceitar) {
-                gerenciar.aceitarPedido(idoso.getId(), familiar.getId());
+                nav.api().aceitarPedido(familiar.id());
             } else {
-                gerenciar.recusarPedido(idoso.getId(), familiar.getId());
+                nav.api().recusarPedido(familiar.id());
             }
-            nav.atualizarUsuario();
-            nav.mostrar(new TelaVinculo(nav, nav.usuario(), voltar,
-                    aceitar ? familiar.getNome() + " agora acompanha você." : "Pedido de " + familiar.getNome() + " recusado."));
-        } catch (RuntimeException ex) {
-            aviso(Rotulos.erro(ex), Tom.ERRO);
-        }
-    }
-
-    private static Usuario localizar(String entrada) {
-        Usuario achado;
-        try {
-            achado = entrada.matches("\\d+") ? AppConfig.getUsuarioPort().buscarPorId(Integer.parseInt(entrada))
-                    : AppConfig.getUsuarioPort().buscarPorEmail(entrada);
-        } catch (java.util.NoSuchElementException e) {
-            achado = null;
-        }
-        if (achado == null) {
-            throw new DadosInvalidosException("Não encontramos nenhuma conta com \"" + entrada + "\". Confira se está escrito certo.");
-        }
-        return achado;
+            return null;
+        }, ok -> abrir(nav, idoso, voltar,
+                aceitar ? familiar.nome() + " agora acompanha você." : "Pedido de " + familiar.nome() + " recusado."),
+                erro -> aviso(erro.getMessage(), Tom.ERRO));
     }
 }

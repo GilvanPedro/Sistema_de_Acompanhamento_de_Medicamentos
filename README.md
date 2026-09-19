@@ -4,7 +4,7 @@ Sistema para ajudar **idosos** e seus **familiares** a não esquecerem de tomar 
 
 A ideia é simples: cada idoso tem um ou mais familiares vinculados, cada medicamento tem um horário e um dia da semana marcados, e o sistema mostra — pro idoso, o que precisa tomar e quando, e pro familiar, se o remédio foi ou não tomado. Cada pessoa entra com seu próprio usuário e só vê o que é relevante pra ela. O idoso decide quem o acompanha: o familiar pede o vínculo e o idoso precisa aceitar.
 
-Os dados ficam num **banco PostgreSQL online** (Neon), e existe uma **API REST no ar** (Render) que vai servir o app Android, ainda em desenvolvimento. Também é possível usar o sistema no computador, por uma **interface gráfica** feita para idosos ou pelo **terminal**.
+Os dados ficam num **banco PostgreSQL online** (Neon), e existe uma **API REST no ar** (Render) que vai servir o app Android, ainda em desenvolvimento. Também é possível usar o sistema no computador, por uma **interface gráfica** feita para idosos, que fala com a mesma API.
 
 ## Índice
 
@@ -23,10 +23,9 @@ Os dados ficam num **banco PostgreSQL online** (Neon), e existe uma **API REST n
 
 ```
  [App Android]  ──HTTPS──▶  [API REST]  ──▶  [PostgreSQL / Neon]
-  (em teste)                (Render)               ▲
-                                                   │
- [Interface gráfica / Terminal]  ──────────────────┘
-        (no computador)
+  (em teste)                (Render)
+ [Interface gráfica]  ──HTTPS──▶  [API REST]
+   (no computador)               (a mesma do app)
 ```
 
 | Parte | Situação |
@@ -34,10 +33,10 @@ Os dados ficam num **banco PostgreSQL online** (Neon), e existe uma **API REST n
 | Regras de negócio (idoso, familiar, medicamentos, tomadas, vínculo) | Pronto |
 | Banco PostgreSQL (Neon) | Pronto |
 | API REST, com login por token | No ar (Render) |
-| Interface gráfica (Swing) e terminal | Prontos; falam direto com o banco |
+| Interface gráfica (Swing) | Pronta; fala com a API (não acessa o banco) |
 | App Android (Kotlin), inclusive **sem internet** | Em teste no celular (pasta `app-android/`) |
 | Lembretes e avisos por notificação no celular | Prontos (o aviso ao familiar pode levar alguns minutos) |
-| Push instantâneo (Firebase) | Planejado |
+| Push instantâneo (Firebase), inclusive o aviso de remédio esquecido | Pronto |
 
 ## Funcionalidades
 
@@ -68,10 +67,6 @@ Feita para quem tem dificuldade com telas pequenas e formulários:
 - Tipo do remédio, dia da semana e horário são escolhidos por botões, **sem digitar formatos**
 - Estados nunca dependem só de cor: "Tomou" e "Não tomou" aparecem escritos
 - Confirmações grandes; na exclusão, o botão padrão é o "Não, manter"
-
-### Terminal
-
-Aplicação completa por menus numerados, com as mesmas regras de negócio da interface gráfica.
 
 ### Regras de negócio
 
@@ -139,9 +134,7 @@ Os erros voltam como `{"erro": "mensagem"}`. Idoso só acessa os próprios dados
    - `DATABASE_URL`: a string de conexão da Neon (botão **Connect**)
    - `JWT_SECRET`: só para a API; um texto aleatório com pelo menos 32 caracteres (`openssl rand -base64 48`)
 
-O `.env` está no `.gitignore` e **nunca deve ir para o Git**. Também dá para usar variáveis de ambiente de mesmo nome. Sem `DATABASE_URL`, a interface gráfica e o terminal usam os arquivos CSV da pasta `arquivos/` (modo antigo, sem o aceite de vínculo); a API não sobe sem banco. Os arquivos `arquivos/*.csv` contêm dados pessoais e **não são versionados** (estão no `.gitignore`).
-
-Ao iniciar, a interface gráfica e o terminal escrevem no console qual persistência estão usando (`[CuidaMed] Persistência: ...`).
+O `.env` está no `.gitignore` e **nunca deve ir para o Git**. Também dá para usar variáveis de ambiente de mesmo nome. A API não sobe sem `DATABASE_URL`. A interface gráfica **não precisa** dela: só fala com a API (por padrão, a do Render; para usar outra, defina `CUIDAMED_API_URL`, por exemplo `http://localhost:8080/api/v1`).
 
 ### 2. Iniciar
 
@@ -153,12 +146,6 @@ Rode sempre a partir da **raiz do repositório**.
 mvn -f "Gerenciador de Medicamentos/pom.xml" compile exec:java -Dexec.mainClass="br.com.adapter.in.gui.GuiApp"
 ```
 
-**Terminal:**
-
-```bash
-mvn -f "Gerenciador de Medicamentos/pom.xml" compile exec:java -Dexec.mainClass="br.com.adapter.in.console.TerminalApp"
-```
-
 **API (local, porta 8080):**
 
 ```bash
@@ -166,7 +153,7 @@ mvn -f "Gerenciador de Medicamentos/pom.xml" compile exec:java -Dexec.mainClass=
 # depois abra http://localhost:8080/api/v1/saude
 ```
 
-No IntelliJ, dá para iniciar pelo ▶ ao lado do `main` de `GuiApp`, `TerminalApp` ou `ApiApp`.
+No IntelliJ, dá para iniciar pelo ▶ ao lado do `main` de `GuiApp` ou `ApiApp`.
 
 ### 3. Testes
 
@@ -214,11 +201,10 @@ A API roda no **Render** (plano gratuito), num contêiner Docker:
 
 ## Arquitetura
 
-O projeto segue o padrão **Ports & Adapters (Hexagonal)**: a regra de negócio fica isolada no centro, sem depender de banco de dados, frameworks ou forma de entrada e saída. Tudo que é externo se conecta por contratos (**portas**) e implementações trocáveis (**adaptadores**). Foi isso que permitiu trocar o CSV pelo PostgreSQL e acrescentar a API sem mexer nas regras. Mais detalhes em [`arquitetura-utilizada.md`](Gerenciador%20de%20Medicamentos/docs/arquitetura/arquitetura-utilizada.md).
+O projeto segue o padrão **Ports & Adapters (Hexagonal)**: a regra de negócio fica isolada no centro, sem depender de banco de dados, frameworks ou forma de entrada e saída. Tudo que é externo se conecta por contratos (**portas**) e implementações trocáveis (**adaptadores**). Foi isso que permitiu trocar o CSV pelo PostgreSQL, acrescentar a API e depois tirar o terminal e o CSV sem mexer nas regras. Mais detalhes em [`arquitetura-utilizada.md`](Gerenciador%20de%20Medicamentos/docs/arquitetura/arquitetura-utilizada.md).
 
 ```
 .
-├── arquivos/                        (dados em CSV, modo antigo)
 ├── Dockerfile  render.yaml          (deploy da API)
 ├── .env.example                     (modelo da configuração; o .env real fica fora do Git)
 └── Gerenciador de Medicamentos/
@@ -232,8 +218,8 @@ O projeto segue o padrão **Ports & Adapters (Hexagonal)**: a regra de negócio 
         │   │   ├── validation/  exception/  util/
         │   ├── application/service/ (lógica de negócio)
         │   ├── adapter/
-        │   │   ├── in/              console/  gui/  web/  scheduler/
-        │   │   └── out/             persistence/ (csv e postgres)  id/  security/  notification/
+        │   │   ├── in/              gui/  web/
+        │   │   └── out/             persistence/postgres  id/  security/
         │   └── config/              (montagem das peças e leitura da configuração)
         ├── main/resources/db/migration/   (scripts SQL do banco)
         └── test/                    (testes da API)
@@ -246,10 +232,9 @@ O projeto segue o padrão **Ports & Adapters (Hexagonal)**: a regra de negócio 
 | `domain/port/out` | O que o sistema precisa que alguém faça por ele (salvar, buscar, gerar id, criptografar...), sem dizer como |
 | `application/service` | Implementação das portas de entrada, onde a lógica acontece |
 | `adapter/in/web` | API REST: autenticação por token, regras de acesso, controladores e tratamento de erros |
-| `adapter/in/gui` | Interface gráfica Swing (`GuiApp` é o ponto de entrada) |
-| `adapter/in/console` | Aplicação de terminal (`TerminalApp` é o ponto de entrada) |
-| `adapter/out/persistence` | `postgres/` (banco, o padrão) e os adaptadores CSV (modo antigo) |
-| `config` | `AppConfig` escolhe o adaptador de cada porta; `Ambiente` lê variáveis e o `.env` |
+| `adapter/in/gui` | Interface gráfica Swing (`GuiApp` é o ponto de entrada). É só um **cliente da API** (`gui/api/ClienteApi`): não importa serviços, portas nem banco (um teste garante isso) |
+| `adapter/out/persistence/postgres` | Adaptadores do banco PostgreSQL |
+| `config` | `Ambiente` lê variáveis de ambiente e o `.env` |
 
 **Regra de ouro:** as dependências sempre apontam para dentro. O `domain/` não conhece ninguém; o `application/` conhece só o `domain/`; os `adapter/` conhecem o `domain/`, mas o `domain/` nunca conhece os adapters.
 
@@ -262,7 +247,6 @@ subgraph entrada["Adaptadores de entrada"]
   app_android["App Android<br/>uso sem internet"]
   api["API REST<br/>Spring Boot"]
   gui["Interface gráfica<br/>Swing"]
-  terminal["Terminal"]
 end
 
 subgraph aplicacao["Aplicação"]
@@ -276,32 +260,27 @@ end
 
 subgraph saida["Adaptadores de saída"]
   pg["Adaptadores PostgreSQL"]
-  csv["Adaptadores CSV<br/>modo antigo"]
   bcrypt["BCrypt"]
   banco[("PostgreSQL<br/>Neon")]
-  arquivos[("Arquivos CSV")]
 end
 
 app_android -.->|"HTTPS + token"| api
+gui -.->|"HTTPS + token"| api
 api --> servicos
-gui --> servicos
-terminal --> servicos
 servicos --> portas
 servicos --> modelo
 servicos --> bcrypt
 portas -.->|"implementada por"| pg
-portas -.->|"implementada por"| csv
 pg --> banco
-csv --> arquivos
 
 classDef entradaC fill:#dbeafe,stroke:#2563eb,color:#172554
 classDef appC fill:#fef3c7,stroke:#d97706,color:#78350f
 classDef domC fill:#dcfce7,stroke:#16a34a,color:#14532d
 classDef saidaC fill:#ffe4e6,stroke:#e11d48,color:#881337
-class app_android,api,gui,terminal entradaC
+class app_android,api,gui entradaC
 class servicos appC
 class modelo,portas domC
-class pg,csv,bcrypt,banco,arquivos saidaC
+class pg,bcrypt,banco saidaC
 ```
 
 ## Decisões de arquitetura (ADRs)
@@ -319,13 +298,10 @@ O que foi decidido, as alternativas consideradas e o porquê estão documentados
 
 ## Próximos passos
 
-1. **Aviso ao familiar na hora** (push com Firebase): hoje o app confere em segundo plano a cada ~15 minutos. Exige um projeto no Firebase e um servidor que vigie os horários (o Render gratuito hiberna).
-2. **Ícone próprio** do app e **APK assinado** para distribuição e, depois, a Play Store.
-3. **LGPD:** consentimento explícito e política de privacidade no cadastro, e exportação dos dados do titular.
-4. **Migrar a interface gráfica e o terminal para a API**, para que só o servidor guarde a credencial do banco.
-5. Iniciar o **agendador de atraso** no servidor (a lógica já não repete avisos) e limpar tokens de renovação expirados.
-6. Cobrir os adaptadores PostgreSQL com testes automatizados (hoje são verificados à mão).
-7. Vínculos (pedir, aceitar, remover familiar), login e perfil ainda precisam de internet; avaliar se vale trazê-los para o modo sem internet.
+1. **Ícone próprio** do app e **APK assinado** para distribuição e, depois, a Play Store.
+2. Cobrir os adaptadores PostgreSQL com testes automatizados (hoje são verificados à mão) e limpar tokens de renovação expirados.
+3. Vínculos (pedir, aceitar, remover familiar), login e perfil ainda precisam de internet no app; avaliar se vale trazê-los para o modo sem internet.
+4. Separar a interface gráfica do servidor em módulos Maven distintos (hoje ela é só um cliente da API, mas vai no mesmo projeto).
 
 ## Licença
 

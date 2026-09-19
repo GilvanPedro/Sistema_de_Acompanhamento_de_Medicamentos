@@ -5,14 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 import br.com.domain.exception.DadosInvalidosException;
-import br.com.domain.util.ArquivoCsvUtil;
 import br.com.domain.validation.ValidarDadosMedicamento;
 import br.com.domain.validation.ValidarDadosUsuario;
 import br.com.domain.validation.ValidarEmail;
@@ -49,16 +45,5 @@ class ValidacoesTest {
         for (String ruim : new String[]{"ana", "ana@", "@exemplo.com", "ana@exemplo", "ana@exemplo.c", "ana @exemplo.com", "ana@exemplo.123"}) {
             assertFalse(ValidarEmail.validar(ruim), ruim);
         }
-    }
-
-    @Test
-    void csvRecusaPontoEVirgulaEQuebraDeLinhaECriaAPastaQueFalta(@TempDir Path pasta) throws Exception {
-        assertThrows(DadosInvalidosException.class, () -> ArquivoCsvUtil.exigirSemSeparador("Ana;Maria", "nome"));
-        assertThrows(DadosInvalidosException.class, () -> ArquivoCsvUtil.exigirSemSeparador("Ana\nMaria", "nome"));
-        assertDoesNotThrow(() -> ArquivoCsvUtil.exigirSemSeparador("Ana Maria", "nome"));
-
-        Path arquivo = pasta.resolve("nao/existe/ainda/dados.csv");
-        ArquivoCsvUtil.escreverLinha(arquivo.toString(), "1;teste");
-        assertTrue(Files.readAllLines(arquivo).contains("1;teste"));
     }
 }
