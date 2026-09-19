@@ -1,22 +1,46 @@
 package br.com.config;
 
 import br.com.adapter.out.id.GerarIdPorArquivoAdapter;
+import br.com.adapter.out.id.GerarIdPostgresAdapter;
 import br.com.adapter.out.notification.ConsoleNotificationAdapter;
 import br.com.adapter.out.persistence.HistoricoCsvAdapter;
 import br.com.adapter.out.persistence.MedicamentoCsvAdapter;
 import br.com.adapter.out.persistence.UsuarioCsvAdapter;
+import br.com.adapter.out.persistence.postgres.ConexaoPostgres;
+import br.com.adapter.out.persistence.postgres.HistoricoPostgresAdapter;
+import br.com.adapter.out.persistence.postgres.MedicamentoPostgresAdapter;
+import br.com.adapter.out.persistence.postgres.UsuarioPostgresAdapter;
 import br.com.adapter.out.security.BcryptSenhaAdapter;
 import br.com.application.service.*;
 import br.com.domain.port.out.*;
 
 public class AppConfig {
 
-    private static final SalvarUsuarioPort usuarioCsvAdapter = new UsuarioCsvAdapter();
-    private static final SalvarMedicamentoPort medicamentoCsvAdapter = new MedicamentoCsvAdapter();
-    private static final SalvarHistoricoPort historicoCsvAdapter = new HistoricoCsvAdapter();
-    private static final GerarIdPort gerarIdHistorico = new GerarIdPorArquivoAdapter("arquivos/historico.csv");
+    // Com DATABASE_URL (ou DB_URL) definida, usa o PostgreSQL; sem ela, continua nos arquivos CSV.
+    private static final boolean USAR_POSTGRES = ConexaoPostgres.configurada();
+
+    static {
+        System.err.println("[CuidaMed] Persistência: "
+                + (USAR_POSTGRES ? "PostgreSQL (DATABASE_URL definida)" : "arquivos CSV (DATABASE_URL não definida)"));
+    }
+
+    private static final SalvarUsuarioPort usuarioCsvAdapter = USAR_POSTGRES
+            ? new UsuarioPostgresAdapter(ConexaoPostgres.dataSource()) : new UsuarioCsvAdapter();
+    private static final SalvarMedicamentoPort medicamentoCsvAdapter = USAR_POSTGRES
+            ? new MedicamentoPostgresAdapter(ConexaoPostgres.dataSource()) : new MedicamentoCsvAdapter();
+    private static final SalvarHistoricoPort historicoCsvAdapter = USAR_POSTGRES
+            ? new HistoricoPostgresAdapter(ConexaoPostgres.dataSource()) : new HistoricoCsvAdapter();
+    private static final GerarIdPort gerarIdHistorico = criarGerarId("historico");
     private static final CriptografarSenhaPort criptografarSenhaPort = new BcryptSenhaAdapter();
 
+
+    private static GerarIdPort criarGerarId(String nome) {
+        if (USAR_POSTGRES) {
+            String tabela = nome.equals("usuarios") ? "usuario" : nome.equals("medicamentos") ? "medicamento" : "historico";
+            return new GerarIdPostgresAdapter(ConexaoPostgres.dataSource(), tabela);
+        }
+        return new GerarIdPorArquivoAdapter("arquivos/" + nome + ".csv");
+    }
 
     public static RealizarLoginService criarRealizarLoginService() {
         return new RealizarLoginService(usuarioCsvAdapter, criptografarSenhaPort);
@@ -31,7 +55,7 @@ public class AppConfig {
     }
 
     public static RegistrarUsuarioService criarRegistrarUsuarioService() {
-        GerarIdPort gerarIdUsuario = new GerarIdPorArquivoAdapter("arquivos/usuarios.csv");
+        GerarIdPort gerarIdUsuario = criarGerarId("usuarios");
         return new RegistrarUsuarioService(gerarIdUsuario, usuarioCsvAdapter, criptografarSenhaPort);
     }
 
@@ -52,7 +76,7 @@ public class AppConfig {
     }
 
     public static RegistrarMedicamentoService criarRegistrarMedicamentoService() {
-        GerarIdPort gerarIdMedicamento = new GerarIdPorArquivoAdapter("arquivos/medicamentos.csv");
+        GerarIdPort gerarIdMedicamento = criarGerarId("medicamentos");
         return new RegistrarMedicamentoService(gerarIdMedicamento, medicamentoCsvAdapter, usuarioCsvAdapter);
     }
 
