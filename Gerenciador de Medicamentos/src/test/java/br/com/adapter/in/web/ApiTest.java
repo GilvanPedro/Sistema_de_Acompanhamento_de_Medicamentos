@@ -24,7 +24,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@SpringBootTest(classes = ApiApp.class)
+@SpringBootTest(classes = ApiApp.class, properties = "cuidamed.limite.cadastro-maximo=1000")
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Import(ConfiguracaoDeTeste.class)
@@ -125,10 +125,12 @@ class ApiTest {
         // pedido pendente ainda não dá acesso, e não pode ser repetido
         mvc.perform(com(get("/api/v1/idosos/" + idoso.id() + "/medicamentos"), familiar)).andExpect(status().isForbidden());
         mvc.perform(com(post("/api/v1/vinculos/pedidos"), familiar).contentType(MediaType.APPLICATION_JSON)
-                .content(corpo(Map.of("email", idoso.email())))).andExpect(status().isBadRequest());
+                .content(corpo(Map.of("email", idoso.email())))).andExpect(status().isAccepted());
 
+        // o pedido repetido não duplica nada: o idoso continua vendo um só
         mvc.perform(com(get("/api/v1/vinculos/pedidos"), idoso))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].familiar.id").value(familiar.id()));
         mvc.perform(com(post("/api/v1/vinculos/pedidos/" + familiar.id() + "/aceitar"), idoso)).andExpect(status().isNoContent());
 
@@ -217,7 +219,9 @@ class ApiTest {
         mvc.perform(com(post("/api/v1/medicamentos/" + id + "/tomadas"), idoso)).andExpect(status().isBadRequest());
 
         // idoso e familiar vinculado veem o histórico
-        mvc.perform(com(get("/api/v1/idosos/" + idoso.id() + "/historico"), idoso)).andExpect(jsonPath("$.length()").value(1));
+        mvc.perform(com(get("/api/v1/idosos/" + idoso.id() + "/historico"), idoso)).andExpect(jsonPath("$.length()").value(1))
+                // a data precisa sair como texto ISO (2026-09-19T08:30:00), e não como lista de números
+                .andExpect(jsonPath("$[0].dataHora").value(org.hamcrest.Matchers.matchesPattern("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}.*")));
         mvc.perform(com(get("/api/v1/idosos/" + idoso.id() + "/historico"), familiar)).andExpect(jsonPath("$.length()").value(1));
         mvc.perform(com(get("/api/v1/idosos/" + idoso.id() + "/historico"), outroIdoso)).andExpect(status().isForbidden());
     }
@@ -254,14 +258,99 @@ class ApiTest {
     void trocarASenhaEncerraAsSessoesEExcluirAContaInvalidaOToken() throws Exception {
         Sessao ana = criarConta("IDOSO", "Ana Muda");
         mvc.perform(com(patch("/api/v1/me"), ana).contentType(MediaType.APPLICATION_JSON)
-                        .content(corpo(Map.of("senha", "outra-senha-456"))))
+                        .content(corpo(Map.of("senha", "outra-senha-456", "senhaAtual", SENHA))))
                 .andExpect(status().isOk());
         mvc.perform(post("/api/v1/auth/renovar").contentType(MediaType.APPLICATION_JSON)
                 .content(corpo(Map.of("refreshToken", ana.renovacao())))).andExpect(status().isUnauthorized());
 
-        mvc.perform(com(delete("/api/v1/me"), ana)).andExpect(status().isNoContent());
+        mvc.perform(com(delete("/api/v1/me"), ana).contentType(MediaType.APPLICATION_JSON)
+                .content(corpo(Map.of("senha", "outra-senha-456")))).andExpect(status().isNoContent());
         // o token de acesso ainda não expirou, mas a conta não existe mais
         mvc.perform(com(get("/api/v1/me"), ana)).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void senhaFracaOuGrandeDemaisERecusadaNoCadastro() throws Exception {
+        for (String senha : new String[]{"1", "curta", "1234567", "x".repeat(73)}) {
+            mvc.perform(post("/api/v1/auth/registro").contentType(MediaType.APPLICATION_JSON)
+                            .content(corpo(Map.of("tipo", "IDOSO", "nome", "Fraca", "email", "fraca@teste.com", "senha", senha))))
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
+    @Test
+    void nomeGrandeDemaisERecusadoEEmailComDominioLongoEAceito() throws Exception {
+        mvc.perform(post("/api/v1/auth/registro").contentType(MediaType.APPLICATION_JSON)
+                        .content(corpo(Map.of("tipo", "IDOSO", "nome", "N".repeat(151), "email", "nome.longo@teste.com", "senha", SENHA))))
+                .andExpect(status().isBadRequest());
+        mvc.perform(post("/api/v1/auth/registro").contentType(MediaType.APPLICATION_JSON)
+                        .content(corpo(Map.of("tipo", "FAMILIAR", "nome", "Dominio Longo",
+                                "email", "longo." + UUID.randomUUID().toString().substring(0, 8) + "@empresa.photography", "senha", SENHA))))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    void trocarSenhaOuEmailExigeASenhaAtualMasTrocarONomeNao() throws Exception {
+        Sessao ana = criarConta("IDOSO", "Ana Confirma");
+
+        mvc.perform(com(patch("/api/v1/me"), ana).contentType(MediaType.APPLICATION_JSON)
+                        .content(corpo(Map.of("nome", "Ana Nova"))))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.nome").value("Ana Nova"));
+
+        // sem a senha atual, ou com a errada, não troca nada
+        mvc.perform(com(patch("/api/v1/me"), ana).contentType(MediaType.APPLICATION_JSON)
+                .content(corpo(Map.of("senha", "outra-senha-456")))).andExpect(status().isBadRequest());
+        mvc.perform(com(patch("/api/v1/me"), ana).contentType(MediaType.APPLICATION_JSON)
+                .content(corpo(Map.of("email", "outro@teste.com", "senhaAtual", "errada-errada")))).andExpect(status().isForbidden());
+
+        // a senha continua a antiga
+        mvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
+                .content(corpo(Map.of("email", ana.email(), "senha", SENHA)))).andExpect(status().isOk());
+    }
+
+    @Test
+    void excluirAContaExigeASenhaEAsTentativasErradasSaoLimitadas() throws Exception {
+        Sessao ana = criarConta("IDOSO", "Ana Exclui");
+
+        mvc.perform(com(delete("/api/v1/me"), ana)).andExpect(status().isBadRequest());
+        for (int i = 0; i < 5; i++) {
+            mvc.perform(com(delete("/api/v1/me"), ana).contentType(MediaType.APPLICATION_JSON)
+                    .content(corpo(Map.of("senha", "senha-errada-" + i)))).andExpect(status().isForbidden());
+        }
+        // depois de 5 erros, nem a senha certa é aceita por um tempo (token roubado não adivinha a senha)
+        mvc.perform(com(delete("/api/v1/me"), ana).contentType(MediaType.APPLICATION_JSON)
+                .content(corpo(Map.of("senha", SENHA)))).andExpect(status().isTooManyRequests());
+        // e a conta continua de pé
+        mvc.perform(com(get("/api/v1/me"), ana)).andExpect(status().isOk());
+    }
+
+    @Test
+    void pedidoDeVinculoNaoRevelaSeOEmailExiste() throws Exception {
+        Sessao familiar = criarConta("FAMILIAR", "Curioso Silva");
+        Sessao idoso = criarConta("IDOSO", "Dona Reservada");
+        Sessao outroFamiliar = criarConta("FAMILIAR", "Outro Familiar");
+
+        String existente = mvc.perform(com(post("/api/v1/vinculos/pedidos"), familiar).contentType(MediaType.APPLICATION_JSON)
+                        .content(corpo(Map.of("email", idoso.email()))))
+                .andExpect(status().isAccepted()).andReturn().getResponse().getContentAsString();
+        String inexistente = mvc.perform(com(post("/api/v1/vinculos/pedidos"), familiar).contentType(MediaType.APPLICATION_JSON)
+                        .content(corpo(Map.of("email", "ninguem@nao-existe.com"))))
+                .andExpect(status().isAccepted()).andReturn().getResponse().getContentAsString();
+        String naoEIdoso = mvc.perform(com(post("/api/v1/vinculos/pedidos"), familiar).contentType(MediaType.APPLICATION_JSON)
+                        .content(corpo(Map.of("email", outroFamiliar.email()))))
+                .andExpect(status().isAccepted()).andReturn().getResponse().getContentAsString();
+        org.junit.jupiter.api.Assertions.assertEquals(existente, inexistente);
+        org.junit.jupiter.api.Assertions.assertEquals(existente, naoEIdoso);
+
+        // o mesmo vale quando o idoso adiciona um familiar direto
+        String adicionou = mvc.perform(com(post("/api/v1/me/familiares"), idoso).contentType(MediaType.APPLICATION_JSON)
+                        .content(corpo(Map.of("email", familiar.email()))))
+                .andExpect(status().isAccepted()).andReturn().getResponse().getContentAsString();
+        String semConta = mvc.perform(com(post("/api/v1/me/familiares"), idoso).contentType(MediaType.APPLICATION_JSON)
+                        .content(corpo(Map.of("email", "ninguem@nao-existe.com"))))
+                .andExpect(status().isAccepted()).andReturn().getResponse().getContentAsString();
+        org.junit.jupiter.api.Assertions.assertEquals(adicionou, semConta);
+        mvc.perform(com(get("/api/v1/me/familiares"), idoso)).andExpect(jsonPath("$[0].id").value(familiar.id()));
     }
 
     @Test

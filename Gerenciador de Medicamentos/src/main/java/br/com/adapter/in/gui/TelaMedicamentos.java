@@ -64,12 +64,7 @@ class TelaMedicamentos extends Pagina {
 
     /** Remédios do idoso, na ordem da semana e do horário. */
     static List<Medicamento> doIdoso(Idoso idoso) {
-        List<Medicamento> lista = new ArrayList<>();
-        for (Medicamento m : AppConfig.getMedicamentoPort().listarTodos()) {
-            if (m.getIdosoId() == idoso.getId()) {
-                lista.add(m);
-            }
-        }
+        List<Medicamento> lista = new ArrayList<>(AppConfig.getMedicamentoPort().listarPorIdoso(idoso.getId()));
         lista.sort(Comparator.comparing(Medicamento::getDiaSemana).thenComparing(Medicamento::getHorarioMedicamento));
         return lista;
     }

@@ -11,6 +11,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import br.com.domain.exception.DadosInvalidosException;
 import br.com.domain.exception.ErroBancoDadosException;
 import br.com.domain.model.HistoricoMedicamento;
 import br.com.domain.model.Idoso;
@@ -19,6 +20,7 @@ import br.com.domain.port.out.SalvarHistoricoPort;
 
 public class HistoricoPostgresAdapter implements SalvarHistoricoPort {
 
+    private static final String UNIQUE_VIOLATION = "23505";
     private static final String COLUNAS = "id, idoso_id, medicamento_id, data_hora_tomada, foi_tomado";
 
     private final DataSource dataSource;
@@ -39,6 +41,10 @@ public class HistoricoPostgresAdapter implements SalvarHistoricoPort {
             ps.setBoolean(5, historico.isFoiTomado());
             ps.executeUpdate();
         } catch (SQLException e) {
+            if (UNIQUE_VIOLATION.equals(e.getSQLState())) {
+                // índice ux_historico_tomada_por_dia: dois pedidos ao mesmo tempo não registram duas tomadas no dia
+                throw new DadosInvalidosException("Você já registrou que tomou " + historico.getMedicamento().getNome() + " hoje.");
+            }
             throw new ErroBancoDadosException("salvar histórico", e);
         }
     }

@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.adapter.in.web.auth.Acesso;
+import br.com.adapter.in.web.auth.ConfirmacaoDeSenha;
 import br.com.adapter.in.web.auth.TokenService;
 import br.com.adapter.in.web.dto.Dtos.EditarUsuarioRequest;
+import br.com.adapter.in.web.dto.Dtos.ExcluirContaRequest;
 import br.com.adapter.in.web.dto.Dtos.UsuarioDto;
 import br.com.application.service.EditarUsuarioService;
 import br.com.application.service.ExcluirUsuarioService;
@@ -28,12 +30,15 @@ class UsuarioController {
     private final EditarUsuarioService editar;
     private final ExcluirUsuarioService excluir;
     private final TokenService tokens;
+    private final ConfirmacaoDeSenha confirmacao;
 
-    UsuarioController(Acesso acesso, EditarUsuarioService editar, ExcluirUsuarioService excluir, TokenService tokens) {
+    UsuarioController(Acesso acesso, EditarUsuarioService editar, ExcluirUsuarioService excluir, TokenService tokens,
+                      ConfirmacaoDeSenha confirmacao) {
         this.acesso = acesso;
         this.editar = editar;
         this.excluir = excluir;
         this.tokens = tokens;
+        this.confirmacao = confirmacao;
     }
 
     @GetMapping
@@ -41,13 +46,20 @@ class UsuarioController {
         return UsuarioDto.de(acesso.logado(requisicao));
     }
 
-    /** Edição parcial: só os campos enviados mudam. Trocar a senha encerra todas as sessões. */
+    /**
+     * Edição parcial: só os campos enviados mudam. Trocar a senha ou o e-mail exige a senha atual ({@code senhaAtual}).
+     * Trocar a senha encerra todas as sessões.
+     */
     @PatchMapping
     UsuarioDto editar(@RequestBody EditarUsuarioRequest corpo, HttpServletRequest requisicao) {
         if (corpo == null) {
             throw new DadosInvalidosException("Informe o que deseja alterar.");
         }
         Usuario atual = acesso.logado(requisicao);
+        boolean trocaEmail = corpo.email() != null && !corpo.email().trim().equalsIgnoreCase(atual.getEmail());
+        if (corpo.senha() != null || trocaEmail) {
+            confirmacao.exigir(atual, corpo.senhaAtual());
+        }
         Usuario editado = editar.editarUsuario(atual.getId(), corpo.nome(), corpo.email(), corpo.senha());
         if (corpo.senha() != null) {
             tokens.revogarTodos(atual.getId());
@@ -55,10 +67,11 @@ class UsuarioController {
         return UsuarioDto.de(editado);
     }
 
-    /** Exclusão da conta (direito do titular na LGPD): a conta some e as sessões são encerradas. */
+    /** Exclusão da conta (direito do titular na LGPD). Irreversível, por isso exige a senha atual. */
     @DeleteMapping
-    ResponseEntity<Void> excluirConta(HttpServletRequest requisicao) {
+    ResponseEntity<Void> excluirConta(@RequestBody(required = false) ExcluirContaRequest corpo, HttpServletRequest requisicao) {
         Usuario atual = acesso.logado(requisicao);
+        confirmacao.exigir(atual, corpo == null ? null : corpo.senha());
         excluir.excluirUsuario(atual.getId());
         tokens.revogarTodos(atual.getId());
         return ResponseEntity.noContent().build();

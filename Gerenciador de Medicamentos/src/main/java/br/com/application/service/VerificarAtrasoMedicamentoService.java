@@ -1,7 +1,6 @@
 package br.com.application.service;
 
-import java.time.Duration;
-import java.time.LocalDate;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -16,26 +15,43 @@ import br.com.domain.port.out.NotificarPort;
 import br.com.domain.port.out.SalvarHistoricoPort;
 import br.com.domain.port.out.SalvarMedicamentoPort;
 import br.com.domain.port.out.SalvarUsuarioPort;
+import br.com.domain.util.OcorrenciasMedicamento;
 
 public class VerificarAtrasoMedicamentoService implements VerificarAtrasoMedicamentoCase {
-
-    private static final int TOLERANCIA_MINUTOS = 10;
 
     private final SalvarUsuarioPort salvarUsuarioPort;
     private final SalvarMedicamentoPort salvarMedicamentoPort;
     private final SalvarHistoricoPort salvarHistoricoPort;
     private final NotificarPort notificarPort;
+    private final Clock relogio;
+
+    /**
+     * Avisos já enviados, para o mesmo horário previsto não gerar um aviso por minuto até o fim do dia.
+     * Guarda o horário previsto de cada um, para limpar os antigos. Fica em memória: ao reiniciar, pode repetir um aviso.
+     */
+    private final Map<String, LocalDateTime> jaAvisados = new HashMap<>();
 
     public VerificarAtrasoMedicamentoService(SalvarUsuarioPort salvarUsuarioPort, SalvarMedicamentoPort salvarMedicamentoPort,
                                              SalvarHistoricoPort salvarHistoricoPort, NotificarPort notificarPort) {
+        this(salvarUsuarioPort, salvarMedicamentoPort, salvarHistoricoPort, notificarPort, Clock.systemDefaultZone());
+    }
+
+    /** O relógio vem de fora para dar para testar horários (inclusive a virada da meia-noite). */
+    public VerificarAtrasoMedicamentoService(SalvarUsuarioPort salvarUsuarioPort, SalvarMedicamentoPort salvarMedicamentoPort,
+                                             SalvarHistoricoPort salvarHistoricoPort, NotificarPort notificarPort, Clock relogio) {
         this.salvarUsuarioPort = salvarUsuarioPort;
         this.salvarMedicamentoPort = salvarMedicamentoPort;
         this.salvarHistoricoPort = salvarHistoricoPort;
         this.notificarPort = notificarPort;
+        this.relogio = relogio;
     }
 
+    /**
+     * Para cada remédio com horário previsto que ainda importa: avisa o idoso uma vez enquanto está na tolerância
+     * (lembrete) e avisa os familiares uma vez quando passou dela sem ter sido tomado (esquecido).
+     */
     @Override
-    public void verificarAtrasos() {
+    public synchronized void verificarAtrasos() {
         Map<Integer, Idoso> idosos = new HashMap<>();
         for (Usuario u : salvarUsuarioPort.listarTodos()) {
             if (u instanceof Idoso idoso) {
@@ -50,40 +66,37 @@ public class VerificarAtrasoMedicamentoService implements VerificarAtrasoMedicam
         }
 
         List<HistoricoMedicamento> historico = salvarHistoricoPort.listarTodos(idosos, medicamentosPorId);
-
-        LocalDate hoje = LocalDate.now();
-        LocalDateTime agora = LocalDateTime.now();
+        LocalDateTime agora = LocalDateTime.now(relogio);
+        jaAvisados.values().removeIf(previsto -> previsto.isBefore(agora.minusDays(2)));
 
         for (Medicamento medicamento : medicamentos) {
-            if (medicamento.getDiaSemana() != hoje.getDayOfWeek()) {
-                continue;
-            }
-
-            LocalDateTime horarioPrevisto = LocalDateTime.of(hoje, medicamento.getHorarioMedicamento());
-            long minutosDeAtraso = Duration.between(horarioPrevisto, agora).toMinutes();
-
-            if (minutosDeAtraso <= TOLERANCIA_MINUTOS) {
-                continue;
-            }
-
             Idoso idoso = idosos.get(medicamento.getIdosoId());
             if (idoso == null) {
                 continue;
             }
 
-            boolean jaTomouHoje = historico.stream().anyMatch(h ->
-                    h.getMedicamento().getId() == medicamento.getId() &&
-                            h.getIdoso().getId() == idoso.getId() &&
-                            h.isFoiTomado() &&
-                            h.getDataHoraTomada().toLocalDate().equals(hoje)
-            );
+            for (LocalDateTime previsto : OcorrenciasMedicamento.relevantes(medicamento, agora)) {
+                boolean tomado = historico.stream().anyMatch(h ->
+                        h.getMedicamento().getId() == medicamento.getId()
+                                && h.getIdoso().getId() == idoso.getId()
+                                && h.isFoiTomado()
+                                && OcorrenciasMedicamento.tomadaCobre(h.getDataHoraTomada(), previsto));
+                if (tomado) {
+                    continue;
+                }
 
-            if (jaTomouHoje) {
-                continue;
+                boolean esquecido = OcorrenciasMedicamento.minutosDeAtraso(previsto, agora) > OcorrenciasMedicamento.TOLERANCIA_MINUTOS;
+                String chave = (esquecido ? "esquecido|" : "lembrete|") + medicamento.getId() + "|" + previsto;
+                if (jaAvisados.putIfAbsent(chave, previsto) != null) {
+                    continue;
+                }
+
+                if (esquecido) {
+                    notificarPort.avisarRemedioEsquecido(idoso, medicamento);
+                } else {
+                    notificarPort.lembrarIdoso(idoso, medicamento);
+                }
             }
-
-            notificarPort.lembrarIdoso(idoso, medicamento);
-            notificarPort.avisarRemedioEsquecido(idoso, medicamento);
         }
     }
 }

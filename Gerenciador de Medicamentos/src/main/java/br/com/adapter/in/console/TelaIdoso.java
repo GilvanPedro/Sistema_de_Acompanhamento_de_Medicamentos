@@ -78,12 +78,7 @@ public class TelaIdoso {
     }
 
     private void marcarComoTomado() {
-        List<Medicamento> medicamentos = new ArrayList<>();
-        for (Medicamento m : AppConfig.getMedicamentoPort().listarTodos()) {
-            if (m.getIdosoId() == idoso.getId()) {
-                medicamentos.add(m);
-            }
-        }
+        List<Medicamento> medicamentos = new ArrayList<>(AppConfig.getMedicamentoPort().listarPorIdoso(idoso.getId()));
 
         if (medicamentos.isEmpty()) {
             System.out.println("Nenhum medicamento cadastrado ainda.");

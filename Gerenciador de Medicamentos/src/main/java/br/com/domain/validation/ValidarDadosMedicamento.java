@@ -8,6 +8,8 @@ import java.time.LocalTime;
 
 public class ValidarDadosMedicamento {
 
+    public static final int NOME_MAXIMO = 150;
+
     public void validarMedicamento(String nome, DayOfWeek diaSemana, LocalTime horarioMedicamento, TipoMedicamento tipoMedicamento) {
         validarNome(nome);
         validarDiaSemana(diaSemana);
@@ -18,6 +20,9 @@ public class ValidarDadosMedicamento {
     public void validarNome(String nome) {
         if (nome == null || nome.trim().isEmpty()) {
             throw new DadosInvalidosException("O nome do medicamento é obrigatório e não pode ser vazio.");
+        }
+        if (nome.trim().length() > NOME_MAXIMO) {
+            throw new DadosInvalidosException("O nome do medicamento pode ter no máximo " + NOME_MAXIMO + " caracteres.");
         }
     }
 

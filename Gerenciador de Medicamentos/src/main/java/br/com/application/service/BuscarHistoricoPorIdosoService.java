@@ -37,7 +37,7 @@ public class BuscarHistoricoPorIdosoService implements BuscarHistoricoPorIdosoCa
         idosos.put(idoso.getId(), idoso);
 
         Map<Integer, Medicamento> medicamentos = new HashMap<>();
-        for (Medicamento m : salvarMedicamentoPort.listarTodos()) {
+        for (Medicamento m : salvarMedicamentoPort.listarPorIdoso(idosoId)) {
             medicamentos.put(m.getId(), m);
         }
 

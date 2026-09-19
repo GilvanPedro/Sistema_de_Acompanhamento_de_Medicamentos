@@ -16,19 +16,20 @@ public class UsuarioCsvAdapter implements SalvarUsuarioPort {
     private static final String ARQUIVO_VINCULOS = "arquivos/vinculos.csv";
 
     @Override
-    public void salvar(Usuario usuario) {
+    public synchronized void salvar(Usuario usuario) {
+        ArquivoCsvUtil.exigirSemSeparador(usuario.getNome(), "nome");
         String tipo = (usuario instanceof Idoso) ? "IDOSO" : "FAMILIAR";
         String linha = montarLinha(usuario, tipo);
         ArquivoCsvUtil.escreverLinha(ARQUIVO_USUARIOS, linha);
     }
 
     @Override
-    public void salvarVinculo(int idosoId, int familiarId) {
+    public synchronized void salvarVinculo(int idosoId, int familiarId) {
         ArquivoCsvUtil.escreverLinha(ARQUIVO_VINCULOS, idosoId + ";" + familiarId);
     }
 
     @Override
-    public List<Usuario> listarTodos() {
+    public synchronized List<Usuario> listarTodos() {
         Map<Integer, Idoso> idosos = new HashMap<>();
         Map<Integer, Familiar> familiares = new HashMap<>();
 
@@ -75,7 +76,8 @@ public class UsuarioCsvAdapter implements SalvarUsuarioPort {
     }
 
     @Override
-    public void atualizar(Usuario usuario) {
+    public synchronized void atualizar(Usuario usuario) {
+        ArquivoCsvUtil.exigirSemSeparador(usuario.getNome(), "nome");
         List<Usuario> todos = listarTodos();
         List<Usuario> atualizados = new ArrayList<>();
 
@@ -87,7 +89,7 @@ public class UsuarioCsvAdapter implements SalvarUsuarioPort {
     }
 
     @Override
-    public void excluir(int id) {
+    public synchronized void excluir(int id) {
         List<Usuario> todos = listarTodos();
         List<Usuario> restantes = new ArrayList<>();
 
@@ -102,7 +104,7 @@ public class UsuarioCsvAdapter implements SalvarUsuarioPort {
     }
 
     @Override
-    public List<Usuario> buscarPorNome(String nome) {
+    public synchronized List<Usuario> buscarPorNome(String nome) {
         List<Usuario> resultado = new ArrayList<>();
         for (Usuario u : listarTodos()) {
             if (u.getNome().toLowerCase().contains(nome.toLowerCase())) {
@@ -113,7 +115,7 @@ public class UsuarioCsvAdapter implements SalvarUsuarioPort {
     }
 
     @Override
-    public Usuario buscarPorEmail(String email) {
+    public synchronized Usuario buscarPorEmail(String email) {
         for (Usuario u : listarTodos()) {
             if (u.getEmail().equalsIgnoreCase(email)) {
                 return u;
@@ -123,7 +125,7 @@ public class UsuarioCsvAdapter implements SalvarUsuarioPort {
     }
 
     @Override
-    public Usuario buscarPorId(int id) {
+    public synchronized Usuario buscarPorId(int id) {
         Usuario usuario = LeituraCsvUtil.buscarPrimeiro(
                 ARQUIVO_USUARIOS,
                 linha -> {

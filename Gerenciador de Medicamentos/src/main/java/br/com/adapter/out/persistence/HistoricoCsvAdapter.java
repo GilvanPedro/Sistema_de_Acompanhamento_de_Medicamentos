@@ -15,12 +15,12 @@ public class HistoricoCsvAdapter implements SalvarHistoricoPort {
     private static final String ARQUIVO = "arquivos/historico.csv";
 
     @Override
-    public void salvar(HistoricoMedicamento historico) {
+    public synchronized void salvar(HistoricoMedicamento historico) {
         ArquivoCsvUtil.escreverLinha(ARQUIVO, montarLinha(historico));
     }
 
     @Override
-    public List<HistoricoMedicamento> listarTodos(Map<Integer, Idoso> idosos, Map<Integer, Medicamento> medicamentos) {
+    public synchronized List<HistoricoMedicamento> listarTodos(Map<Integer, Idoso> idosos, Map<Integer, Medicamento> medicamentos) {
         List<HistoricoMedicamento> resultado = new ArrayList<>();
 
         for (String linha : ArquivoCsvUtil.lerLinhas(ARQUIVO)) {
@@ -34,7 +34,7 @@ public class HistoricoCsvAdapter implements SalvarHistoricoPort {
     }
 
     @Override
-    public void atualizar(HistoricoMedicamento historico, Map<Integer, Idoso> idosos, Map<Integer, Medicamento> medicamentos) {
+    public synchronized void atualizar(HistoricoMedicamento historico, Map<Integer, Idoso> idosos, Map<Integer, Medicamento> medicamentos) {
         List<HistoricoMedicamento> todos = listarTodos(idosos, medicamentos);
         List<HistoricoMedicamento> atualizados = new ArrayList<>();
 
@@ -46,7 +46,7 @@ public class HistoricoCsvAdapter implements SalvarHistoricoPort {
     }
 
     @Override
-    public void excluir(int id) {
+    public synchronized void excluir(int id) {
         List<String> restantes = new ArrayList<>();
 
         for (String linha : ArquivoCsvUtil.lerLinhas(ARQUIVO)) {
@@ -64,7 +64,7 @@ public class HistoricoCsvAdapter implements SalvarHistoricoPort {
     }
 
     @Override
-    public List<HistoricoMedicamento> listarHistoricoPorIdoso(int idIdoso, Map<Integer, Idoso> idosos, Map<Integer, Medicamento> medicamentos) {
+    public synchronized List<HistoricoMedicamento> listarHistoricoPorIdoso(int idIdoso, Map<Integer, Idoso> idosos, Map<Integer, Medicamento> medicamentos) {
         List<HistoricoMedicamento> resultado = new ArrayList<>();
 
         for (String linha : ArquivoCsvUtil.lerLinhas(ARQUIVO)) {

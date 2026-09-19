@@ -31,7 +31,8 @@ Era preciso uma camada online entre os clientes e o banco que:
   - **Renovação:** 32 bytes aleatórios, válido por **30 dias**. O banco guarda só o **hash SHA-256**, na tabela `refresh_token` (`V2__criar_refresh_token.sql`).
 - **Rotação com detecção de reuso:** cada renovação invalida o token usado e emite outro. Se um token já usado aparecer de novo, todas as sessões da pessoa são revogadas. A revogação é atômica (`UPDATE ... WHERE revogado_em IS NULL`), o que impede o uso simultâneo do mesmo token.
 - **Encerramento de sessões:** sair revoga o token de renovação; trocar a senha ou excluir a conta revoga todos.
-- **Limite de tentativas:** 5 senhas erradas em 15 minutos, por e-mail e IP, bloqueia o login (HTTP 429).
+- **Exclusão de conta (LGPD):** `DELETE /me` (exige a senha atual, ver ADR-0048) apaga de verdade os dados de saúde da pessoa (medicamentos e histórico) e os vínculos, e **anonimiza** o cadastro (nome "Conta excluída", e-mail `excluido-<id>@excluido.invalid`, senha inutilizada). A linha do usuário permanece só como registro anônimo marcado como excluído, para os ids continuarem válidos e o app saber que a conta deixou de existir. Tudo numa transação. Excluir um medicamento também apaga o nome dele (a linha fica só como marca de exclusão, para a sincronização).
+- **Limites de tentativas** (HTTP 429), detalhados no ADR-0048: senhas erradas por e-mail e IP, falhas por IP, contas novas por IP e senha atual errada.
 - **Sem Spring Security:** a API é sem estado e usa `Authorization: Bearer`, sem cookies, então não há CSRF. Um filtro simples (`FiltroAutenticacao`) valida o token em tudo que está em `/api/v1`, exceto `/auth/**` e `/saude`.
 
 ### 3. Autorização
@@ -46,7 +47,7 @@ A classe `Acesso` cumpre o papel que a `SessaoAtual` tem no terminal. **A cada r
 | Grupo | Rotas |
 |---|---|
 | Autenticação | `POST auth/registro`, `auth/login`, `auth/renovar`, `auth/sair` |
-| Conta | `GET/PATCH/DELETE me`, `GET me/idosos`, `GET me/familiares` |
+| Conta | `GET/PATCH/DELETE me` (trocar senha ou e-mail e excluir exigem a senha atual), `GET me/idosos`, `GET me/familiares` |
 | Medicamentos | `GET/POST idosos/{id}/medicamentos`, `PATCH/DELETE medicamentos/{id}` |
 | Tomadas e avisos | `POST medicamentos/{id}/tomadas`, `GET idosos/{id}/historico`, `GET idosos/{id}/notificacoes` |
 | Vínculos | `POST/GET vinculos/pedidos`, `POST vinculos/pedidos/{familiarId}/aceitar\|recusar`, `POST me/familiares`, `DELETE me/familiares/{familiarId}` |
@@ -96,6 +97,7 @@ A classe `Acesso` cumpre o papel que a `SessaoAtual` tem no terminal. **A cada r
 **Positivas**
 - O app Android (e qualquer outro cliente) passa a usar a mesma API, com as mesmas regras de acesso.
 - Primeiros **testes automatizados** do projeto: 13 testes de integração da API (`ApiTest`) com portas em memória. Cobrem autenticação (sem token, token inválido, login errado, limite de tentativas), permissões (familiar com e sem vínculo, pedido pendente, recusado, removido, intruso), cadastro e edição parcial de medicamentos, tomada (só o idoso, uma vez por dia), rotação e reuso de token, troca de senha e exclusão de conta. Eles pegaram um erro real antes do deploy (falta do `-parameters`).
+- **Verificação da exclusão (LGPD):** o SQL de anonimização foi verificado contra o banco real, com dados de teste que foram removidos em seguida: cadastro anonimizado, medicamentos, histórico e vínculos apagados, o familiar do vínculo intacto, o idoso excluído não é achado por e-mail nem por id, e excluir duas vezes é inofensivo.
 - **Verificação no ar:** com uma conta de teste (depois excluída), foram exercitados no Render `saude`, cadastro, login, `me`, cadastro e listagem de medicamento, avisos, histórico, renovação, reuso de token antigo (401) e exclusão de conta.
 
 **Negativas**
@@ -103,7 +105,7 @@ A classe `Acesso` cumpre o papel que a `SessaoAtual` tem no terminal. **A cada r
 - **Os testes automatizados não cobrem o SQL** dos adaptadores PostgreSQL nem o schema (usam portas em memória); isso foi verificado manualmente.
 - **Limite de tentativas em memória:** some ao reiniciar e não é compartilhado entre instâncias. Serve para uma instância só.
 - **Tokens de renovação expirados não são apagados** da tabela `refresh_token`; falta uma limpeza periódica.
-- **Exclusão de conta é lógica:** `DELETE /me` marca a conta como excluída e encerra as sessões, mas nome e e-mail continuam no banco. Para atender de fato ao direito de exclusão da LGPD, é preciso **anonimizar ou apagar** os dados; isso está pendente.
+- **A linha anônima do usuário excluído permanece** no banco (sem dados pessoais). Se um dia for necessário apagá-la de vez, dá para fazê-lo depois que o app não precisar mais saber da exclusão.
 - Trocar o `JWT_SECRET` desloga todo mundo.
 - A GUI e o terminal ainda falam direto com o banco; migrá-los para a API é um passo futuro.
 - Sem CORS (o cliente é um app Android, não um navegador).
@@ -126,7 +128,7 @@ A classe `Acesso` cumpre o papel que a `SessaoAtual` tem no terminal. **A cada r
 ## Observações
 
 - Próximos passos (ADR-0045): app Android em Kotlin com uso offline e sincronização; notificações push (Firebase); distribuição por APK.
-- Pendências desta etapa: anonimizar dados na exclusão de conta (LGPD), limpar tokens expirados, atualizar o README e migrar a GUI e o terminal para a API.
+- Pendências desta etapa: limpar tokens de renovação expirados e migrar a GUI e o terminal para a API. A anonimização na exclusão de conta foi resolvida em seguida (ver seção 2). O consentimento explícito no cadastro, a política de privacidade e a exportação dos dados do titular (checklist do ADR-0045) seguem para o app.
 
 ## Data
 

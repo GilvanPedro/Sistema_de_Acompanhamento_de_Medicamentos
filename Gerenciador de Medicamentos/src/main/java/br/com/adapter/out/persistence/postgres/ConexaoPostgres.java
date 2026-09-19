@@ -57,8 +57,11 @@ public final class ConexaoPostgres {
         config.setMinimumIdle(0);
         config.setIdleTimeout(60_000);
         config.setMaxLifetime(300_000);
-        // O primeiro acesso após a suspensão pode demorar um pouco.
-        config.setConnectionTimeout(30_000);
+        // O primeiro acesso após a suspensão do banco leva alguns segundos; mais que isso é falha (e não deixa a tela presa).
+        config.setConnectionTimeout(15_000);
+        // Não exige o banco na hora de criar o pool: se a rede falhar na abertura, o programa abre mesmo assim e cada
+        // operação falha com uma mensagem clara, voltando a funcionar sozinho quando a conexão voltar.
+        config.setInitializationFailTimeout(-1);
         return config;
     }
 

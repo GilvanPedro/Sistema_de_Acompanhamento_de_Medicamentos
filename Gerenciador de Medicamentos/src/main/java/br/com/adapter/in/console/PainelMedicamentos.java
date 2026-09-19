@@ -56,13 +56,7 @@ public class PainelMedicamentos {
     }
 
     private List<Medicamento> medicamentosDoIdoso() {
-        List<Medicamento> resultado = new ArrayList<>();
-        for (Medicamento m : AppConfig.getMedicamentoPort().listarTodos()) {
-            if (m.getIdosoId() == idoso.getId()) {
-                resultado.add(m);
-            }
-        }
-        return resultado;
+        return new ArrayList<>(AppConfig.getMedicamentoPort().listarPorIdoso(idoso.getId()));
     }
 
     private void listar() {

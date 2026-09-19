@@ -59,10 +59,7 @@ class MedicamentoController {
     @GetMapping("/idosos/{idosoId}/medicamentos")
     List<MedicamentoDto> listar(@PathVariable("idosoId") int idosoId, HttpServletRequest requisicao) {
         Idoso idoso = acesso.idosoAcessivel(requisicao, idosoId);
-        return medicamentos.listarTodos().stream()
-                .filter(m -> m.getIdosoId() == idoso.getId())
-                .map(MedicamentoDto::de)
-                .toList();
+        return medicamentos.listarPorIdoso(idoso.getId()).stream().map(MedicamentoDto::de).toList();
     }
 
     @PostMapping("/idosos/{idosoId}/medicamentos")

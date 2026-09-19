@@ -27,7 +27,12 @@ public final class Dtos {
 
     public record RefreshRequest(String refreshToken) { }
 
-    public record EditarUsuarioRequest(String nome, String email, String senha) { }
+    /** {@code senhaAtual} é obrigatória para trocar a senha ou o e-mail. */
+    public record EditarUsuarioRequest(String nome, String email, String senha, String senhaAtual) { }
+
+    public record ExcluirContaRequest(String senha) { }
+
+    public record MensagemDto(String mensagem) { }
 
     public record MedicamentoRequest(String nome, DayOfWeek diaSemana, LocalTime horario, TipoMedicamento tipo) { }
 

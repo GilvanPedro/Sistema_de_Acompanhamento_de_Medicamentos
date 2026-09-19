@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.adapter.in.web.auth.Acesso;
 import br.com.adapter.in.web.dto.Dtos.EmailRequest;
+import br.com.adapter.in.web.dto.Dtos.MensagemDto;
 import br.com.adapter.in.web.dto.Dtos.PedidoVinculoDto;
 import br.com.application.service.CriarVinculoService;
 import br.com.application.service.GerenciarVinculoService;
@@ -40,13 +41,22 @@ class VinculoController {
         this.usuarios = usuarios;
     }
 
-    /** Familiar pede para acompanhar um idoso, pelo e-mail dele. */
+    /**
+     * Familiar pede para acompanhar um idoso, pelo e-mail dele. A resposta é sempre a mesma, exista a conta ou não
+     * (e já haja pedido ou não), para esta rota não servir para descobrir quem usa o sistema.
+     */
     @PostMapping("/vinculos/pedidos")
-    ResponseEntity<Void> pedir(@RequestBody EmailRequest corpo, HttpServletRequest requisicao) {
+    ResponseEntity<MensagemDto> pedir(@RequestBody EmailRequest corpo, HttpServletRequest requisicao) {
         Familiar familiar = acesso.familiarLogado(requisicao);
-        Usuario idoso = porEmail(corpo);
-        gerenciar.solicitarVinculo(familiar.getId(), idoso.getId());
-        return ResponseEntity.accepted().build();
+        Usuario alvo = procurar(corpo);
+        if (alvo instanceof Idoso idoso) {
+            try {
+                gerenciar.solicitarVinculo(familiar.getId(), idoso.getId());
+            } catch (DadosInvalidosException e) {
+                // já vinculado ou já pedido: não conta ao cliente
+            }
+        }
+        return ResponseEntity.accepted().body(new MensagemDto("Se houver um idoso com esse e-mail, ele recebeu o pedido."));
     }
 
     @GetMapping("/vinculos/pedidos")
@@ -67,13 +77,22 @@ class VinculoController {
         return ResponseEntity.noContent().build();
     }
 
-    /** O idoso adiciona um familiar direto (o vínculo já nasce aceito: adicionar é o consentimento). */
+    /**
+     * O idoso adiciona um familiar direto (o vínculo já nasce aceito: adicionar é o consentimento).
+     * A resposta não revela se a conta existe.
+     */
     @PostMapping("/me/familiares")
-    ResponseEntity<Void> adicionarFamiliar(@RequestBody EmailRequest corpo, HttpServletRequest requisicao) {
+    ResponseEntity<MensagemDto> adicionarFamiliar(@RequestBody EmailRequest corpo, HttpServletRequest requisicao) {
         Idoso idoso = acesso.idosoLogado(requisicao);
-        Usuario familiar = porEmail(corpo);
-        criar.criarVinculo(idoso.getId(), familiar.getId());
-        return ResponseEntity.status(201).build();
+        Usuario alvo = procurar(corpo);
+        if (alvo instanceof Familiar familiar) {
+            try {
+                criar.criarVinculo(idoso.getId(), familiar.getId());
+            } catch (DadosInvalidosException e) {
+                // já vinculado: não conta ao cliente
+            }
+        }
+        return ResponseEntity.accepted().body(new MensagemDto("Se houver um familiar com esse e-mail, ele foi adicionado."));
     }
 
     @DeleteMapping("/me/familiares/{familiarId}")
@@ -82,14 +101,11 @@ class VinculoController {
         return ResponseEntity.noContent().build();
     }
 
-    private Usuario porEmail(EmailRequest corpo) {
+    /** Procura a conta pelo e-mail; devolve null se não existir (quem chama não deve contar isso ao cliente). */
+    private Usuario procurar(EmailRequest corpo) {
         if (corpo == null || corpo.email() == null || corpo.email().isBlank()) {
             throw new DadosInvalidosException("Informe o e-mail.");
         }
-        Usuario usuario = usuarios.buscarPorEmail(corpo.email().trim());
-        if (usuario == null) {
-            throw new DadosInvalidosException("Não encontramos nenhuma conta com esse e-mail.");
-        }
-        return usuario;
+        return usuarios.buscarPorEmail(corpo.email().trim());
     }
 }

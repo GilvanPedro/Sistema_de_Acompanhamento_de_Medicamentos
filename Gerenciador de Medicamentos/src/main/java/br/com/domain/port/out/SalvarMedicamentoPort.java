@@ -9,5 +9,10 @@ public interface SalvarMedicamentoPort {
     List<Medicamento> listarTodos();
     void atualizar(Medicamento medicamento);
     Medicamento buscarPorId(int id);
+
+    /** Os medicamentos (não excluídos) de um idoso. O banco filtra; o padrão serve para quem só sabe listar tudo (CSV). */
+    default List<Medicamento> listarPorIdoso(int idosoId) {
+        return listarTodos().stream().filter(m -> m.getIdosoId() == idosoId).toList();
+    }
     void excluir(int id);
 }

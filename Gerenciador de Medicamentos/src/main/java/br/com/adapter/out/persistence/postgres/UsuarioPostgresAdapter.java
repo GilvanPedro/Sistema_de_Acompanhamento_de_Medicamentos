@@ -16,6 +16,7 @@ import java.util.NoSuchElementException;
 
 import javax.sql.DataSource;
 
+import br.com.domain.exception.DadosInvalidosException;
 import br.com.domain.exception.ErroBancoDadosException;
 import br.com.domain.model.Familiar;
 import br.com.domain.model.Idoso;
@@ -26,6 +27,7 @@ import br.com.domain.port.out.SalvarUsuarioPort;
 
 public class UsuarioPostgresAdapter implements SalvarUsuarioPort {
 
+    private static final String UNIQUE_VIOLATION = "23505";
     private static final String COLUNAS = "id, tipo, nome, email, senha_hash";
 
     private final DataSource dataSource;
@@ -46,7 +48,7 @@ public class UsuarioPostgresAdapter implements SalvarUsuarioPort {
             ps.setString(5, usuario.getSenha());
             ps.executeUpdate();
         } catch (SQLException e) {
-            throw new ErroBancoDadosException("salvar usuário", e);
+            throw emailRepetidoOu(e, "salvar usuário");
         }
     }
 
@@ -212,24 +214,26 @@ public class UsuarioPostgresAdapter implements SalvarUsuarioPort {
             ps.setInt(4, usuario.getId());
             ps.executeUpdate();
         } catch (SQLException e) {
-            throw new ErroBancoDadosException("atualizar usuário", e);
+            throw emailRepetidoOu(e, "atualizar usuário");
         }
     }
 
-    /** Exclusão lógica: a linha fica marcada como excluída (ver ADR-0045); os vínculos são removidos. */
+    /**
+     * Exclusão de conta (direito do titular na LGPD): apaga de verdade os dados de saúde (medicamentos e histórico)
+     * e os vínculos, e anonimiza o cadastro (nome, e-mail e senha). A linha do usuário permanece, só como um registro
+     * anônimo marcado como excluído, para os ids continuarem válidos e o app saber que a conta deixou de existir.
+     */
     @Override
     public void excluir(int id) {
         try (Connection conexao = dataSource.getConnection()) {
             conexao.setAutoCommit(false);
-            try (PreparedStatement marcar = conexao.prepareStatement(
-                    "UPDATE usuario SET excluido_em = now(), atualizado_em = now() WHERE id = ? AND excluido_em IS NULL");
-                 PreparedStatement vinculos = conexao.prepareStatement(
-                         "DELETE FROM vinculo WHERE idoso_id = ? OR familiar_id = ?")) {
-                marcar.setInt(1, id);
-                marcar.executeUpdate();
-                vinculos.setInt(1, id);
-                vinculos.setInt(2, id);
-                vinculos.executeUpdate();
+            try {
+                executar(conexao, "DELETE FROM historico WHERE idoso_id = ?", id);
+                executar(conexao, "DELETE FROM medicamento WHERE idoso_id = ?", id);
+                executar(conexao, "DELETE FROM vinculo WHERE idoso_id = ? OR familiar_id = ?", id, id);
+                executar(conexao, "UPDATE usuario SET nome = 'Conta excluída', email = ?, senha_hash = '!', "
+                        + "excluido_em = now(), atualizado_em = now() WHERE id = ? AND excluido_em IS NULL",
+                        "excluido-" + id + "@excluido.invalid", id);
                 conexao.commit();
             } catch (SQLException e) {
                 conexao.rollback();
@@ -237,6 +241,23 @@ public class UsuarioPostgresAdapter implements SalvarUsuarioPort {
             }
         } catch (SQLException e) {
             throw new ErroBancoDadosException("excluir usuário", e);
+        }
+    }
+
+    /** Dois cadastros ao mesmo tempo com o mesmo e-mail: o índice único do banco barra o segundo, com uma mensagem clara. */
+    private static RuntimeException emailRepetidoOu(SQLException e, String operacao) {
+        if (UNIQUE_VIOLATION.equals(e.getSQLState())) {
+            return new DadosInvalidosException("Já existe um usuário cadastrado com esse e-mail.");
+        }
+        return new ErroBancoDadosException(operacao, e);
+    }
+
+    private static void executar(Connection conexao, String sql, Object... parametros) throws SQLException {
+        try (PreparedStatement ps = conexao.prepareStatement(sql)) {
+            for (int i = 0; i < parametros.length; i++) {
+                ps.setObject(i + 1, parametros[i]);
+            }
+            ps.executeUpdate();
         }
     }
 

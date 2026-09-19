@@ -61,6 +61,24 @@ public class MedicamentoPostgresAdapter implements SalvarMedicamentoPort {
     }
 
     @Override
+    public List<Medicamento> listarPorIdoso(int idosoId) {
+        List<Medicamento> resultado = new ArrayList<>();
+        try (Connection conexao = dataSource.getConnection();
+             PreparedStatement ps = conexao.prepareStatement(
+                     "SELECT " + COLUNAS + " FROM medicamento WHERE idoso_id = ? AND excluido_em IS NULL ORDER BY id")) {
+            ps.setInt(1, idosoId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    resultado.add(converter(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new ErroBancoDadosException("listar medicamentos do idoso", e);
+        }
+        return resultado;
+    }
+
+    @Override
     public void atualizar(Medicamento medicamento) {
         String sql = "UPDATE medicamento SET nome = ?, horario = ?, dia_semana = ?, tipo = ?, atualizado_em = now() "
                 + "WHERE id = ? AND excluido_em IS NULL";
@@ -94,10 +112,11 @@ public class MedicamentoPostgresAdapter implements SalvarMedicamentoPort {
         }
     }
 
-    /** Exclusão lógica: a linha fica marcada como excluída (ver ADR-0045). */
+    /** Exclusão lógica (ver ADR-0045): a linha fica só como marca de exclusão, e o nome do remédio é apagado. */
     @Override
     public void excluir(int id) {
-        String sql = "UPDATE medicamento SET excluido_em = now(), atualizado_em = now() WHERE id = ? AND excluido_em IS NULL";
+        String sql = "UPDATE medicamento SET nome = '(excluído)', excluido_em = now(), atualizado_em = now() "
+                + "WHERE id = ? AND excluido_em IS NULL";
         try (Connection conexao = dataSource.getConnection();
              PreparedStatement ps = conexao.prepareStatement(sql)) {
             ps.setInt(1, id);

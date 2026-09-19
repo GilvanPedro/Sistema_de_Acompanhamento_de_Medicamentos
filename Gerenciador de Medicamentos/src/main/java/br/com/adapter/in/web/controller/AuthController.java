@@ -1,5 +1,6 @@
 package br.com.adapter.in.web.controller;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -7,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.adapter.in.web.auth.LimiteDeLogin;
+import br.com.adapter.in.web.auth.LimiteDeTentativas;
 import br.com.adapter.in.web.auth.TokenService;
 import br.com.adapter.in.web.dto.Dtos.LoginRequest;
 import br.com.adapter.in.web.dto.Dtos.LoginResponse;
@@ -28,17 +29,28 @@ class AuthController {
     private final RegistrarUsuarioService registrar;
     private final RealizarLoginService login;
     private final TokenService tokens;
-    private final LimiteDeLogin limite;
+    private final LimiteDeTentativas limitePorConta;
+    private final LimiteDeTentativas limitePorIp;
+    private final LimiteDeTentativas limiteCadastro;
 
-    AuthController(RegistrarUsuarioService registrar, RealizarLoginService login, TokenService tokens, LimiteDeLogin limite) {
+    AuthController(RegistrarUsuarioService registrar, RealizarLoginService login, TokenService tokens,
+                   @Qualifier("limiteLoginPorConta") LimiteDeTentativas limitePorConta,
+                   @Qualifier("limiteLoginPorIp") LimiteDeTentativas limitePorIp,
+                   @Qualifier("limiteCadastro") LimiteDeTentativas limiteCadastro) {
         this.registrar = registrar;
         this.login = login;
         this.tokens = tokens;
-        this.limite = limite;
+        this.limitePorConta = limitePorConta;
+        this.limitePorIp = limitePorIp;
+        this.limiteCadastro = limiteCadastro;
     }
 
     @PostMapping("/registro")
-    ResponseEntity<UsuarioDto> registro(@RequestBody RegistroRequest corpo) {
+    ResponseEntity<UsuarioDto> registro(@RequestBody RegistroRequest corpo, HttpServletRequest requisicao) {
+        // Conta cada tentativa, deu certo ou não: o limite é sobre criar contas em massa.
+        String ip = requisicao.getRemoteAddr();
+        limiteCadastro.verificar(ip);
+        limiteCadastro.registrar(ip);
         if (corpo == null || corpo.tipo() == null) {
             throw new DadosInvalidosException("Informe o tipo da conta: IDOSO ou FAMILIAR.");
         }
@@ -55,14 +67,17 @@ class AuthController {
         if (corpo == null || corpo.email() == null || corpo.email().isBlank() || corpo.senha() == null) {
             throw new CredenciaisInvalidasException();
         }
-        String chave = corpo.email().trim().toLowerCase() + "|" + requisicao.getRemoteAddr();
-        limite.verificar(chave);
+        String ip = requisicao.getRemoteAddr();
+        String chaveConta = corpo.email().trim().toLowerCase() + "|" + ip;
+        limitePorConta.verificar(chaveConta);
+        limitePorIp.verificar(ip);
         try {
             Usuario usuario = login.realizarLogin(corpo.email().trim(), corpo.senha());
-            limite.limparFalhas(chave);
+            limitePorConta.limpar(chaveConta);
             return LoginResponse.de(tokens.emitir(usuario), usuario);
         } catch (CredenciaisInvalidasException e) {
-            limite.registrarFalha(chave);
+            limitePorConta.registrar(chaveConta);
+            limitePorIp.registrar(ip);
             throw e;
         }
     }

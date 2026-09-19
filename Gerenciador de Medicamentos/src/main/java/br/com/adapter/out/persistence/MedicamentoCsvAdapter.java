@@ -16,12 +16,13 @@ public class MedicamentoCsvAdapter implements SalvarMedicamentoPort {
     private static final String ARQUIVO = "arquivos/medicamentos.csv";
 
     @Override
-    public void salvar(Medicamento medicamento) {
+    public synchronized void salvar(Medicamento medicamento) {
+        ArquivoCsvUtil.exigirSemSeparador(medicamento.getNome(), "nome do medicamento");
         ArquivoCsvUtil.escreverLinha(ARQUIVO, montarLinha(medicamento));
     }
 
     @Override
-    public List<Medicamento> listarTodos() {
+    public synchronized List<Medicamento> listarTodos() {
         List<Medicamento> resultado = new ArrayList<>();
 
         for (String linha : ArquivoCsvUtil.lerLinhas(ARQUIVO)) {
@@ -44,7 +45,8 @@ public class MedicamentoCsvAdapter implements SalvarMedicamentoPort {
     }
 
     @Override
-    public void atualizar(Medicamento medicamento) {
+    public synchronized void atualizar(Medicamento medicamento) {
+        ArquivoCsvUtil.exigirSemSeparador(medicamento.getNome(), "nome do medicamento");
         List<Medicamento> todos = listarTodos();
         List<Medicamento> atualizados = new ArrayList<>();
 
@@ -56,7 +58,7 @@ public class MedicamentoCsvAdapter implements SalvarMedicamentoPort {
     }
 
     @Override
-    public Medicamento buscarPorId(int id) {
+    public synchronized Medicamento buscarPorId(int id) {
         return LeituraCsvUtil.buscarPrimeiro(
                 ARQUIVO,
                 linha -> {
@@ -68,7 +70,7 @@ public class MedicamentoCsvAdapter implements SalvarMedicamentoPort {
     }
 
     @Override
-    public void excluir(int id) {
+    public synchronized void excluir(int id) {
         List<Medicamento> todos = listarTodos();
         List<Medicamento> restantes = new ArrayList<>();
 
