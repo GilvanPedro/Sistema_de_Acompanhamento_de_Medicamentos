@@ -1,0 +1,17 @@
+# Blueprint do Render: descreve o serviço da API (ADR-0047).
+# Os valores marcados com sync: false NÃO ficam no Git; o Render pede para você digitá-los.
+services:
+  - type: web
+    name: cuidamed-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/v1/saude
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: APP_TIMEZONE
+        value: America/Sao_Paulo
