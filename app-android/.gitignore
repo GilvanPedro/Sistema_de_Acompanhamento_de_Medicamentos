@@ -13,3 +13,8 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Chave de assinatura do APK: NUNCA vai para o Git
+keystore.properties
+*.jks
+*.keystore

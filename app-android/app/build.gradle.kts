@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -8,6 +10,13 @@ plugins {
 // desenvolvedor baixa o dele no console do Firebase). Sem o arquivo, o app compila e funciona normalmente, sem push.
 if (file("google-services.json").exists()) {
     apply(plugin = "com.google.gms.google-services")
+}
+
+// A chave de assinatura fica fora do Git: keystore.properties (ignorado) aponta para o .jks e guarda as senhas.
+// Sem esse arquivo o app ainda compila (debug); só o release sai sem assinatura.
+val chaveDeAssinatura = Properties().apply {
+    val arquivo = rootProject.file("keystore.properties")
+    if (arquivo.exists()) arquivo.inputStream().use { load(it) }
 }
 
 android {
@@ -26,8 +35,19 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        if (chaveDeAssinatura.containsKey("storeFile")) {
+            create("release") {
+                storeFile = file(chaveDeAssinatura.getProperty("storeFile"))
+                storePassword = chaveDeAssinatura.getProperty("storePassword")
+                keyAlias = chaveDeAssinatura.getProperty("keyAlias")
+                keyPassword = chaveDeAssinatura.getProperty("keyPassword")
+            }
+        }
+    }
     buildTypes {
         release {
+            signingConfigs.findByName("release")?.let { signingConfig = it }
             optimization {
                 enable = false
             }
