@@ -3,6 +3,7 @@ package br.com.cuidamed.data
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
@@ -41,6 +42,16 @@ interface CuidaMedApi {
 
     @HTTP(method = "DELETE", path = "me", hasBody = true)
     suspend fun excluirConta(@Body corpo: ExcluirContaRequest): Response<Unit>
+
+    @GET("me/consentimento")
+    suspend fun consentimento(): ConsentimentoDto
+
+    @POST("me/consentimento")
+    suspend fun aceitarPolitica(@Body corpo: ConsentimentoRequest): Response<Unit>
+
+    /** A cópia dos dados da conta, como texto JSON (é salvo num arquivo como veio). */
+    @POST("me/exportar")
+    suspend fun exportar(@Body corpo: ExcluirContaRequest): ResponseBody
 
     @PUT("me/dispositivos")
     suspend fun registrarDispositivo(@Body corpo: DispositivoRequest): Response<Unit>

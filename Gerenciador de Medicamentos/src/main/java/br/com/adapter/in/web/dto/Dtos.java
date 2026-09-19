@@ -21,7 +21,10 @@ public final class Dtos {
     }
 
     // ---- entrada
-    public record RegistroRequest(String tipo, String nome, String email, String senha) { }
+    public record RegistroRequest(String tipo, String nome, String email, String senha,
+                                  Boolean aceitouPolitica, String versaoPolitica) { }
+
+    public record ConsentimentoRequest(String versao) { }
 
     public record LoginRequest(String email, String senha) { }
 

@@ -1,5 +1,7 @@
 package br.com.cuidamed.data.local
 
+import br.com.cuidamed.data.ConsentimentoDto
+import br.com.cuidamed.data.ConsentimentoRequest
 import br.com.cuidamed.data.CuidaMedApi
 import br.com.cuidamed.data.DispositivoRequest
 import br.com.cuidamed.data.EditarUsuarioRequest
@@ -125,6 +127,10 @@ class ApiFalsa : CuidaMedApi {
     override suspend fun registro(corpo: RegistroRequest): UsuarioDto = TODO()
     override suspend fun editarEu(corpo: EditarUsuarioRequest): UsuarioDto = TODO()
     override suspend fun excluirConta(corpo: ExcluirContaRequest): Response<Unit> = TODO()
+    override suspend fun consentimento(): ConsentimentoDto = TODO()
+    override suspend fun aceitarPolitica(corpo: ConsentimentoRequest): Response<Unit> = Response.success(Unit)
+    override suspend fun exportar(corpo: ExcluirContaRequest): okhttp3.ResponseBody =
+        "{}".toResponseBody("application/json".toMediaType())
     override suspend fun registrarDispositivo(corpo: DispositivoRequest): Response<Unit> = comRede("registrarDispositivo:${corpo.token}") { Response.success(Unit) }
     override suspend fun removerDispositivo(corpo: DispositivoRequest): Response<Unit> = comRede("removerDispositivo:${corpo.token}") { Response.success(Unit) }
     override suspend fun meusFamiliares(): List<UsuarioDto> = TODO()

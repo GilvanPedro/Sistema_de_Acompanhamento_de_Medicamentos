@@ -27,22 +27,33 @@ class LimiteDeCadastroApiTest {
     @Autowired
     ObjectMapper json;
 
+    /** Corpo de cadastro válido: os dados recebidos mais o aceite da política de privacidade (obrigatório). */
+    private static Map<String, Object> reg(Object... paresChaveValor) {
+        Map<String, Object> corpo = new java.util.HashMap<>();
+        for (int i = 0; i < paresChaveValor.length; i += 2) {
+            corpo.put((String) paresChaveValor[i], paresChaveValor[i + 1]);
+        }
+        corpo.put("aceitouPolitica", true);
+        corpo.put("versaoPolitica", "1.0");
+        return corpo;
+    }
+
     @Test
     void criarContasEmMassaDoMesmoIpEBloqueado() throws Exception {
         for (int i = 0; i < 3; i++) {
             mvc.perform(post("/api/v1/auth/registro").contentType(MediaType.APPLICATION_JSON)
-                            .content(json.writeValueAsString(Map.of("tipo", "IDOSO", "nome", "Conta " + i,
+                            .content(json.writeValueAsString(reg("tipo", "IDOSO", "nome", "Conta " + i,
                                     "email", "massa" + i + "@teste.com", "senha", "senha-forte-123"))))
                     .andExpect(status().isCreated());
         }
         mvc.perform(post("/api/v1/auth/registro").contentType(MediaType.APPLICATION_JSON)
-                        .content(json.writeValueAsString(Map.of("tipo", "IDOSO", "nome", "Conta 4",
+                        .content(json.writeValueAsString(reg("tipo", "IDOSO", "nome", "Conta 4",
                                 "email", "massa4@teste.com", "senha", "senha-forte-123"))))
                 .andExpect(status().isTooManyRequests());
         // um IP diferente não é afetado
         mvc.perform(post("/api/v1/auth/registro").with(r -> { r.setRemoteAddr("203.0.113.9"); return r; })
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json.writeValueAsString(Map.of("tipo", "IDOSO", "nome", "Outro IP",
+                        .content(json.writeValueAsString(reg("tipo", "IDOSO", "nome", "Outro IP",
                                 "email", "outroip@teste.com", "senha", "senha-forte-123"))))
                 .andExpect(status().isCreated());
     }

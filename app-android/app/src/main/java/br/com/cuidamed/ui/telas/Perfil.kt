@@ -1,6 +1,8 @@
 package br.com.cuidamed.ui.telas
 
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,6 +34,8 @@ import br.com.cuidamed.ui.componentes.Tela
 import br.com.cuidamed.ui.componentes.TextoSuave
 import br.com.cuidamed.ui.componentes.Tom
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 
 /**
  * Editar nome, e-mail e senha (só o que mudar é enviado), sair da conta e excluir a conta.
@@ -53,6 +57,41 @@ fun TelaPerfil(usuario: UsuarioDto, destinos: Destinos) {
     var excluindo by remember { mutableStateOf(false) }
     val estadoDeEnvio by repo.sincronizacao.collectAsStateWithLifecycle()
     var confirmandoSaida by remember { mutableStateOf(false) }
+    var pedindoSenhaDaCopia by rememberSaveable { mutableStateOf(false) }
+    var senhaDaCopia by rememberSaveable { mutableStateOf("") }
+    var baixando by remember { mutableStateOf(false) }
+    var copiaPronta by remember { mutableStateOf<String?>(null) }
+    val salvarCopia = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { destino ->
+        val texto = copiaPronta
+        copiaPronta = null
+        if (destino != null && texto != null) {
+            val salvou = runCatching {
+                contexto.contentResolver.openOutputStream(destino)?.use { it.write(texto.toByteArray()) } ?: error("sem destino")
+            }.isSuccess
+            mensagem = if (salvou) Mensagem("Cópia dos seus dados salva.", Tom.OK)
+            else Mensagem("Não foi possível salvar o arquivo.", Tom.ERRO)
+        }
+    }
+
+    fun baixarCopia() {
+        if (senhaDaCopia.isEmpty()) {
+            mensagem = Mensagem("Digite a sua senha para baixar os seus dados.", Tom.AVISO)
+            return
+        }
+        baixando = true
+        escopo.launch {
+            when (val r = repo.exportarDados(senhaDaCopia)) {
+                is Resultado.Ok -> {
+                    copiaPronta = bonito(r.valor)
+                    senhaDaCopia = ""
+                    pedindoSenhaDaCopia = false
+                    salvarCopia.launch("cuidamed-meus-dados.json")
+                }
+                is Resultado.Falha -> mensagem = Mensagem(r.mensagem, Tom.ERRO)
+            }
+            baixando = false
+        }
+    }
 
     fun salvar() {
         val novoNome = nome.trim().takeIf { it != usuario.nome }
@@ -103,6 +142,17 @@ fun TelaPerfil(usuario: UsuarioDto, destinos: Destinos) {
         TextoSuave("Para os lembretes tocarem sempre, deixe as notificações ligadas e a bateria do CuidaMed sem restrições.")
         BotaoGrande("Configurações de notificação", { abrirConfiguracoesDeNotificacao(contexto) }, estilo = EstiloDoBotao.SECUNDARIO)
         BotaoGrande("Bateria sem restrições", { abrirConfiguracoesDeBateria(contexto) }, estilo = EstiloDoBotao.SECUNDARIO)
+
+        Secao("Privacidade")
+        TextoSuave("Você pode ler como seus dados são usados e baixar uma cópia de tudo o que o CuidaMed guarda sobre a sua conta.")
+        BotaoGrande("Ler a política de privacidade", destinos::politica, estilo = EstiloDoBotao.SECUNDARIO)
+        if (!pedindoSenhaDaCopia) {
+            BotaoGrande("Baixar meus dados", { pedindoSenhaDaCopia = true }, estilo = EstiloDoBotao.SECUNDARIO)
+        } else {
+            CampoDeTexto(senhaDaCopia, { senhaDaCopia = it }, "Digite a sua senha para baixar", senha = true)
+            BotaoGrande("Baixar agora", ::baixarCopia, carregando = baixando)
+            BotaoGrande("Cancelar", { pedindoSenhaDaCopia = false; senhaDaCopia = "" }, estilo = EstiloDoBotao.SECUNDARIO)
+        }
 
         Secao("Sair")
         BotaoGrande("Sair da conta", {
@@ -158,3 +208,9 @@ fun TelaPerfil(usuario: UsuarioDto, destinos: Destinos) {
         )
     }
 }
+
+/** Deixa o JSON legível (com quebras de linha e recuos) para quem abrir o arquivo. */
+private fun bonito(texto: String): String = runCatching {
+    val json = Json { prettyPrint = true }
+    json.encodeToString(JsonElement.serializer(), json.parseToJsonElement(texto))
+}.getOrDefault(texto)

@@ -43,7 +43,20 @@ data class ErroDto(val erro: String)
 // ---- corpos enviados
 
 @Serializable
-data class RegistroRequest(val tipo: String, val nome: String, val email: String, val senha: String)
+data class RegistroRequest(
+    val tipo: String,
+    val nome: String,
+    val email: String,
+    val senha: String,
+    val aceitouPolitica: Boolean,
+    val versaoPolitica: String,
+)
+
+@Serializable
+data class ConsentimentoDto(val versaoAtual: String, val versaoAceita: String? = null)
+
+@Serializable
+data class ConsentimentoRequest(val versao: String)
 
 @Serializable
 data class LoginRequest(val email: String, val senha: String)

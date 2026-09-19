@@ -77,6 +77,37 @@ class ConfiguracaoDeTeste {
     }
 
     @Bean
+    br.com.adapter.in.web.privacidade.Consentimentos consentimentos() {
+        return new br.com.adapter.in.web.privacidade.Consentimentos() {
+            private final java.util.List<Object[]> aceites = new java.util.ArrayList<>();
+
+            @Override
+            public synchronized void registrar(int usuarioId, String versao) {
+                if (aceites.stream().noneMatch(a -> (int) a[0] == usuarioId && a[1].equals(versao))) {
+                    aceites.add(new Object[]{usuarioId, versao, java.time.OffsetDateTime.now()});
+                }
+            }
+
+            @Override
+            public synchronized java.util.Optional<String> versaoAceita(int usuarioId) {
+                var lista = todos(usuarioId);
+                return lista.isEmpty() ? java.util.Optional.empty() : java.util.Optional.of(lista.get(lista.size() - 1).versao());
+            }
+
+            @Override
+            public synchronized java.util.List<Aceite> todos(int usuarioId) {
+                return aceites.stream().filter(a -> (int) a[0] == usuarioId)
+                        .map(a -> new Aceite((String) a[1], (java.time.OffsetDateTime) a[2])).toList();
+            }
+
+            @Override
+            public synchronized void removerDe(int usuarioId) {
+                aceites.removeIf(a -> (int) a[0] == usuarioId);
+            }
+        };
+    }
+
+    @Bean
     JwtService jwtService() {
         return new JwtService("segredo-somente-para-testes-com-mais-de-32-caracteres");
     }

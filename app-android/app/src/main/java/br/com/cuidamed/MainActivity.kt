@@ -23,6 +23,7 @@ import br.com.cuidamed.ui.componentes.ErroComTentarDeNovo
 import br.com.cuidamed.ui.componentes.EstiloDoBotao
 import br.com.cuidamed.ui.componentes.LocalPreferencias
 import br.com.cuidamed.ui.componentes.Tela
+import br.com.cuidamed.ui.telas.PortaoDaPolitica
 import br.com.cuidamed.ui.theme.CuidaMedTheme
 import kotlinx.coroutines.launch
 
@@ -53,8 +54,10 @@ private fun CuidaMedRaiz(repositorio: Repositorio, preferencias: Preferencias) {
                 EstadoDaSessao.Verificando -> Tela("CuidaMed") { Carregando("Entrando…") }
                 EstadoDaSessao.SemLogin -> NavegacaoDeEntrada()
                 is EstadoDaSessao.Logado -> {
-                    PedirPermissaoDeNotificacoes()
-                    NavegacaoDoApp(e.usuario)
+                    PortaoDaPolitica(e.usuario) {
+                        PedirPermissaoDeNotificacoes()
+                        NavegacaoDoApp(e.usuario)
+                    }
                 }
                 is EstadoDaSessao.SemConexao -> Tela("CuidaMed") {
                     ErroComTentarDeNovo(e.mensagem) { escopo.launch { repositorio.restaurarSessao() } }

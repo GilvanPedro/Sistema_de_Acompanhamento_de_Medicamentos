@@ -32,15 +32,18 @@ class UsuarioController {
     private final TokenService tokens;
     private final ConfirmacaoDeSenha confirmacao;
     private final br.com.adapter.in.web.push.Dispositivos dispositivos;
+    private final br.com.adapter.in.web.privacidade.Consentimentos consentimentos;
 
     UsuarioController(Acesso acesso, EditarUsuarioService editar, ExcluirUsuarioService excluir, TokenService tokens,
-                      ConfirmacaoDeSenha confirmacao, br.com.adapter.in.web.push.Dispositivos dispositivos) {
+                      ConfirmacaoDeSenha confirmacao, br.com.adapter.in.web.push.Dispositivos dispositivos,
+                      br.com.adapter.in.web.privacidade.Consentimentos consentimentos) {
         this.acesso = acesso;
         this.editar = editar;
         this.excluir = excluir;
         this.tokens = tokens;
         this.confirmacao = confirmacao;
         this.dispositivos = dispositivos;
+        this.consentimentos = consentimentos;
     }
 
     @GetMapping
@@ -77,6 +80,7 @@ class UsuarioController {
         excluir.excluirUsuario(atual.getId());
         tokens.revogarTodos(atual.getId());
         dispositivos.removerTodos(atual.getId());
+        consentimentos.removerDe(atual.getId());
         return ResponseEntity.noContent().build();
     }
 

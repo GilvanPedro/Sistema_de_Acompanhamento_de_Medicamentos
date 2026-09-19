@@ -224,6 +224,14 @@ class Repositorio(
         escopo.launch { esquecerDados(id) }
     }
 
+    /** Qual versão da política o servidor já tem aceita para esta conta. */
+    suspend fun consentimento(): Resultado<ConsentimentoDto> = chamar { api.consentimento() }
+
+    suspend fun aceitarPolitica(): Resultado<Unit> = chamarVazio { api.aceitarPolitica(ConsentimentoRequest(VERSAO_DA_POLITICA)) }
+
+    /** Cópia de todos os dados da conta (LGPD), como texto JSON. Exige a senha. */
+    suspend fun exportarDados(senha: String): Resultado<String> = chamar { api.exportar(ExcluirContaRequest(senha)).string() }
+
     /** Entrega ao servidor o token de push deste aparelho para a conta logada. */
     suspend fun registrarAparelho(token: String): Resultado<Unit> {
         if (!temSessao()) return Resultado.Ok(Unit)
@@ -256,7 +264,7 @@ class Repositorio(
         }
 
     suspend fun cadastrar(tipo: String, nome: String, email: String, senha: String): Resultado<UsuarioDto> =
-        when (val r = chamar { api.registro(RegistroRequest(tipo, nome.trim(), email.trim(), senha)) }) {
+        when (val r = chamar { api.registro(RegistroRequest(tipo, nome.trim(), email.trim(), senha, true, VERSAO_DA_POLITICA)) }) {
             is Resultado.Ok -> entrar(email, senha)
             is Resultado.Falha -> r
         }

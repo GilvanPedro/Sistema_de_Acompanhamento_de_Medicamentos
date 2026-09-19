@@ -81,6 +81,7 @@ fun TelaCadastro(tipo: String, destinos: Destinos) {
     var nome by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
     var senha by rememberSaveable { mutableStateOf("") }
+    var aceitou by rememberSaveable { mutableStateOf(false) }
     var carregando by remember { mutableStateOf(false) }
     var mensagem by remember { mutableStateOf<Mensagem?>(null) }
 
@@ -89,6 +90,7 @@ fun TelaCadastro(tipo: String, destinos: Destinos) {
             nome.isBlank() -> mensagem = Mensagem("Escreva o seu nome.", Tom.AVISO)
             email.isBlank() -> mensagem = Mensagem("Escreva o seu e-mail.", Tom.AVISO)
             senha.length < 8 -> mensagem = Mensagem("A senha precisa ter pelo menos 8 caracteres.", Tom.AVISO)
+            !aceitou -> mensagem = Mensagem("Para criar a conta, leia e aceite a política de privacidade.", Tom.AVISO)
             else -> {
                 carregando = true
                 mensagem = null
@@ -112,6 +114,7 @@ fun TelaCadastro(tipo: String, destinos: Destinos) {
         CampoDeTexto(nome, { nome = it }, "Seu nome")
         CampoDeTexto(email, { email = it }, "Seu e-mail", tipoDeTeclado = KeyboardType.Email)
         CampoDeTexto(senha, { senha = it }, "Escolha uma senha", senha = true, dica = "Pelo menos 8 caracteres.")
+        CaixaDeAceite(aceitou, { aceitou = it }, destinos::politica)
         BotaoGrande("Criar minha conta", ::criar, carregando = carregando)
         if (carregando) TextoSuave("Criando a conta… se o servidor estiver descansando, pode levar até um minuto.")
     }

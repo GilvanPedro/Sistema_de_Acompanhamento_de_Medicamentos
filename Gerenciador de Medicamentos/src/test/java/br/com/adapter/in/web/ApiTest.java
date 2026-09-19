@@ -32,6 +32,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Import(ConfiguracaoDeTeste.class)
 class ApiTest {
 
+    /** Corpo de cadastro válido: os dados recebidos mais o aceite da política de privacidade (obrigatório). */
+    private static Map<String, Object> reg(Object... paresChaveValor) {
+        Map<String, Object> corpo = new java.util.HashMap<>();
+        for (int i = 0; i < paresChaveValor.length; i += 2) {
+            corpo.put((String) paresChaveValor[i], paresChaveValor[i + 1]);
+        }
+        corpo.put("aceitouPolitica", true);
+        corpo.put("versaoPolitica", "1.0");
+        return corpo;
+    }
+
     private static final String SENHA = "senha-forte-123";
 
     @Autowired
@@ -45,7 +56,7 @@ class ApiTest {
     private Sessao criarConta(String tipo, String nome) throws Exception {
         String email = nome.toLowerCase().replace(' ', '.') + "." + UUID.randomUUID().toString().substring(0, 8) + "@teste.com";
         mvc.perform(post("/api/v1/auth/registro").contentType(MediaType.APPLICATION_JSON)
-                        .content(json.writeValueAsString(Map.of("tipo", tipo, "nome", nome, "email", email, "senha", SENHA))))
+                        .content(json.writeValueAsString(reg("tipo", tipo, "nome", nome, "email", email, "senha", SENHA))))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.senha").doesNotExist())
                 .andExpect(jsonPath("$.senhaHash").doesNotExist());
@@ -107,10 +118,10 @@ class ApiTest {
     void cadastroComEmailRepetidoOuDadosInvalidosRetorna400() throws Exception {
         Sessao ana = criarConta("IDOSO", "Ana Repetida");
         mvc.perform(post("/api/v1/auth/registro").contentType(MediaType.APPLICATION_JSON)
-                        .content(corpo(Map.of("tipo", "IDOSO", "nome", "Outra", "email", ana.email(), "senha", SENHA))))
+                        .content(corpo(reg("tipo", "IDOSO", "nome", "Outra", "email", ana.email(), "senha", SENHA))))
                 .andExpect(status().isBadRequest());
         mvc.perform(post("/api/v1/auth/registro").contentType(MediaType.APPLICATION_JSON)
-                        .content(corpo(Map.of("tipo", "ADMIN", "nome", "X", "email", "x@x.com", "senha", SENHA))))
+                        .content(corpo(reg("tipo", "ADMIN", "nome", "X", "email", "x@x.com", "senha", SENHA))))
                 .andExpect(status().isBadRequest());
         mvc.perform(post("/api/v1/auth/registro").contentType(MediaType.APPLICATION_JSON).content("isto nao e json"))
                 .andExpect(status().isBadRequest());
@@ -277,7 +288,7 @@ class ApiTest {
     void senhaFracaOuGrandeDemaisERecusadaNoCadastro() throws Exception {
         for (String senha : new String[]{"1", "curta", "1234567", "x".repeat(73)}) {
             mvc.perform(post("/api/v1/auth/registro").contentType(MediaType.APPLICATION_JSON)
-                            .content(corpo(Map.of("tipo", "IDOSO", "nome", "Fraca", "email", "fraca@teste.com", "senha", senha))))
+                            .content(corpo(reg("tipo", "IDOSO", "nome", "Fraca", "email", "fraca@teste.com", "senha", senha))))
                     .andExpect(status().isBadRequest());
         }
     }
@@ -285,10 +296,10 @@ class ApiTest {
     @Test
     void nomeGrandeDemaisERecusadoEEmailComDominioLongoEAceito() throws Exception {
         mvc.perform(post("/api/v1/auth/registro").contentType(MediaType.APPLICATION_JSON)
-                        .content(corpo(Map.of("tipo", "IDOSO", "nome", "N".repeat(151), "email", "nome.longo@teste.com", "senha", SENHA))))
+                        .content(corpo(reg("tipo", "IDOSO", "nome", "N".repeat(151), "email", "nome.longo@teste.com", "senha", SENHA))))
                 .andExpect(status().isBadRequest());
         mvc.perform(post("/api/v1/auth/registro").contentType(MediaType.APPLICATION_JSON)
-                        .content(corpo(Map.of("tipo", "FAMILIAR", "nome", "Dominio Longo",
+                        .content(corpo(reg("tipo", "FAMILIAR", "nome", "Dominio Longo",
                                 "email", "longo." + UUID.randomUUID().toString().substring(0, 8) + "@empresa.photography", "senha", SENHA))))
                 .andExpect(status().isCreated());
     }
@@ -505,6 +516,77 @@ class ApiTest {
         mvc.perform(post("/api/v1/interno/atrasos").header("X-Cron-Segredo", "segredo-do-agendador-de-teste"))
                 .andExpect(status().isOk());
         assertEquals(antes, aparelhos.avisados.size());
+    }
+
+    @Test
+    void cadastroExigeAceiteDaPoliticaNaVersaoAtualEORegistra() throws Exception {
+        String email = "aceite." + UUID.randomUUID().toString().substring(0, 8) + "@teste.com";
+        Map<String, Object> base = Map.of("tipo", "IDOSO", "nome", "Sem Aceite", "email", email, "senha", SENHA);
+        mvc.perform(post("/api/v1/auth/registro").contentType(MediaType.APPLICATION_JSON).content(corpo(base)))
+                .andExpect(status().isBadRequest());
+        Map<String, Object> naoAceitou = new java.util.HashMap<>(base);
+        naoAceitou.put("aceitouPolitica", false);
+        naoAceitou.put("versaoPolitica", "1.0");
+        mvc.perform(post("/api/v1/auth/registro").contentType(MediaType.APPLICATION_JSON).content(corpo(naoAceitou)))
+                .andExpect(status().isBadRequest());
+        Map<String, Object> versaoVelha = new java.util.HashMap<>(base);
+        versaoVelha.put("aceitouPolitica", true);
+        versaoVelha.put("versaoPolitica", "0.1");
+        mvc.perform(post("/api/v1/auth/registro").contentType(MediaType.APPLICATION_JSON).content(corpo(versaoVelha)))
+                .andExpect(status().isBadRequest());
+
+        Sessao pessoa = criarConta("IDOSO", "Com Aceite");
+        mvc.perform(com(get("/api/v1/me/consentimento"), pessoa)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.versaoAtual").value("1.0")).andExpect(jsonPath("$.versaoAceita").value("1.0"));
+    }
+
+    @Test
+    void quemAindaNaoAceitouAceitaPeloAppESoNaVersaoAtual() throws Exception {
+        Sessao pessoa = criarConta("FAMILIAR", "Conta Antiga");
+        // simula conta anterior à política: o aceite some
+        mvc.perform(com(post("/api/v1/me/consentimento"), pessoa).contentType(MediaType.APPLICATION_JSON)
+                .content(corpo(Map.of("versao", "0.1")))).andExpect(status().isBadRequest());
+        mvc.perform(com(post("/api/v1/me/consentimento"), pessoa).contentType(MediaType.APPLICATION_JSON)
+                .content(corpo(Map.of("versao", "1.0")))).andExpect(status().isNoContent());
+        mvc.perform(get("/api/v1/me/consentimento")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void exportarTrazSoOsDadosDaPropriaContaEPedeASenha() throws Exception {
+        Sessao idoso = criarConta("IDOSO", "Dona Cecilia");
+        Sessao familiar = criarConta("FAMILIAR", "Genro Caio");
+        vincular(familiar, idoso);
+        int id = cadastrarMedicamento(idoso, "Sinvastatina");
+        mvc.perform(com(post("/api/v1/medicamentos/" + id + "/tomadas"), idoso)).andExpect(status().isCreated());
+
+        mvc.perform(com(post("/api/v1/me/exportar"), idoso).contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(com(post("/api/v1/me/exportar"), idoso).contentType(MediaType.APPLICATION_JSON)
+                .content(corpo(Map.of("senha", "senha-errada-123")))).andExpect(status().isForbidden());
+        mvc.perform(post("/api/v1/me/exportar").contentType(MediaType.APPLICATION_JSON)
+                .content(corpo(Map.of("senha", SENHA)))).andExpect(status().isUnauthorized());
+
+        String resposta = mvc.perform(com(post("/api/v1/me/exportar"), idoso).contentType(MediaType.APPLICATION_JSON)
+                        .content(corpo(Map.of("senha", SENHA))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.conta.email").value(idoso.email()))
+                .andExpect(jsonPath("$.medicamentos[0].nome").value("Sinvastatina"))
+                .andExpect(jsonPath("$.historico.length()").value(1))
+                .andExpect(jsonPath("$.familiaresVinculados[0]").value("Genro Caio"))
+                .andExpect(jsonPath("$.aceitesDaPolitica[0].versao").value("1.0"))
+                .andReturn().getResponse().getContentAsString();
+        assertFalse(resposta.toLowerCase().contains("senha"), "a exportação nunca pode conter senha nem hash");
+
+        mvc.perform(com(post("/api/v1/me/exportar"), familiar).contentType(MediaType.APPLICATION_JSON)
+                        .content(corpo(Map.of("senha", SENHA))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.idososQueAcompanha[0]").value("Dona Cecilia"))
+                .andExpect(jsonPath("$.medicamentos").doesNotExist());
+    }
+
+    @Test
+    void politicaDePrivacidadeEPublica() throws Exception {
+        mvc.perform(get("/politica-de-privacidade.html")).andExpect(status().isOk());
     }
 
     @Test

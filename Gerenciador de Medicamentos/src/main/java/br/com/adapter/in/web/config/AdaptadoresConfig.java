@@ -14,6 +14,8 @@ import br.com.adapter.in.web.auth.RefreshTokenJdbcStore;
 import br.com.adapter.in.web.auth.RefreshTokenStore;
 import br.com.adapter.in.web.idempotencia.ChavesDeIdempotencia;
 import br.com.adapter.in.web.idempotencia.ChavesDeIdempotenciaJdbc;
+import br.com.adapter.in.web.privacidade.Consentimentos;
+import br.com.adapter.in.web.privacidade.ConsentimentosJdbc;
 import br.com.adapter.in.web.push.AvisosDeAtraso;
 import br.com.adapter.in.web.push.AvisosDeAtrasoJdbc;
 import br.com.adapter.in.web.push.Dispositivos;
@@ -84,6 +86,11 @@ class AdaptadoresConfig {
     @Bean
     ChavesDeIdempotencia chavesDeIdempotencia(DataSource dataSource) {
         return new ChavesDeIdempotenciaJdbc(dataSource);
+    }
+
+    @Bean
+    Consentimentos consentimentos(DataSource dataSource) {
+        return new ConsentimentosJdbc(dataSource);
     }
 
     @Bean

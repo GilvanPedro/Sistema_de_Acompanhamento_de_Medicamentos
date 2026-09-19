@@ -21,6 +21,7 @@ import br.com.cuidamed.ui.telas.TelaInicio
 import br.com.cuidamed.ui.telas.TelaLogin
 import br.com.cuidamed.ui.telas.TelaMedicamentos
 import br.com.cuidamed.ui.telas.TelaPerfil
+import br.com.cuidamed.ui.telas.TelaPolitica
 import br.com.cuidamed.ui.telas.TelaTomeiUmRemedio
 import br.com.cuidamed.ui.telas.TelaVinculos
 
@@ -43,6 +44,7 @@ class Destinos(private val nav: NavHostController) {
     fun historico(idosoId: Int, nome: String) = nav.navigate("historico/$idosoId/${Uri.encode(nome)}")
     fun vinculos() = nav.navigate("vinculos")
     fun perfil() = nav.navigate("perfil")
+    fun politica() = nav.navigate("politica")
     fun idosoDoFamiliar(idosoId: Int, nome: String) = nav.navigate("idoso/$idosoId/${Uri.encode(nome)}")
 }
 
@@ -54,6 +56,7 @@ fun NavegacaoDeEntrada() {
     NavHost(navController = nav, startDestination = "inicio") {
         composable("inicio") { TelaInicio(destinos) }
         composable("login") { TelaLogin(destinos) }
+        composable("politica") { TelaPolitica(destinos) }
         composable("cadastro/{tipo}", arguments = listOf(navArgument("tipo") { type = NavType.StringType })) {
             TelaCadastro(it.arguments!!.getString("tipo")!!, destinos)
         }
@@ -94,5 +97,6 @@ fun NavegacaoDoApp(usuario: UsuarioDto) {
         }
         composable("vinculos") { TelaVinculos(usuario, destinos) }
         composable("perfil") { TelaPerfil(usuario, destinos) }
+        composable("politica") { TelaPolitica(destinos) }
     }
 }
