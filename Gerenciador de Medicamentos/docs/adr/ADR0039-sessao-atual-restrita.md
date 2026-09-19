@@ -2,7 +2,7 @@
 
 ## Status
 
-Aceito
+Substituído pelo [ADR-0053](ADR0053-remocao-do-terminal-e-do-csv-gui-como-cliente-da-api.md) (o terminal e a `SessaoAtual` foram removidos; a sessão agora é o token da API)
 
 ## Contexto
 

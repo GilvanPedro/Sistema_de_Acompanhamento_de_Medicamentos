@@ -2,7 +2,7 @@
 
 ## Status
 
-Aceito
+Substituído pelo [ADR-0051](ADR0051-aviso-de-remedio-esquecido-por-agendador-externo.md) (o agendador local a cada minuto foi removido; agora um agendador externo chama o servidor)
 
 ## Contexto
 

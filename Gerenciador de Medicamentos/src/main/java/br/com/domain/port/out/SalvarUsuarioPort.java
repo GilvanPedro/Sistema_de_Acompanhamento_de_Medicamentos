@@ -16,7 +16,7 @@ public interface SalvarUsuarioPort {
     Usuario buscarPorId(int id);
     Usuario buscarPorEmail(String email);
 
-    // Aceite do vínculo pelo idoso (ADR-0045). Só o PostgreSQL implementa; o CSV não guarda o status.
+    // Aceite do vínculo pelo idoso (ADR-0046). Só o PostgreSQL implementa; o CSV não guarda o status.
 
     /** Cria (ou renova) um pedido PENDENTE do familiar para o idoso. */
     default void solicitarVinculo(int idosoId, int familiarId) {

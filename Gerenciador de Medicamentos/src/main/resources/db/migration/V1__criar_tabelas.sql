@@ -1,4 +1,4 @@
--- CuidaMed: schema inicial (PostgreSQL). Ver ADR-0045.
+-- CuidaMed: schema inicial (PostgreSQL). Ver ADR-0046.
 --
 -- Ids são IDENTITY "BY DEFAULT" para podermos inserir os ids que já existem nos CSV
 -- na migração; depois da carga, reajustar as sequências (script de migração).

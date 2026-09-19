@@ -2,7 +2,7 @@
 
 ## Status
 
-Aceito
+Parcialmente substituído: o `VerificarAtrasoMedicamentoService` foi removido ([ADR-0053](ADR0053-remocao-do-terminal-e-do-csv-gui-como-cliente-da-api.md)); a regra de atraso continua em `VerificarNotificacoesIdosoService` e o aviso ao familiar agora é enviado pelo servidor ([ADR-0051](ADR0051-aviso-de-remedio-esquecido-por-agendador-externo.md))
 
 ## Contexto
 

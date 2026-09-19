@@ -112,7 +112,7 @@ public class MedicamentoPostgresAdapter implements SalvarMedicamentoPort {
         }
     }
 
-    /** Exclusão lógica (ver ADR-0045): a linha fica só como marca de exclusão, e o nome do remédio é apagado. */
+    /** Exclusão lógica (ver ADR-0046): a linha fica só como marca de exclusão, e o nome do remédio é apagado. */
     @Override
     public void excluir(int id) {
         String sql = "UPDATE medicamento SET nome = '(excluído)', excluido_em = now(), atualizado_em = now() "

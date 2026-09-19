@@ -2,7 +2,7 @@
 
 ## Status
 
-Aceito
+Substituído pelo [ADR-0053](ADR0053-remocao-do-terminal-e-do-csv-gui-como-cliente-da-api.md) (a entrada de texto do terminal foi removida; a GUI e o app escolhem o dia por botões)
 
 ## Contexto
 

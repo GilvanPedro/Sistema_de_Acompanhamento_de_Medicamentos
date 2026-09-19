@@ -2,7 +2,7 @@
 
 ## Status
 
-Aceito
+Aceito. Desde o [ADR-0053](ADR0053-remocao-do-terminal-e-do-csv-gui-como-cliente-da-api.md), a interface gráfica fala com a API em vez de acessar o banco
 
 ## Contexto
 

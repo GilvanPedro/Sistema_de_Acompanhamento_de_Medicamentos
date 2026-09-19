@@ -6,7 +6,7 @@ Aceito
 
 ## Contexto
 
-O app Android usa a API (ADR-0047), que fica no plano gratuito do Render: ele hiberna, e a primeira resposta depois de uma pausa pode levar cerca de um minuto. Além disso, o público (idosos) nem sempre tem internet boa, e um lembrete de remédio ou um "já tomei" não pode depender disso. Ficou combinado desde o ADR-0045 que:
+O app Android usa a API (ADR-0047), que fica no plano gratuito do Render: ele hiberna, e a primeira resposta depois de uma pausa pode levar cerca de um minuto. Além disso, o público (idosos) nem sempre tem internet boa, e um lembrete de remédio ou um "já tomei" não pode depender disso. Ficou combinado desde o planejamento inicial que:
 
 - o app funciona sem internet, e o que a pessoa fizer só é enviado quando houver conexão;
 - nos conflitos, **excluir vence editar**, e **entre duas edições vale a que chega por último ao servidor**.

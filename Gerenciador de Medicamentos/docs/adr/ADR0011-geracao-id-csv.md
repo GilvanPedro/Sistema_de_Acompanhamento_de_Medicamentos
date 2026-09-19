@@ -2,7 +2,7 @@
 
 ## Status
 
-Aceito
+Substituído pelo [ADR-0046](ADR0046-persistencia-postgresql-e-aceite-de-vinculo.md) (ids gerados pelo banco) e pelo [ADR-0053](ADR0053-remocao-do-terminal-e-do-csv-gui-como-cliente-da-api.md) (o CSV foi removido)
 
 ## Contexto
 

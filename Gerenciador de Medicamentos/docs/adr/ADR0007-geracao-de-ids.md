@@ -2,7 +2,7 @@
 
 ## Status
 
-Aceito
+Parcialmente substituído: no PostgreSQL os ids são gerados pelo banco ([ADR-0046](ADR0046-persistencia-postgresql-e-aceite-de-vinculo.md)); o gerador por arquivo foi removido ([ADR-0053](ADR0053-remocao-do-terminal-e-do-csv-gui-como-cliente-da-api.md))
 
 ## Contexto
 

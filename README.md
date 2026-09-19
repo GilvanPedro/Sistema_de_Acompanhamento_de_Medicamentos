@@ -295,6 +295,9 @@ O que foi decidido, as alternativas consideradas e o porquê estão documentados
 - [ADR-0048](Gerenciador%20de%20Medicamentos/docs/adr/ADR0048-correcoes-da-revisao-do-projeto.md): correções da revisão do projeto (segurança, robustez e avisos de horário)
 - [ADR-0049](Gerenciador%20de%20Medicamentos/docs/adr/ADR0049-uso-sem-internet-no-app-android.md): uso sem internet no app Android (cópia local, fila de alterações e sincronização)
 - [ADR-0050](Gerenciador%20de%20Medicamentos/docs/adr/ADR0050-push-instantaneo-com-firebase.md): push instantâneo com o Firebase (FCM)
+- [ADR-0051](Gerenciador%20de%20Medicamentos/docs/adr/ADR0051-aviso-de-remedio-esquecido-por-agendador-externo.md): aviso de "remédio esquecido" na hora, com agendador externo
+- [ADR-0052](Gerenciador%20de%20Medicamentos/docs/adr/ADR0052-lgpd-consentimento-politica-e-exportacao-de-dados.md): LGPD (consentimento, política de privacidade e exportação dos dados)
+- [ADR-0053](Gerenciador%20de%20Medicamentos/docs/adr/ADR0053-remocao-do-terminal-e-do-csv-gui-como-cliente-da-api.md): remoção do terminal e do CSV; a interface gráfica passa a usar a API
 
 ## Próximos passos
 

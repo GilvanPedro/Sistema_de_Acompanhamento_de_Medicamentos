@@ -2,7 +2,7 @@
 
 ## Status
 
-Aceito
+Substituído pelo [ADR-0053](ADR0053-remocao-do-terminal-e-do-csv-gui-como-cliente-da-api.md) (o adaptador de notificação por console foi removido; o aviso agora é push, ADR-0050 e ADR-0051)
 
 ## Contexto
 

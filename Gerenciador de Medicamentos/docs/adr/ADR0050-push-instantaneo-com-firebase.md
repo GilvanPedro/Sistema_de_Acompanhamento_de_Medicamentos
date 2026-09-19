@@ -2,11 +2,11 @@
 
 ## Status
 
-Aceito (código pronto; falta o usuário criar o projeto no Firebase e configurar as chaves)
+Aceito e em uso (testado no celular real: o aviso chega em segundos, com o app fechado)
 
 ## Contexto
 
-Os avisos ao familiar ("não tomou", "tomou") e o pedido de vínculo ao idoso dependiam da verificação em segundo plano do Android, que só roda a cada 15 minutos (no mínimo). Mudanças feitas pelo familiar nos remédios também só chegavam ao idoso nesse ritmo. O ADR-0045 já previa o Firebase para avisos na hora.
+Os avisos ao familiar ("não tomou", "tomou") e o pedido de vínculo ao idoso dependiam da verificação em segundo plano do Android, que só roda a cada 15 minutos (no mínimo). Mudanças feitas pelo familiar nos remédios também só chegavam ao idoso nesse ritmo. O planejamento inicial já previa o Firebase para avisos na hora.
 
 ## Decisão
 
@@ -49,7 +49,7 @@ A chave da conta de serviço vem da variável **`FIREBASE_CREDENTIALS`** (o JSON
 ## Consequências
 
 - Avisos passam de "até ~15 min" para segundos, com o app fechado (o push de prioridade alta acorda o app mesmo em economia de bateria, dentro dos limites do Android).
-- **Limite conhecido:** o aviso de "esquecido" (o idoso *não* fez nada) não tem gatilho de ação. Ele continua dependendo da verificação a cada 15 minutos. Para chegar na hora, o servidor precisaria de um agendador que dispare o push nos horários dos remédios (ideia para depois; no plano gratuito do Render, que hiberna, exigiria um serviço externo de agendamento).
+- O aviso de "esquecido" (o idoso *não* faz nada) não tem ação que o dispare; ele é enviado por um agendador externo, como descrito no [ADR-0051](ADR0051-aviso-de-remedio-esquecido-por-agendador-externo.md).
 - Aparelhos sem serviços do Google (raro) continuam só com a verificação de 15 minutos.
 - Novo custo operacional: manter a chave da conta de serviço como segredo no Render.
 
@@ -59,3 +59,10 @@ A chave da conta de serviço vem da variável **`FIREBASE_CREDENTIALS`** (o JSON
 2. Baixar `google-services.json` e colocar em `app-android/app/` (o Git o ignora).
 3. Configurações do projeto > **Contas de serviço** > **Gerar nova chave privada**. Colar o conteúdo do JSON na variável `FIREBASE_CREDENTIALS` no Render (e no `.env` local, se quiser testar daqui). Não commitar o arquivo.
 4. Rodar `V5__criar_dispositivo.sql` na Neon (junto com a V4, se ainda não foi), publicar o servidor e recompilar o app.
+
+## O que aprendemos ao ligar (para quem for configurar de novo)
+
+- **O nome da variável importa.** A chave da conta de serviço é lida de `FIREBASE_CREDENTIALS` (o código também aceita o nome antigo `FIREBASE_CREDENCIAIS`). Um nome diferente do que o código lê deixa o push **desligado sem nenhum erro**.
+- **Diagnóstico sem os logs do Render** (o plano gratuito não mostra os logs de requisição): `GET /api/v1/me/dispositivos/estado`, com login, diz se o push está `LIGADO` ou `DESLIGADO` e como foi o último envio (por exemplo, `FCM respondeu 200`). O servidor também escreve `Push: LIGADO` ou `Push: DESLIGADO` na partida.
+- **O campo `aud` do pedido de token ao Google tem de ser um texto**, não uma lista. A biblioteca de JWT gera lista por padrão (`audience().add`); com isso o Google recusava com `invalid_grant`. O código usa `audience().single(...)`.
+- O envio roda numa fila em segundo plano: uma falha do Google aparece no log (`Push: falha ao enviar ...`), nunca na resposta da API.

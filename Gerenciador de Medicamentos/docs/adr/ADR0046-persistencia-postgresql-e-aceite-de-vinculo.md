@@ -6,7 +6,7 @@ Aceito
 
 ## Contexto
 
-Até aqui os dados ficavam em arquivos CSV locais, o que impede usar o sistema de mais de um lugar (a ideia é ter um app Android e o desktop compartilhando os mesmos dados). O planejamento (ADR-0045, rascunho) definiu:
+Até aqui os dados ficavam em arquivos CSV locais, o que impede usar o sistema de mais de um lugar (a ideia é ter um app Android e o desktop compartilhando os mesmos dados). O planejamento inicial (um rascunho, depois removido) definiu:
 
 - Trocar o CSV por um banco online, gratuito e sempre disponível.
 - Exigir que o idoso aceite o vínculo com um familiar antes de ser acompanhado (consentimento, ligado à LGPD, já que medicamentos são dados de saúde).
@@ -23,7 +23,7 @@ Este ADR registra o que foi de fato implementado nessa primeira etapa.
   - `vinculo`: liga idoso e familiar, com `status` (`PENDENTE`, `ACEITO`, `RECUSADO`), `solicitado_em` e `respondido_em`.
   - `medicamento`: dia da semana e tipo como texto, com `CHECK` nos valores do `DayOfWeek` e do `TipoMedicamento`.
   - `historico`: só recebe inserções.
-- **Exclusão lógica** em `usuario` e `medicamento` (`excluido_em`), e colunas `criado_em` e `atualizado_em`, preparadas para a sincronização do app offline (regra "excluir vence editar" do ADR-0045). O histórico é apagado de fato quando removido, e os vínculos de um usuário excluído são removidos.
+- **Exclusão lógica** em `usuario` e `medicamento` (`excluido_em`), e colunas `criado_em` e `atualizado_em`, preparadas para a sincronização do app offline (regra "excluir vence editar", combinada no planejamento e implementada no ADR-0049). O histórico é apagado de fato quando removido, e os vínculos de um usuário excluído são removidos.
 - **Adaptadores** em `adapter/out/persistence/postgres/`: `UsuarioPostgresAdapter`, `MedicamentoPostgresAdapter` e `HistoricoPostgresAdapter`. Implementam as **mesmas portas** de `domain/port/out` que os adaptadores CSV, então `domain/` e `application/` não precisaram mudar para isso. Usam JDBC com `PreparedStatement` (sem concatenar valores no SQL) e um pool **HikariCP** (5 conexões, nenhuma ociosa, porque a Neon suspende o banco sem uso). Dependências novas: driver `postgresql` 42.7.4 e `HikariCP` 5.1.0.
 - **Geração de ids:** `GerarIdPostgresAdapter` pega o próximo id da sequência da coluna `id` (`nextval(pg_get_serial_sequence(...))`). Os serviços continuam gerando o id antes de salvar, como antes, e funciona com vários clientes ao mesmo tempo.
 - **Configuração** em `ConexaoPostgres`: lê `DATABASE_URL` (no formato que a Neon fornece, `postgresql://usuario:senha@host/banco?sslmode=require`, convertido para JDBC) ou `DB_URL`, `DB_USER` e `DB_PASSWORD`. Primeiro procura na variável de ambiente e, se não achar, no arquivo `.env` na raiz do repositório. O `.env` está no `.gitignore` e existe um `.env.example` com valores de mentira. A senha nunca fica no código nem no Git.
@@ -105,7 +105,7 @@ Novos recursos (aceite do vínculo agora, sincronização depois) existem só no
 
 ## Observações
 
-- Próximos passos (ADR-0045): API REST com login por token, app Android em Kotlin com uso offline, notificações push, distribuição por APK e cuidados de LGPD.
+- Próximos passos (planejamento inicial): API REST com login por token, app Android em Kotlin com uso offline, notificações push, distribuição por APK e cuidados de LGPD.
 - Pendências conhecidas: migrar (ou descartar) os dados antigos dos CSV, adotar Flyway, e testes automatizados.
 
 ## Data

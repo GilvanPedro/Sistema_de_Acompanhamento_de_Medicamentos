@@ -6,7 +6,7 @@ Aceito
 
 ## Contexto
 
-Depois de passar a persistência para o PostgreSQL (ADR-0046), a GUI e o terminal falavam direto com o banco, o que obriga cada computador a ter a senha do banco. O app Android planejado (ADR-0045) não pode, e não deve, fazer isso: colocar a credencial do banco dentro de um app instalado em vários aparelhos seria um risco de segurança sério.
+Depois de passar a persistência para o PostgreSQL (ADR-0046), a GUI e o terminal falavam direto com o banco, o que obriga cada computador a ter a senha do banco. O app Android planejado não pode, e não deve, fazer isso: colocar a credencial do banco dentro de um app instalado em vários aparelhos seria um risco de segurança sério.
 
 Era preciso uma camada online entre os clientes e o banco que:
 - guardasse a credencial do banco só no servidor;
@@ -127,8 +127,8 @@ A classe `Acesso` cumpre o papel que a `SessaoAtual` tem no terminal. **A cada r
 
 ## Observações
 
-- Próximos passos (ADR-0045): app Android em Kotlin com uso offline e sincronização; notificações push (Firebase); distribuição por APK.
-- Pendências desta etapa: limpar tokens de renovação expirados e migrar a GUI e o terminal para a API. A anonimização na exclusão de conta foi resolvida em seguida (ver seção 2). O consentimento explícito no cadastro, a política de privacidade e a exportação dos dados do titular (checklist do ADR-0045) seguem para o app.
+- Próximos passos (planejamento inicial): app Android em Kotlin com uso offline e sincronização (ADR-0049); notificações push (ADR-0050 e ADR-0051); distribuição por APK.
+- Pendências desta etapa: limpar tokens de renovação expirados e migrar a GUI e o terminal para a API (feito no ADR-0053, que removeu o terminal). A anonimização na exclusão de conta foi resolvida em seguida (ver seção 2). O consentimento explícito no cadastro, a política de privacidade e a exportação dos dados do titular foram feitos no ADR-0052.
 
 ## Data
 
