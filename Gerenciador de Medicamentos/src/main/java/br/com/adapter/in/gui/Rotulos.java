@@ -56,7 +56,7 @@ final class Rotulos {
     static String erro(RuntimeException e) {
         if (e instanceof DadosInvalidosException || e instanceof CredenciaisInvalidasException
                 || e instanceof UsuarioNaoEncontradoException || e instanceof MedicamentoNaoEncontradoException
-                || e instanceof IllegalArgumentException) {
+                || e instanceof IllegalArgumentException || e instanceof UnsupportedOperationException) {
             return e.getMessage();
         }
         return "Não foi possível concluir agora. Tente de novo.";

@@ -54,6 +54,10 @@ public class AppConfig {
         return new CriarVinculoService(usuarioCsvAdapter);
     }
 
+    public static GerenciarVinculoService criarGerenciarVinculoService() {
+        return new GerenciarVinculoService(usuarioCsvAdapter);
+    }
+
     public static RegistrarUsuarioService criarRegistrarUsuarioService() {
         GerarIdPort gerarIdUsuario = criarGerarId("usuarios");
         return new RegistrarUsuarioService(gerarIdUsuario, usuarioCsvAdapter, criptografarSenhaPort);

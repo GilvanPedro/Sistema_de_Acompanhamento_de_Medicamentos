@@ -4,6 +4,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,6 +19,8 @@ import javax.sql.DataSource;
 import br.com.domain.exception.ErroBancoDadosException;
 import br.com.domain.model.Familiar;
 import br.com.domain.model.Idoso;
+import br.com.domain.model.PedidoVinculo;
+import br.com.domain.model.StatusVinculo;
 import br.com.domain.model.Usuario;
 import br.com.domain.port.out.SalvarUsuarioPort;
 
@@ -44,10 +50,7 @@ public class UsuarioPostgresAdapter implements SalvarUsuarioPort {
         }
     }
 
-    /**
-     * Enquanto o aceite do vínculo pelo idoso não existe na aplicação (ADR-0045),
-     * o vínculo já nasce como ACEITO, como no CSV.
-     */
+    /** Vínculo iniciado pelo próprio idoso: já nasce ACEITO (adicionar o familiar é o consentimento). */
     @Override
     public void salvarVinculo(int idosoId, int familiarId) {
         String sql = "INSERT INTO vinculo (idoso_id, familiar_id, status, respondido_em) VALUES (?, ?, 'ACEITO', now()) "
@@ -59,6 +62,101 @@ public class UsuarioPostgresAdapter implements SalvarUsuarioPort {
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new ErroBancoDadosException("salvar vínculo", e);
+        }
+    }
+
+    /** O relógio do banco decide a validade, para não depender da hora do aparelho de cada pessoa. */
+    @Override
+    public void solicitarVinculo(int idosoId, int familiarId) {
+        String sql = "INSERT INTO vinculo (idoso_id, familiar_id, status, solicitado_em, respondido_em) "
+                + "VALUES (?, ?, 'PENDENTE', now(), NULL) "
+                + "ON CONFLICT (idoso_id, familiar_id) DO UPDATE "
+                + "SET status = 'PENDENTE', solicitado_em = now(), respondido_em = NULL "
+                + "WHERE vinculo.status <> 'ACEITO'";
+        try (Connection conexao = dataSource.getConnection();
+             PreparedStatement ps = conexao.prepareStatement(sql)) {
+            ps.setInt(1, idosoId);
+            ps.setInt(2, familiarId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new ErroBancoDadosException("solicitar vínculo", e);
+        }
+    }
+
+    @Override
+    public StatusVinculo buscarStatusVinculo(int idosoId, int familiarId, Duration validade) {
+        String sql = "SELECT status, solicitado_em >= now() - make_interval(secs => ?) AS valido "
+                + "FROM vinculo WHERE idoso_id = ? AND familiar_id = ?";
+        try (Connection conexao = dataSource.getConnection();
+             PreparedStatement ps = conexao.prepareStatement(sql)) {
+            ps.setDouble(1, validade.toSeconds());
+            ps.setInt(2, idosoId);
+            ps.setInt(3, familiarId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    return null;
+                }
+                StatusVinculo status = StatusVinculo.valueOf(rs.getString("status"));
+                return status == StatusVinculo.PENDENTE && !rs.getBoolean("valido") ? null : status;
+            }
+        } catch (SQLException e) {
+            throw new ErroBancoDadosException("buscar status do vínculo", e);
+        }
+    }
+
+    @Override
+    public List<PedidoVinculo> listarPedidosPendentes(int idosoId, Duration validade) {
+        String sql = "SELECT u." + COLUNAS.replace(", ", ", u.") + ", v.solicitado_em "
+                + "FROM vinculo v JOIN usuario u ON u.id = v.familiar_id "
+                + "WHERE v.idoso_id = ? AND v.status = 'PENDENTE' AND u.excluido_em IS NULL "
+                + "AND v.solicitado_em >= now() - make_interval(secs => ?) ORDER BY v.solicitado_em";
+        List<PedidoVinculo> pedidos = new ArrayList<>();
+        try (Connection conexao = dataSource.getConnection();
+             PreparedStatement ps = conexao.prepareStatement(sql)) {
+            ps.setInt(1, idosoId);
+            ps.setDouble(2, validade.toSeconds());
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    if (converter(rs) instanceof Familiar familiar) {
+                        LocalDateTime quando = rs.getObject("solicitado_em", OffsetDateTime.class)
+                                .atZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
+                        pedidos.add(new PedidoVinculo(idosoId, familiar, quando));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new ErroBancoDadosException("listar pedidos de vínculo", e);
+        }
+        return pedidos;
+    }
+
+    @Override
+    public boolean responderPedidoVinculo(int idosoId, int familiarId, boolean aceitar, Duration validade) {
+        String sql = "UPDATE vinculo SET status = ?, respondido_em = now() "
+                + "WHERE idoso_id = ? AND familiar_id = ? AND status = 'PENDENTE' "
+                + "AND solicitado_em >= now() - make_interval(secs => ?)";
+        try (Connection conexao = dataSource.getConnection();
+             PreparedStatement ps = conexao.prepareStatement(sql)) {
+            ps.setString(1, aceitar ? "ACEITO" : "RECUSADO");
+            ps.setInt(2, idosoId);
+            ps.setInt(3, familiarId);
+            ps.setDouble(4, validade.toSeconds());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new ErroBancoDadosException("responder pedido de vínculo", e);
+        }
+    }
+
+    @Override
+    public void removerVinculo(int idosoId, int familiarId) {
+        try (Connection conexao = dataSource.getConnection();
+             PreparedStatement ps = conexao.prepareStatement(
+                     "DELETE FROM vinculo WHERE idoso_id = ? AND familiar_id = ?")) {
+            ps.setInt(1, idosoId);
+            ps.setInt(2, familiarId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new ErroBancoDadosException("remover vínculo", e);
         }
     }
 

@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Scanner;
 
 import br.com.application.service.BuscarHistoricoPorIdosoService;
-import br.com.application.service.CriarVinculoService;
+import br.com.application.service.GerenciarVinculoService;
 import br.com.application.service.VerificarNotificacoesIdosoService;
 import br.com.config.AppConfig;
 import br.com.domain.exception.DadosInvalidosException;
@@ -22,14 +22,14 @@ public class TelaFamiliar {
     private final Familiar familiar;
     private final VerificarNotificacoesIdosoService verificarNotificacoesIdosoService;
     private final BuscarHistoricoPorIdosoService buscarHistoricoPorIdosoService;
-    private final CriarVinculoService criarVinculoService;
+    private final GerenciarVinculoService gerenciarVinculoService;
 
     public TelaFamiliar(Scanner scanner) {
         this.scanner = scanner;
         this.familiar = (Familiar) SessaoAtual.getUsuarioLogado();
         this.verificarNotificacoesIdosoService = AppConfig.criarVerificarNotificacoesIdosoService();
         this.buscarHistoricoPorIdosoService = AppConfig.criarBuscarHistoricoPorIdosoService();
-        this.criarVinculoService = AppConfig.criarCriarVinculoService();
+        this.gerenciarVinculoService = AppConfig.criarGerenciarVinculoService();
     }
 
     public void exibir() {
@@ -48,7 +48,7 @@ public class TelaFamiliar {
                 }
             }
             System.out.println("E - Editar meus dados");
-            System.out.println("V - Vincular um idoso");
+            System.out.println("V - Pedir para acompanhar um idoso");
             System.out.println("0 - Deslogar");
             System.out.print("Escolha uma opção: ");
 
@@ -127,8 +127,8 @@ public class TelaFamiliar {
 
         try {
             int idosoId = EntradaUtil.pareceId(entrada) ? Integer.parseInt(entrada) : buscarIdPorEmail(entrada);
-            criarVinculoService.criarVinculo(idosoId, familiar.getId());
-            System.out.println("Vínculo criado com sucesso.");
+            gerenciarVinculoService.solicitarVinculo(familiar.getId(), idosoId);
+            System.out.println("Pedido enviado. O idoso tem 24 horas para aceitar.");
         } catch (DadosInvalidosException | UsuarioNaoEncontradoException | IllegalArgumentException e) {
             System.out.println("Erro ao vincular: " + e.getMessage());
         }

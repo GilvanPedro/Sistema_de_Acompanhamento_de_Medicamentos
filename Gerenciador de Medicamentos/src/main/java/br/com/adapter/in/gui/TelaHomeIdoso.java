@@ -23,6 +23,17 @@ class TelaHomeIdoso extends Pagina {
         VerificarNotificacoesIdosoService notificacoes = AppConfig.criarVerificarNotificacoesIdosoService();
         RegistrarTomadaService registrarTomada = AppConfig.criarRegistrarTomadaService();
 
+        int pedidos = AppConfig.criarGerenciarVinculoService().listarPedidosPendentes(idoso.getId()).size();
+        if (pedidos > 0) {
+            Cartao pedido = new Cartao(Tom.AVISO);
+            pedido.add(new Texto(pedidos == 1 ? "Um familiar quer acompanhar você."
+                    : pedidos + " familiares querem acompanhar você.", 22, true, Papel.TEXTO));
+            Botao ver = Botao.primario("Ver pedidos");
+            ver.addActionListener(e -> nav.mostrar(new TelaVinculo(nav, idoso, nav::home, null)));
+            pedido.add(ver);
+            adicionar(pedido);
+        }
+
         adicionar(Texto.secao("Avisos de hoje"));
         List<NotificacaoMedicamento> avisos = notificacoes.verificarNotificacoes(idoso).stream()
                 .sorted(Comparator.comparing((NotificacaoMedicamento n) -> ordem(n.getTipo()))
