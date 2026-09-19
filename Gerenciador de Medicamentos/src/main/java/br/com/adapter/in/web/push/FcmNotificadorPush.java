@@ -48,6 +48,7 @@ public class FcmNotificadorPush implements NotificadorPush {
     private final PrivateKey chave;
     private final String urlDoToken;
 
+    private volatile String ultimoResultado = "nenhum envio ainda";
     private String acesso;
     private Instant acessoExpira = Instant.EPOCH;
 
@@ -65,6 +66,11 @@ public class FcmNotificadorPush implements NotificadorPush {
         } catch (Exception e) {
             throw new IllegalStateException("FIREBASE_CREDENCIAIS inválida (esperado o JSON da conta de serviço).");
         }
+    }
+
+    @Override
+    public String estado() {
+        return "LIGADO, último envio: " + ultimoResultado;
     }
 
     @Override
@@ -97,12 +103,14 @@ public class FcmNotificadorPush implements NotificadorPush {
             HttpResponse<String> resposta = http.send(pedido, HttpResponse.BodyHandlers.ofString());
             int status = resposta.statusCode();
             LOG.info("Push: FCM respondeu " + status);
+            ultimoResultado = "FCM respondeu " + status + " às " + java.time.LocalTime.now().withNano(0);
             if (status == 404 || status == 400 && resposta.body().contains("INVALID_ARGUMENT")) {
                 dispositivos.descartar(token); // aparelho desinstalou o app ou o token mudou
             } else if (status >= 300) {
                 LOG.warning("Push: FCM recusou (" + status + "): " + resposta.body().replaceAll("\\s+", " "));
             }
         } catch (Exception e) {
+            ultimoResultado = "falha (" + e.getClass().getSimpleName() + ": " + e.getMessage() + ") às " + java.time.LocalTime.now().withNano(0);
             LOG.log(Level.WARNING, "Push: falha ao enviar (" + e.getClass().getSimpleName() + ": " + e.getMessage() + ")");
         }
     }

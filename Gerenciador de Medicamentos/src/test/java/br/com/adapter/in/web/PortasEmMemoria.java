@@ -267,6 +267,11 @@ final class PortasEmMemoria {
         public void avisarNovidade(int usuarioId) {
             avisados.add(usuarioId);
         }
+
+        @Override
+        public String estado() {
+            return "TESTE";
+        }
     }
 
     static class Chaves implements br.com.adapter.in.web.idempotencia.ChavesDeIdempotencia {

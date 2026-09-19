@@ -8,4 +8,7 @@ public interface NotificadorPush {
 
     /** Melhor esforço: nunca lança erro nem atrasa quem chama. */
     void avisarNovidade(int usuarioId);
+
+    /** Resumo para diagnóstico (ligado ou não e o resultado do último envio). Nunca traz chave nem token. */
+    String estado();
 }

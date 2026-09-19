@@ -419,6 +419,10 @@ class ApiTest {
         mvc.perform(com(put("/api/v1/me/dispositivos"), familiar).contentType(MediaType.APPLICATION_JSON)
                 .content(corpo(Map.of("token", "token-familiar")))).andExpect(status().isNoContent());
 
+        mvc.perform(get("/api/v1/me/dispositivos/estado")).andExpect(status().isUnauthorized());
+        mvc.perform(com(get("/api/v1/me/dispositivos/estado"), familiar))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.push").value("TESTE")).andExpect(jsonPath("$.aparelhosDestaConta").value(1));
+
         // pedido de vínculo acorda o idoso; aceitar acorda o familiar
         aparelhos.avisados.clear();
         mvc.perform(com(post("/api/v1/vinculos/pedidos"), familiar).contentType(MediaType.APPLICATION_JSON)
