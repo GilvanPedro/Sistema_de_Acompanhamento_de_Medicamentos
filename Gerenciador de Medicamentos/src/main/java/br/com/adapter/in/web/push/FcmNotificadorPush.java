@@ -72,6 +72,7 @@ public class FcmNotificadorPush implements NotificadorPush {
         List<String> tokens;
         try {
             tokens = dispositivos.tokensDe(usuarioId);
+            LOG.info("Push: " + tokens.size() + " aparelho(s) para avisar");
         } catch (RuntimeException e) {
             LOG.log(Level.WARNING, "Push: não foi possível listar aparelhos");
             return;
@@ -95,10 +96,11 @@ public class FcmNotificadorPush implements NotificadorPush {
                     .build();
             HttpResponse<String> resposta = http.send(pedido, HttpResponse.BodyHandlers.ofString());
             int status = resposta.statusCode();
+            LOG.info("Push: FCM respondeu " + status);
             if (status == 404 || status == 400 && resposta.body().contains("INVALID_ARGUMENT")) {
                 dispositivos.descartar(token); // aparelho desinstalou o app ou o token mudou
             } else if (status >= 300) {
-                LOG.warning("Push: FCM respondeu " + status);
+                LOG.warning("Push: FCM recusou (" + status + "): " + resposta.body().replaceAll("\\s+", " "));
             }
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Push: falha ao enviar (" + e.getClass().getSimpleName() + ")");

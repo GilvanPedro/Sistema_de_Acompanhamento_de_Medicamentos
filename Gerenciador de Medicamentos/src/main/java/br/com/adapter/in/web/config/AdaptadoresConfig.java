@@ -1,5 +1,7 @@
 package br.com.adapter.in.web.config;
 
+import java.util.logging.Logger;
+
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -90,7 +92,13 @@ class AdaptadoresConfig {
     @Bean
     NotificadorPush notificadorPush(Dispositivos dispositivos) {
         String credenciais = Ambiente.valor("FIREBASE_CREDENCIAIS");
-        return credenciais == null ? new NotificadorPushDesligado() : new FcmNotificadorPush(dispositivos, credenciais);
+        Logger log = Logger.getLogger(AdaptadoresConfig.class.getName());
+        if (credenciais == null) {
+            log.info("Push: DESLIGADO (variável FIREBASE_CREDENCIAIS não definida)");
+            return new NotificadorPushDesligado();
+        }
+        log.info("Push: LIGADO (Firebase)");
+        return new FcmNotificadorPush(dispositivos, credenciais);
     }
 
     @Bean
