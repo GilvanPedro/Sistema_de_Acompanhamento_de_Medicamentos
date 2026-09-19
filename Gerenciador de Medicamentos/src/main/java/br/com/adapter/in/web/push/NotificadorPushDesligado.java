@@ -9,6 +9,6 @@ public class NotificadorPushDesligado implements NotificadorPush {
 
     @Override
     public String estado() {
-        return "DESLIGADO (FIREBASE_CREDENCIAIS não definida)";
+        return "DESLIGADO (FIREBASE_CREDENTIALS não definida)";
     }
 }

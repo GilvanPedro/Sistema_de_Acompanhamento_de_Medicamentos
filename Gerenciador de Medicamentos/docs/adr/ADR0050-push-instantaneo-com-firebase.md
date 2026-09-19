@@ -39,7 +39,7 @@ O envio é feito numa fila em segundo plano: uma falha ou lentidão do Google nu
 
 `FcmNotificadorPush` usa a API HTTP v1: assina um JWT (RS256, com a biblioteca jjwt já usada) com a chave da conta de serviço, troca por um token de acesso do Google (guardado em memória até perto de expirar) e faz `POST /v1/projects/{id}/messages:send` com `java.net.http.HttpClient`. Sem SDK do Firebase Admin, para não aumentar o servidor nem as dependências.
 
-A chave da conta de serviço vem da variável **`FIREBASE_CREDENCIAIS`** (o JSON inteiro). Se não existir, entra `NotificadorPushDesligado` e a API funciona igual, sem push. **A chave nunca vai para o Git.**
+A chave da conta de serviço vem da variável **`FIREBASE_CREDENTIALS`** (o JSON inteiro). Se não existir, entra `NotificadorPushDesligado` e a API funciona igual, sem push. **A chave nunca vai para o Git.**
 
 ### 5. App
 
@@ -57,5 +57,5 @@ A chave da conta de serviço vem da variável **`FIREBASE_CREDENCIAIS`** (o JSON
 
 1. Console do Firebase (https://console.firebase.google.com): criar projeto e adicionar um app **Android** com o pacote `br.com.cuidamed`.
 2. Baixar `google-services.json` e colocar em `app-android/app/` (o Git o ignora).
-3. Configurações do projeto > **Contas de serviço** > **Gerar nova chave privada**. Colar o conteúdo do JSON na variável `FIREBASE_CREDENCIAIS` no Render (e no `.env` local, se quiser testar daqui). Não commitar o arquivo.
+3. Configurações do projeto > **Contas de serviço** > **Gerar nova chave privada**. Colar o conteúdo do JSON na variável `FIREBASE_CREDENTIALS` no Render (e no `.env` local, se quiser testar daqui). Não commitar o arquivo.
 4. Rodar `V5__criar_dispositivo.sql` na Neon (junto com a V4, se ainda não foi), publicar o servidor e recompilar o app.

@@ -88,13 +88,13 @@ class AdaptadoresConfig {
         return new DispositivosJdbc(dataSource);
     }
 
-    /** Push só liga se FIREBASE_CREDENCIAIS (JSON da conta de serviço) estiver definida; senão, nada é enviado. */
+    /** Push só liga se FIREBASE_CREDENTIALS (ou FIREBASE_CREDENCIAIS; JSON da conta de serviço) estiver definida; senão, nada é enviado. */
     @Bean
     NotificadorPush notificadorPush(Dispositivos dispositivos) {
-        String credenciais = Ambiente.valor("FIREBASE_CREDENCIAIS");
+        String credenciais = Ambiente.valor("FIREBASE_CREDENTIALS", Ambiente.valor("FIREBASE_CREDENCIAIS"));
         Logger log = Logger.getLogger(AdaptadoresConfig.class.getName());
         if (credenciais == null) {
-            log.info("Push: DESLIGADO (variável FIREBASE_CREDENCIAIS não definida)");
+            log.info("Push: DESLIGADO (variável FIREBASE_CREDENTIALS não definida)");
             return new NotificadorPushDesligado();
         }
         log.info("Push: LIGADO (Firebase)");
