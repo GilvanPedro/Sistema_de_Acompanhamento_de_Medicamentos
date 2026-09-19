@@ -228,6 +228,7 @@ class Repositorio(
     suspend fun registrarAparelho(token: String): Resultado<Unit> {
         if (!temSessao()) return Resultado.Ok(Unit)
         return chamarVazio { api.registrarDispositivo(DispositivoRequest(token)) }
+            .also { Log.i("CuidaMed", "Push: registro do aparelho -> ${if (it is Resultado.Ok) "ok" else "falhou"}") }
     }
 
     fun temSessao(): Boolean = cofre.tokens() != null

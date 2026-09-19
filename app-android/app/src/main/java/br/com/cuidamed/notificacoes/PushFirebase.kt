@@ -19,7 +19,9 @@ class AparelhoFirebase(private val contexto: Context) : AparelhoDePush {
         if (FirebaseApp.getApps(contexto).isEmpty()) return null
         return suspendCancellableCoroutine { continuacao ->
             FirebaseMessaging.getInstance().token.addOnCompleteListener { tarefa ->
-                if (!tarefa.isSuccessful) Log.w("CuidaMed", "Push: sem token do Firebase agora")
+                if (!tarefa.isSuccessful) {
+                    Log.w("CuidaMed", "Push: sem token do Firebase agora (${tarefa.exception?.javaClass?.simpleName}: ${tarefa.exception?.message})")
+                }
                 if (continuacao.isActive) continuacao.resume(tarefa.result?.takeIf { tarefa.isSuccessful })
             }
         }
