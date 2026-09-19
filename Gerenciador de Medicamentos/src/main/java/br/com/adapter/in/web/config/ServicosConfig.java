@@ -86,6 +86,15 @@ class ServicosConfig {
     }
 
     @Bean
+    br.com.adapter.in.web.push.VerificadorDeAtrasos verificadorDeAtrasos(SalvarUsuarioPort usuarios,
+                                                                          VerificarNotificacoesIdosoService notificacoes,
+                                                                          br.com.adapter.in.web.push.AvisosDeAtraso jaAvisados,
+                                                                          br.com.adapter.in.web.push.NotificadorPush push) {
+        return new br.com.adapter.in.web.push.VerificadorDeAtrasos(usuarios, notificacoes, jaAvisados, push,
+                java.time.Clock.systemDefaultZone());
+    }
+
+    @Bean
     VerificarNotificacoesIdosoService verificarNotificacoesIdosoService(SalvarMedicamentoPort medicamentos,
                                                                         SalvarHistoricoPort historico) {
         return new VerificarNotificacoesIdosoService(medicamentos, historico);

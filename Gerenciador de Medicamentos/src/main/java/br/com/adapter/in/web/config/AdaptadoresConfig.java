@@ -14,11 +14,14 @@ import br.com.adapter.in.web.auth.RefreshTokenJdbcStore;
 import br.com.adapter.in.web.auth.RefreshTokenStore;
 import br.com.adapter.in.web.idempotencia.ChavesDeIdempotencia;
 import br.com.adapter.in.web.idempotencia.ChavesDeIdempotenciaJdbc;
+import br.com.adapter.in.web.push.AvisosDeAtraso;
+import br.com.adapter.in.web.push.AvisosDeAtrasoJdbc;
 import br.com.adapter.in.web.push.Dispositivos;
 import br.com.adapter.in.web.push.DispositivosJdbc;
 import br.com.adapter.in.web.push.FcmNotificadorPush;
 import br.com.adapter.in.web.push.NotificadorPush;
 import br.com.adapter.in.web.push.NotificadorPushDesligado;
+import br.com.adapter.in.web.push.SegredoDoAgendador;
 import br.com.adapter.out.id.GerarIdPostgresAdapter;
 import br.com.adapter.out.persistence.postgres.ConexaoPostgres;
 import br.com.adapter.out.persistence.postgres.HistoricoPostgresAdapter;
@@ -81,6 +84,17 @@ class AdaptadoresConfig {
     @Bean
     ChavesDeIdempotencia chavesDeIdempotencia(DataSource dataSource) {
         return new ChavesDeIdempotenciaJdbc(dataSource);
+    }
+
+    @Bean
+    AvisosDeAtraso avisosDeAtraso(DataSource dataSource) {
+        return new AvisosDeAtrasoJdbc(dataSource);
+    }
+
+    /** CRON_SEGREDO: segredo do agendador externo (pelo menos 16 caracteres). Sem ele, a rota do agendador fica desligada. */
+    @Bean
+    SegredoDoAgendador segredoDoAgendador() {
+        return new SegredoDoAgendador(Ambiente.valor("CRON_SEGREDO"));
     }
 
     @Bean

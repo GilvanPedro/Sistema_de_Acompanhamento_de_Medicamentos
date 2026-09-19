@@ -32,6 +32,12 @@ class LimitesConfig {
         return new LimiteDeTentativas(5, Duration.ofMinutes(15), CAPACIDADE);
     }
 
+    /** Segredo errado na rota do agendador, por IP. */
+    @Bean
+    LimiteDeTentativas limiteAgendador() {
+        return new LimiteDeTentativas(5, Duration.ofMinutes(15), CAPACIDADE);
+    }
+
     /** Contas criadas por IP, para ninguém encher o banco gratuito. */
     @Bean
     LimiteDeTentativas limiteCadastro(@Value("${cuidamed.limite.cadastro-maximo:10}") int maximo) {

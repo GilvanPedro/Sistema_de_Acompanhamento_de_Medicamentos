@@ -13,7 +13,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-/** Exige o token de acesso ({@code Authorization: Bearer ...}) em tudo que está em /api/v1, menos /auth e /saude. */
+/** Exige o token de acesso ({@code Authorization: Bearer ...}) em tudo que está em /api/v1, menos /auth, /saude e /interno (esta usa segredo próprio). */
 @Component
 public class FiltroAutenticacao extends OncePerRequestFilter {
 
@@ -29,7 +29,7 @@ public class FiltroAutenticacao extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String caminho = request.getRequestURI();
-        return !caminho.startsWith(PREFIXO) || caminho.startsWith(PREFIXO + "auth/") || caminho.equals(PREFIXO + "saude");
+        return !caminho.startsWith(PREFIXO) || caminho.startsWith(PREFIXO + "auth/") || caminho.startsWith(PREFIXO + "interno/") || caminho.equals(PREFIXO + "saude");
     }
 
     @Override

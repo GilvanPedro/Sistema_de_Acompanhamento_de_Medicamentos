@@ -66,6 +66,17 @@ class ConfiguracaoDeTeste {
     }
 
     @Bean
+    br.com.adapter.in.web.push.AvisosDeAtraso avisosDeAtraso() {
+        java.util.Set<String> vistos = new java.util.HashSet<>();
+        return (medicamentoId, dia) -> vistos.add(medicamentoId + "|" + dia);
+    }
+
+    @Bean
+    br.com.adapter.in.web.push.SegredoDoAgendador segredoDoAgendador() {
+        return new br.com.adapter.in.web.push.SegredoDoAgendador("segredo-do-agendador-de-teste");
+    }
+
+    @Bean
     JwtService jwtService() {
         return new JwtService("segredo-somente-para-testes-com-mais-de-32-caracteres");
     }

@@ -133,6 +133,7 @@ Os erros voltam como `{"erro": "mensagem"}`. Idoso só acessa os próprios dados
    - `V3__uma_tomada_por_remedio_por_dia.sql` (impede duas tomadas do mesmo remédio no mesmo dia)
    - `V4__criar_chave_idempotencia.sql` (necessário para o uso sem internet do app: evita remédio duplicado ao reenviar)
    - `V5__criar_dispositivo.sql` (necessário para o push instantâneo: guarda o token do Firebase de cada aparelho)
+   - `V6__criar_aviso_atraso_enviado.sql` (necessário para o aviso de "remédio esquecido" na hora: evita repetir o mesmo aviso)
 2. Copie `.env.example` para `.env` na raiz do repositório e preencha:
    - `DATABASE_URL`: a string de conexão da Neon (botão **Connect**)
    - `JWT_SECRET`: só para a API; um texto aleatório com pelo menos 32 caracteres (`openssl rand -base64 48`)

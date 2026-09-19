@@ -476,6 +476,38 @@ class ApiTest {
     }
 
     @Test
+    void agendadorAvisaOFamiliarDoRemedioEsquecidoUmaVezSoEExigeSegredo() throws Exception {
+        java.time.LocalDateTime agora = java.time.LocalDateTime.now();
+        org.junit.jupiter.api.Assumptions.assumeTrue(agora.getHour() >= 1, "perto da meia-noite o atraso cairia no dia anterior");
+        Sessao idoso = criarConta("IDOSO", "Seu Anselmo");
+        Sessao familiar = criarConta("FAMILIAR", "Filha Bia");
+        vincular(familiar, idoso);
+        mvc.perform(com(put("/api/v1/me/dispositivos"), familiar).contentType(MediaType.APPLICATION_JSON)
+                .content(corpo(Map.of("token", "token-bia")))).andExpect(status().isNoContent());
+
+        // remédio de hoje, marcado para uma hora atrás (passou da tolerância) e ainda não tomado
+        mvc.perform(com(post("/api/v1/idosos/" + idoso.id() + "/medicamentos"), idoso).contentType(MediaType.APPLICATION_JSON)
+                .content(corpo(Map.of("nome", "Metformina", "diaSemana", agora.getDayOfWeek().name(),
+                        "horario", agora.minusHours(1).toLocalTime().withSecond(0).withNano(0).toString(), "tipo", "COMPRIMIDO"))))
+                .andExpect(status().isCreated());
+
+        // sem segredo, ou com segredo errado: recusado e nada é enviado; o de verdade é aceito
+        aparelhos.avisados.clear();
+        mvc.perform(post("/api/v1/interno/atrasos")).andExpect(status().isUnauthorized());
+        mvc.perform(post("/api/v1/interno/atrasos").header("X-Cron-Segredo", "errado")).andExpect(status().isUnauthorized());
+        assertEquals(0, aparelhos.avisados.size());
+        mvc.perform(post("/api/v1/interno/atrasos").header("X-Cron-Segredo", "segredo-do-agendador-de-teste"))
+                .andExpect(status().isOk());
+        assertEquals(1, java.util.Collections.frequency(aparelhos.avisados, familiar.id()));
+
+        // a segunda verificação não repete o aviso do mesmo remédio
+        int antes = aparelhos.avisados.size();
+        mvc.perform(post("/api/v1/interno/atrasos").header("X-Cron-Segredo", "segredo-do-agendador-de-teste"))
+                .andExpect(status().isOk());
+        assertEquals(antes, aparelhos.avisados.size());
+    }
+
+    @Test
     void rotaInexistenteRetorna404() throws Exception {
         Sessao ana = criarConta("IDOSO", "Ana Rota");
         mvc.perform(com(get("/api/v1/nao-existe"), ana)).andExpect(status().isNotFound());
