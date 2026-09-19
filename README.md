@@ -6,6 +6,8 @@ A ideia por trás é simples: cada idoso tem um ou mais familiares vinculados, c
 
 ## O que já está pronto
 
+**Interface gráfica (Swing)** com fontes grandes e ajustáveis, modo claro/escuro e telas simples para idoso e familiar, usando as mesmas regras de negócio do terminal.
+
 **Aplicação de terminal completa**, com login, cadastro e navegação por menus:
 - Cadastro como idoso ou familiar, e login por email e senha (senha protegida com hash BCrypt, nunca guardada em texto puro)
 - Depois de logado, a pessoa pode deslogar e voltar pra tela inicial sem encerrar o programa
@@ -87,6 +89,7 @@ A implementação das portas de entrada — onde a lógica de negócio de fato a
 
 ### `adapter/in/`
 Como o mundo de fora aciona o sistema:
+- `gui/` — a interface gráfica (Swing): `GuiApp` (ponto de entrada), `Navegador` (janela e barra superior), `Tema` (claro/escuro e tamanho da letra), telas `Tela*` e componentes grandes (`Botao`, `Escolha`, `Campo`, `Cartao`); ver ADR-0044
 - `console/` — a aplicação de terminal completa: `TerminalApp` (ponto de entrada), `TelaLogin`, `SessaoAtual`, `MenuPrincipal`, `TelaIdoso`, `TelaFamiliar`, `PainelMedicamentos`
 - `scheduler/` — o agendador que roda a verificação de atraso automaticamente
 - `web/` — futuro: controllers de uma API REST
@@ -190,18 +193,31 @@ class node_password_crypto,node_user_csv,node_medication_csv,node_history_csv,no
 
 ### Rodando
 
+**Interface gráfica (recomendada):**
+
 ```bash
-cd "Gerenciador de Medicamentos"
-mvn compile exec:java -Dexec.mainClass="br.com.adapter.in.console.TerminalApp"
+# na raiz do projeto (onde fica a pasta arquivos/)
+mvn -f "Gerenciador de Medicamentos/pom.xml" compile exec:java -Dexec.mainClass="br.com.adapter.in.gui.GuiApp"
 ```
 
-Isso abre a aplicação de terminal: uma tela inicial pra fazer login ou se cadastrar (como idoso ou familiar), e, depois de logado, um menu de acordo com o tipo de usuário — área do idoso (cadastrar/editar medicamentos, ver notificações) ou área do familiar (ver os idosos acompanhados e gerenciar os medicamentos deles). Os dados ficam salvos em `arquivos/` e continuam disponíveis na próxima vez que o programa for executado.
+Uma janela com botões grandes, feita para idosos e familiares: **letra ajustável** (botões `A−` e `A+` na barra de cima), **modo claro e modo escuro** (botão "Modo escuro"/"Modo claro") e telas simples, com poucas opções. Tipo do remédio, dia da semana e horário são escolhidos por botões, sem precisar digitar formatos. O tamanho da letra e o modo escolhidos ficam salvos para a próxima vez.
+
+**Aplicação de terminal:**
+
+```bash
+# na raiz do projeto (onde fica a pasta arquivos/)
+mvn -f "Gerenciador de Medicamentos/pom.xml" compile exec:java -Dexec.mainClass="br.com.adapter.in.console.TerminalApp"
+```
+
+**Importante:** execute sempre a partir da raiz do projeto. Os dados (`arquivos/`) são lidos por caminho relativo; rodando de outra pasta o login não acha os usuários.
+
+Nos dois casos, o sistema mostra uma tela inicial pra fazer login ou se cadastrar (como idoso ou familiar), e, depois de logado, um menu de acordo com o tipo de usuário — área do idoso (cadastrar/editar medicamentos, ver notificações) ou área do familiar (ver os idosos acompanhados e gerenciar os medicamentos deles). Os dados ficam salvos em `arquivos/` e continuam disponíveis na próxima vez que o programa for executado.
 
 ## Próximos passos
 
 - API para expor as funcionalidades
 - Integração real com Firebase para notificações (hoje a notificação é só consultada dentro do próprio terminal)
-- Interface gráfica ou web, além do terminal
+- Interface web (a interface gráfica desktop e o terminal já existem)
 - Testes automatizados (ainda não existe nenhum)
 
 ## Licença
