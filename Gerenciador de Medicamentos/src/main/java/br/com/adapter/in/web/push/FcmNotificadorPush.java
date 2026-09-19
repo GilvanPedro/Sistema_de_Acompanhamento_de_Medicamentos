@@ -103,7 +103,7 @@ public class FcmNotificadorPush implements NotificadorPush {
                 LOG.warning("Push: FCM recusou (" + status + "): " + resposta.body().replaceAll("\\s+", " "));
             }
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "Push: falha ao enviar (" + e.getClass().getSimpleName() + ")");
+            LOG.log(Level.WARNING, "Push: falha ao enviar (" + e.getClass().getSimpleName() + ": " + e.getMessage() + ")");
         }
     }
 
@@ -112,7 +112,7 @@ public class FcmNotificadorPush implements NotificadorPush {
             return acesso;
         }
         Instant agora = Instant.now();
-        String assertiva = Jwts.builder().issuer(emailDaConta).claim("scope", ESCOPO).audience().add(urlDoToken).and()
+        String assertiva = Jwts.builder().issuer(emailDaConta).claim("scope", ESCOPO).audience().single(urlDoToken)
                 .issuedAt(Date.from(agora)).expiration(Date.from(agora.plusSeconds(3600)))
                 .signWith(chave, Jwts.SIG.RS256).compact();
         String corpo = "grant_type=" + URLEncoder.encode("urn:ietf:params:oauth:grant-type:jwt-bearer", StandardCharsets.UTF_8)
@@ -122,7 +122,8 @@ public class FcmNotificadorPush implements NotificadorPush {
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .POST(HttpRequest.BodyPublishers.ofString(corpo)).build(), HttpResponse.BodyHandlers.ofString());
         if (resposta.statusCode() != 200) {
-            throw new IllegalStateException("Google recusou a conta de serviço (" + resposta.statusCode() + ")");
+            throw new IllegalStateException("Google recusou a conta de serviço (" + resposta.statusCode() + "): "
+                    + resposta.body().replaceAll("\\s+", " "));
         }
         JsonNode j = JSON.readTree(resposta.body());
         acesso = j.get("access_token").asText();
