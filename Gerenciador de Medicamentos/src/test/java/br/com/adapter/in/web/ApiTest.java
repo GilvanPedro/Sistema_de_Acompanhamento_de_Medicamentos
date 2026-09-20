@@ -2,6 +2,7 @@ package br.com.adapter.in.web;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -587,6 +588,26 @@ class ApiTest {
     @Test
     void politicaDePrivacidadeEPublica() throws Exception {
         mvc.perform(get("/politica-de-privacidade.html")).andExpect(status().isOk());
+    }
+
+    @Test
+    void catalogoDeAnunciosEstaNoArComImagensQueExistemELinksHttps() throws Exception {
+        String texto = mvc.perform(get("/anuncios/anuncios.json")).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        JsonNode anuncios = json.readTree(texto).get("anuncios");
+        assertTrue(anuncios.size() >= 1, "precisa haver pelo menos um banner");
+        java.util.Set<String> ids = new java.util.HashSet<>();
+        for (JsonNode a : anuncios) {
+            assertTrue(ids.add(a.get("id").asText()), "ids de anúncio não podem repetir");
+            String imagem = a.get("imagem").asText();
+            // imagens relativas ao catálogo têm de existir de verdade (senão o banner some sem aviso)
+            if (!imagem.startsWith("https://")) {
+                mvc.perform(get("/anuncios/" + imagem)).andExpect(status().isOk());
+            }
+            if (a.hasNonNull("link")) {
+                assertTrue(a.get("link").asText().startsWith("https://"), "o link do anúncio precisa ser https");
+            }
+        }
     }
 
     @Test

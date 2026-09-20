@@ -66,3 +66,15 @@ A chave da conta de serviço vem da variável **`FIREBASE_CREDENTIALS`** (o JSON
 - **Diagnóstico sem os logs do Render** (o plano gratuito não mostra os logs de requisição): `GET /api/v1/me/dispositivos/estado`, com login, diz se o push está `LIGADO` ou `DESLIGADO` e como foi o último envio (por exemplo, `FCM respondeu 200`). O servidor também escreve `Push: LIGADO` ou `Push: DESLIGADO` na partida.
 - **O campo `aud` do pedido de token ao Google tem de ser um texto**, não uma lista. A biblioteca de JWT gera lista por padrão (`audience().add`); com isso o Google recusava com `invalid_grant`. O código usa `audience().single(...)`.
 - O envio roda numa fila em segundo plano: uma falha do Google aparece no log (`Push: falha ao enviar ...`), nunca na resposta da API.
+
+## Ajuste depois do uso real: avisos com o app fechado (versão 1.0.1)
+
+Um teste real mostrou aviso faltando quando o app estava fechado. Foram corrigidos dois pontos, no app:
+
+- **O push é tratado na hora, dentro do serviço do Firebase.** Antes, ao chegar o push, o app só *agendava* a verificação num trabalho do WorkManager (com exigência de internet), e o Android pode adiar esse trabalho por minutos com o aparelho parado. Agora `ServicoDePush.onMessageReceived` roda a verificação diretamente (o serviço tem cerca de 10 segundos, mesmo com o app morto), com limite de 8 s; só se faltar rede ou tempo é que se agenda o trabalho de antes. A lógica ficou em `VerificadorDeEventos`, usada também pelo trabalho periódico de 15 minutos.
+- **O código de push deste aparelho é mantido em dia no servidor.** Sem registro (ou com um código velho), nenhum aviso chega. Agora o registro é refeito assim que o Firebase troca o código (`onNewToken`, também dentro do serviço), toda vez que o app é aberto e, no mais, pelo menos a cada hora, e não só quando o código muda. Os dados mostraram um aparelho cujo código no servidor estava diferente do do celular.
+
+Verificado no celular real, com o app morto (`am kill`), o modo Doze forçado e os baldes de espera "restrito" e "raro": o aviso chegou em 6 a 7 segundos, e o app trocou sozinho um código inválido do servidor pelo real ao ser aberto.
+
+**O que o app não consegue contornar:** "Forçar parada" nas configurações do Android bloqueia push e alarmes até o app ser aberto de novo, e no Samsung o app não pode estar em "Apps em suspensão" ou "em suspensão profunda" (Configurações > Bateria > Limites de uso em segundo plano).
+

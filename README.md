@@ -298,6 +298,7 @@ O que foi decidido, as alternativas consideradas e o porquê estão documentados
 - [ADR-0051](Gerenciador%20de%20Medicamentos/docs/adr/ADR0051-aviso-de-remedio-esquecido-por-agendador-externo.md): aviso de "remédio esquecido" na hora, com agendador externo
 - [ADR-0052](Gerenciador%20de%20Medicamentos/docs/adr/ADR0052-lgpd-consentimento-politica-e-exportacao-de-dados.md): LGPD (consentimento, política de privacidade e exportação dos dados)
 - [ADR-0053](Gerenciador%20de%20Medicamentos/docs/adr/ADR0053-remocao-do-terminal-e-do-csv-gui-como-cliente-da-api.md): remoção do terminal e do CSV; a interface gráfica passa a usar a API
+- [ADR-0054](Gerenciador%20de%20Medicamentos/docs/adr/ADR0054-banners-de-anuncios-no-app-android.md): banners de anúncios no app Android
 
 ## Próximos passos
 
