@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import br.com.cuidamed.data.Resultado
 import br.com.cuidamed.ui.Destinos
 import br.com.cuidamed.ui.LocalRepositorio
+import br.com.cuidamed.ui.componentes.BannerDeAnuncio
 import br.com.cuidamed.ui.componentes.AvisoDaTela
 import br.com.cuidamed.ui.componentes.BotaoGrande
 import br.com.cuidamed.ui.componentes.CampoDeTexto
@@ -35,6 +36,7 @@ fun TelaInicio(destinos: Destinos) {
         TextoSuave("Ainda não tem conta? Crie a sua:")
         BotaoGrande("Criar conta de idoso", { destinos.criarConta("IDOSO") }, estilo = EstiloDoBotao.SECUNDARIO)
         BotaoGrande("Criar conta de familiar", { destinos.criarConta("FAMILIAR") }, estilo = EstiloDoBotao.SECUNDARIO)
+        BannerDeAnuncio("entrada-fim")
     }
 }
 
@@ -70,6 +72,7 @@ fun TelaLogin(destinos: Destinos) {
         CampoDeTexto(senha, { senha = it }, "Sua senha", senha = true)
         BotaoGrande("Entrar", ::entrar, carregando = carregando)
         if (carregando) TextoSuave("Entrando… se o servidor estiver descansando, pode levar até um minuto.")
+        BannerDeAnuncio("entrada-fim")
     }
 }
 
@@ -117,5 +120,6 @@ fun TelaCadastro(tipo: String, destinos: Destinos) {
         CaixaDeAceite(aceitou, { aceitou = it }, destinos::politica)
         BotaoGrande("Criar minha conta", ::criar, carregando = carregando)
         if (carregando) TextoSuave("Criando a conta… se o servidor estiver descansando, pode levar até um minuto.")
+        BannerDeAnuncio("entrada-fim")
     }
 }

@@ -18,6 +18,7 @@ import br.com.cuidamed.ui.BarraDeAtualizacao
 import br.com.cuidamed.ui.Carregado
 import br.com.cuidamed.ui.Destinos
 import br.com.cuidamed.ui.LocalRepositorio
+import br.com.cuidamed.ui.componentes.BannerDeAnuncio
 import br.com.cuidamed.ui.componentes.AvisoDaTela
 import br.com.cuidamed.ui.componentes.BotaoGrande
 import br.com.cuidamed.ui.componentes.Cartao
@@ -56,7 +57,7 @@ fun TelaHomeIdoso(usuario: UsuarioDto, destinos: Destinos) {
     var mensagem by remember { mutableStateOf<Mensagem?>(null) }
     var emAndamento by remember { mutableIntStateOf(-1) }
 
-    Tela("Olá, ${primeiroNome(usuario.nome)}!", "Hoje é ${dataDeHoje()}.") {
+    Tela("Olá, ${primeiroNome(usuario.nome)}!", "Hoje é ${dataDeHoje()}.", topo = { BannerDeAnuncio("home-topo") }) {
         AvisoDeNotificacoesDesligadas()
         AvisoDaTela(mensagem)
         BarraDeAtualizacao(carregador)
@@ -114,5 +115,6 @@ fun TelaHomeIdoso(usuario: UsuarioDto, destinos: Destinos) {
         BotaoGrande("Meu histórico", { destinos.historico(usuario.id, usuario.nome) }, estilo = EstiloDoBotao.SECUNDARIO)
         BotaoGrande("Meus familiares", destinos::vinculos, estilo = EstiloDoBotao.SECUNDARIO)
         BotaoGrande("Meus dados", destinos::perfil, estilo = EstiloDoBotao.SECUNDARIO)
+        BannerDeAnuncio("home-fim")
     }
 }

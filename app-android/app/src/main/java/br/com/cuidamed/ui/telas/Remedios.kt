@@ -30,6 +30,7 @@ import br.com.cuidamed.ui.REMEDIO_SALVO
 import br.com.cuidamed.ui.Carregado
 import br.com.cuidamed.ui.Destinos
 import br.com.cuidamed.ui.LocalRepositorio
+import br.com.cuidamed.ui.componentes.BannerDeAnuncio
 import br.com.cuidamed.ui.componentes.AvisoDaTela
 import br.com.cuidamed.ui.componentes.BotaoGrande
 import br.com.cuidamed.ui.componentes.Cartao
@@ -87,6 +88,7 @@ fun TelaMedicamentos(idosoId: Int, nomeDoIdoso: String, usuario: UsuarioDto, des
                 }
             }
         }
+        BannerDeAnuncio("remedios-fim")
     }
 
     paraExcluir?.let { m ->

@@ -1,6 +1,7 @@
 package br.com.cuidamed
 
 import android.app.Application
+import br.com.cuidamed.data.CatalogoDeAnuncios
 import br.com.cuidamed.data.CofreDeTokens
 import br.com.cuidamed.data.Preferencias
 import br.com.cuidamed.data.UltimaSessao
@@ -26,11 +27,14 @@ class CuidaMedApp : Application() {
         private set
     lateinit var preferencias: Preferencias
         private set
+    lateinit var anuncios: CatalogoDeAnuncios
+        private set
 
     override fun onCreate() {
         super.onCreate()
         val cofre = CofreDeTokens(this)
         preferencias = Preferencias(this)
+        anuncios = CatalogoDeAnuncios(this)
         Canais.criar(this)
         // O renovador precisa avisar o repositório quando a sessão acaba, e o repositório precisa da API: por isso o atraso.
         lateinit var repo: Repositorio

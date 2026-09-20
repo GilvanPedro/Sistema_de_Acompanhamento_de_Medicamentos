@@ -11,6 +11,7 @@ import br.com.cuidamed.ui.BarraDeAtualizacao
 import br.com.cuidamed.ui.Carregado
 import br.com.cuidamed.ui.Destinos
 import br.com.cuidamed.ui.LocalRepositorio
+import br.com.cuidamed.ui.componentes.BannerDeAnuncio
 import br.com.cuidamed.ui.componentes.BotaoGrande
 import br.com.cuidamed.ui.componentes.Cartao
 import br.com.cuidamed.ui.componentes.EstiloDoBotao
@@ -68,7 +69,7 @@ fun TelaHomeFamiliar(usuario: UsuarioDto, destinos: Destinos) {
         }
     }
 
-    Tela("Olá, ${primeiroNome(usuario.nome)}!", "Veja como estão as pessoas que você acompanha.") {
+    Tela("Olá, ${primeiroNome(usuario.nome)}!", "Veja como estão as pessoas que você acompanha.", topo = { BannerDeAnuncio("home-topo") }) {
         AvisoDeNotificacoesDesligadas()
         BarraDeAtualizacao(carregador)
         Carregado(carregador) { dados ->
@@ -92,6 +93,7 @@ fun TelaHomeFamiliar(usuario: UsuarioDto, destinos: Destinos) {
         }
         BotaoGrande("Vincular um idoso", destinos::vinculos, estilo = EstiloDoBotao.SECUNDARIO)
         BotaoGrande("Meus dados", destinos::perfil, estilo = EstiloDoBotao.SECUNDARIO)
+        BannerDeAnuncio("home-fim")
     }
 }
 
@@ -112,5 +114,6 @@ fun TelaIdosoDoFamiliar(idosoId: Int, nome: String, destinos: Destinos) {
         }
         BotaoGrande("Ver e mudar os remédios", { destinos.medicamentos(idosoId, nome) })
         BotaoGrande("Ver o histórico", { destinos.historico(idosoId, nome) }, estilo = EstiloDoBotao.SECUNDARIO)
+        BannerDeAnuncio("idoso-fim")
     }
 }

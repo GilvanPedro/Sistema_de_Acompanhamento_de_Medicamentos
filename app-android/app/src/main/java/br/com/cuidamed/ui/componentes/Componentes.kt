@@ -82,6 +82,7 @@ fun Tela(
     titulo: String,
     subtitulo: String? = null,
     aoVoltar: (() -> Unit)? = null,
+    topo: @Composable () -> Unit = {},
     conteudo: @Composable () -> Unit,
 ) {
     // Texto sem cor própria usa esta cor: sem isso ele sai preto (o padrão do Compose fora de um Surface) e some no modo escuro.
@@ -102,6 +103,7 @@ fun Tela(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
+            topo()
             Text(titulo, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onBackground)
             if (subtitulo != null) {
                 Text(subtitulo, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)

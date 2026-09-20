@@ -14,6 +14,7 @@ import br.com.cuidamed.data.EstadoDaSessao
 import br.com.cuidamed.data.Preferencias
 import br.com.cuidamed.data.Repositorio
 import br.com.cuidamed.notificacoes.PedirPermissaoDeNotificacoes
+import br.com.cuidamed.notificacoes.RegistroDePush
 import br.com.cuidamed.ui.LocalRepositorio
 import br.com.cuidamed.ui.NavegacaoDeEntrada
 import br.com.cuidamed.ui.NavegacaoDoApp
@@ -21,6 +22,7 @@ import br.com.cuidamed.ui.componentes.BotaoGrande
 import br.com.cuidamed.ui.componentes.Carregando
 import br.com.cuidamed.ui.componentes.ErroComTentarDeNovo
 import br.com.cuidamed.ui.componentes.EstiloDoBotao
+import br.com.cuidamed.ui.componentes.LocalAnuncios
 import br.com.cuidamed.ui.componentes.LocalPreferencias
 import br.com.cuidamed.ui.componentes.Tela
 import br.com.cuidamed.ui.telas.PortaoDaPolitica
@@ -33,14 +35,14 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         val app = application as CuidaMedApp
         setContent {
-            CuidaMedRaiz(app.repositorio, app.preferencias)
+            CuidaMedRaiz(app, app.repositorio, app.preferencias)
         }
     }
 }
 
 /** Escolhe a tela pelo estado do login: verificando, sem login, logado ou sem conexão. */
 @Composable
-private fun CuidaMedRaiz(repositorio: Repositorio, preferencias: Preferencias) {
+private fun CuidaMedRaiz(app: CuidaMedApp, repositorio: Repositorio, preferencias: Preferencias) {
     val estado by repositorio.sessao.collectAsStateWithLifecycle()
     val escopo = rememberCoroutineScope()
     LaunchedEffect(Unit) {
@@ -49,11 +51,17 @@ private fun CuidaMedRaiz(repositorio: Repositorio, preferencias: Preferencias) {
     }
 
     CuidaMedTheme(escuro = preferencias.escuro, escalaDaLetra = preferencias.escala) {
-        CompositionLocalProvider(LocalPreferencias provides preferencias, LocalRepositorio provides repositorio) {
+        CompositionLocalProvider(
+            LocalPreferencias provides preferencias,
+            LocalRepositorio provides repositorio,
+            LocalAnuncios provides app.anuncios,
+        ) {
             when (val e = estado) {
                 EstadoDaSessao.Verificando -> Tela("CuidaMed") { Carregando("Entrando…") }
                 EstadoDaSessao.SemLogin -> NavegacaoDeEntrada()
                 is EstadoDaSessao.Logado -> {
+                    // Sempre que o app abre com alguém logado, confere se o servidor tem o código de push atual.
+                    LaunchedEffect(e.usuario.id) { RegistroDePush.garantir(app, forcar = true) }
                     PortaoDaPolitica(e.usuario) {
                         PedirPermissaoDeNotificacoes()
                         NavegacaoDoApp(e.usuario)
