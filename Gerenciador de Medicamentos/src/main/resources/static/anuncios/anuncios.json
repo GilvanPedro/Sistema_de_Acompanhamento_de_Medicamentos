@@ -1,6 +1,6 @@
 {
   "anuncios": [
-    { "id": "exemplo-1", "imagem": "banner-exemplo-1.png", "link": null, "texto": "Anúncio de exemplo: anuncie aqui" },
+    { "id": "exemplo-1", "imagem": "banner-exemplo-1.png", "link": "mailto:gilvanpedro2006@gmail.com", "texto": "Anúncio de exemplo: anuncie aqui" },
     { "id": "exemplo-2", "imagem": "banner-exemplo-2.png", "link": null, "texto": "Anúncio de exemplo: seu banner aqui" },
     { "id": "exemplo-3", "imagem": "banner-exemplo-3.png", "link": "https://sistema-de-acompanhamento-de-medicamentos.onrender.com/politica-de-privacidade.html", "texto": "Leia a política de privacidade do CuidaMed" }
   ]
