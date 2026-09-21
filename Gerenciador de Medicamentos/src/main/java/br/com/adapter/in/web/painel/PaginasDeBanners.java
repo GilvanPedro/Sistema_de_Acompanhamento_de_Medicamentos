@@ -48,7 +48,8 @@ final class PaginasDeBanners {
                 h.append("<tr><td><img class=\"miniatura\" src=\"/anuncios/").append(esc(b.id())).append('.').append(b.extensao()).append("?v=").append(b.versao())
                         .append("\" alt=\"").append(esc(b.texto())).append("\"></td><td><b>").append(esc(b.empresa())).append("</b><br><span class=\"suave pequeno\">")
                         .append(esc(b.texto())).append("</span><br><span class=\"suave pequeno\">")
-                        .append(b.link() == null ? "sem link" : esc(b.link())).append("</span></td><td class=\"n\">")
+                        .append(b.link() == null ? "sem link" : esc(b.link())).append("</span>")
+                        .append(b.temVideo() ? "<br><span class=\"pequeno\">🎬 Com vídeo (" + segundos(b.duracaoVideoMs()) + ")</span>" : "").append("</td><td class=\"n\">")
                         .append(numero(b.peso())).append("</td><td>").append(pausado ? "<span class=\"pausado\">Pausado</span>" : "Ativo").append("</td><td class=\"nao-imprimir\"><div class=\"acoes\">")
                         .append("<a class=\"botao\" href=\"/painel/banners/").append(esc(b.id())).append("/editar\">Editar</a>")
                         .append(acao(b.id(), pausado ? "ativar" : "pausar", pausado ? "Ativar" : "Pausar", csrf, null))
@@ -58,7 +59,7 @@ final class PaginasDeBanners {
             h.append("</tbody></table></div>");
         }
         h.append("<h2>Adicionar banner</h2>");
-        h.append(formulario("/painel/banners", "Adicionar banner", csrf, preenchido, true));
+        h.append(formulario("/painel/banners", "Adicionar banner", csrf, preenchido, true, null));
         h.append(dicas());
         return PaginasDoPainel.pagina("Banners de anúncio", h.toString());
     }
@@ -69,11 +70,15 @@ final class PaginasDeBanners {
         avisos(h, null, erro);
         h.append("<img class=\"miniatura\" src=\"/anuncios/").append(esc(b.id())).append('.').append(b.extensao()).append("?v=").append(b.versao())
                 .append("\" alt=\"").append(esc(b.texto())).append("\">");
-        h.append(formulario("/painel/banners/" + b.id(), "Salvar alterações", csrf, preenchido, false));
+        if (b.temVideo()) {
+            h.append("<p class=\"suave\">Vídeo atual (").append(segundos(b.duracaoVideoMs())).append("):</p><video class=\"miniatura\" src=\"/anuncios/").append(esc(b.id()))
+                    .append(".mp4?v=").append(b.versao()).append("\" controls muted playsinline preload=\"metadata\"></video>");
+        }
+        h.append(formulario("/painel/banners/" + b.id(), "Salvar alterações", csrf, preenchido, false, b));
         return PaginasDoPainel.pagina("Editar banner", h.toString());
     }
 
-    private static String formulario(String destino, String botao, String csrf, Preenchido p, boolean imagemObrigatoria) {
+    private static String formulario(String destino, String botao, String csrf, Preenchido p, boolean imagemObrigatoria, Registro atual) {
         return "<form class=\"formulario\" method=\"post\" action=\"" + esc(destino) + "\" enctype=\"multipart/form-data\">"
                 + "<input type=\"hidden\" name=\"csrf\" value=\"" + esc(csrf) + "\">"
                 + "<label>Empresa<input name=\"empresa\" required maxlength=\"120\" value=\"" + esc(p.empresa()) + "\"></label>"
@@ -85,6 +90,10 @@ final class PaginasDeBanners {
                 + "<input name=\"peso\" inputmode=\"decimal\" value=\"" + esc(p.peso()) + "\"></label>"
                 + "<label>Imagem " + (imagemObrigatoria ? "" : "<small>(deixe em branco para manter a atual)</small>")
                 + "<input type=\"file\" name=\"imagem\" accept=\"image/png,image/jpeg\"" + (imagemObrigatoria ? " required" : "") + "></label>"
+                + "<label>Vídeo curto <small>(opcional: MP4 com H.264, de 1 a 15 segundos e até 4 MB, no mesmo formato da imagem"
+                + (atual != null && atual.temVideo() ? "; deixe em branco para manter o atual" : "") + ". Toca sem som, em repetição)</small>"
+                + "<input type=\"file\" name=\"video\" accept=\"video/mp4\"></label>"
+                + (atual != null && atual.temVideo() ? "<label style=\"display:flex;gap:.5rem;align-items:center;font-weight:400\"><input type=\"checkbox\" name=\"removerVideo\" value=\"on\"> Remover o vídeo atual (o banner volta a ser só imagem)</label>" : "")
                 + "<button type=\"submit\">" + esc(botao) + "</button></form>";
     }
 
@@ -108,7 +117,15 @@ final class PaginasDeBanners {
         return "<h2>Sobre as imagens</h2><ul class=\"suave\"><li>PNG ou JPEG, até <b>1 MB</b> (o ideal é até uns 300 KB).</li>"
                 + "<li>Formato de banner: a largura de 2 a 6 vezes a altura. O ideal é <b>1280×400</b> (3,2 para 1).</li>"
                 + "<li>Entre 300 e 4000 pixels de largura. Não aceitamos GIF, SVG nem outros formatos.</li>"
-                + "<li>Para trocar a imagem de um banner, use <b>Editar</b> e escolha o arquivo novo.</li></ul>";
+                + "<li>Para trocar a imagem de um banner, use <b>Editar</b> e escolha o arquivo novo.</li></ul>"
+                + "<h2>Sobre o vídeo (opcional)</h2><ul class=\"suave\"><li><b>MP4 com H.264</b>, de <b>1 a 15 segundos</b> e até <b>4 MB</b> (o ideal é uns 2 MB). No máximo 15 banners com vídeo.</li>"
+                + "<li>Mesmo formato da imagem (por exemplo, os dois em 1280×400). A <b>imagem continua obrigatória</b>: ela aparece enquanto o vídeo carrega, na internet do celular (dados móveis) e para quem desligou as animações.</li>"
+                + "<li>O vídeo toca <b>sem som</b> e em repetição, só enquanto o banner está na tela.</li>"
+                + "<li>Para deixar o arquivo leve e pronto para a internet, com o <i>ffmpeg</i>: <code>ffmpeg -i original.mp4 -vf scale=1280:400 -c:v libx264 -crf 30 -an -movflags +faststart banner.mp4</code></li></ul>";
+    }
+
+    private static String segundos(int ms) {
+        return String.format(Locale.forLanguageTag("pt-BR"), "%.1f s", ms / 1000.0);
     }
 
     private static String numero(double n) {

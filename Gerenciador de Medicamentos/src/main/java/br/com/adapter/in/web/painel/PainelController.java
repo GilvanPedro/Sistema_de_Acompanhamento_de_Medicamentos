@@ -48,7 +48,8 @@ class PainelController {
             return negado;
         }
         YearMonth m = mes(mes);
-        ResumoDoMes resumo = ResumoDoMes.de(m, metricas.doMes(m), id -> true);
+        java.util.Set<String> existentes = idsExistentes();
+        ResumoDoMes resumo = ResumoDoMes.de(m, metricas.doMes(m), existentes::contains);
         String base = base(requisicao);
         return html(PaginasDoPainel.geral(resumo, catalogo, b -> linkDeCompartilhar(base, b.id(), m)));
     }
@@ -82,7 +83,11 @@ class PainelController {
         }
         YearMonth m = mes(mes);
         StringBuilder csv = new StringBuilder("﻿").append("mes;dia;banner;empresa;posicao;perfil;exibicoes;cliques\r\n");
+        java.util.Set<String> existentes = idsExistentes();
         for (Linha l : metricas.doMes(m)) {
+            if (!existentes.contains(l.anuncioId())) {
+                continue; // banner que já foi removido não aparece
+            }
             csv.append(m).append(';').append(l.dia()).append(';').append(celula(l.anuncioId())).append(';')
                     .append(celula(catalogo.buscar(l.anuncioId()).map(Banner::empresa).orElse(l.anuncioId()))).append(';')
                     .append(celula(l.posicao())).append(';').append(celula(l.perfil())).append(';')
@@ -97,10 +102,17 @@ class PainelController {
         if (!ID_VALIDO.matcher(id).matches()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(HTML).body(PaginasDoPainel.naoEncontrada());
         }
-        Banner banner = catalogo.buscar(id).orElse(new Banner(id, id, "", "", null, 1.0));
+        Banner banner = catalogo.buscar(id).orElse(null);
+        if (banner == null) { // banner removido: o relatório dele (e o link que a empresa tinha) deixa de existir
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(HTML).cacheControl(CacheControl.noStore()).body(PaginasDoPainel.naoEncontrada());
+        }
         ResumoDoMes resumo = ResumoDoMes.de(m, metricas.doMes(m), id::equals);
         String link = publico ? null : linkDeCompartilhar(raiz, id, m);
         return html(PaginasDoPainel.anuncio(resumo, banner, publico, raiz, caminho, link));
+    }
+
+    private java.util.Set<String> idsExistentes() {
+        return catalogo.todos().stream().map(Banner::id).collect(java.util.stream.Collectors.toSet());
     }
 
     private String linkDeCompartilhar(String base, String id, YearMonth mes) {

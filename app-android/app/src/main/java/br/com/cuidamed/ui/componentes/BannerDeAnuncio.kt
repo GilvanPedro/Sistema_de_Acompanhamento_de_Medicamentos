@@ -8,10 +8,12 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -49,6 +51,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.util.UnstableApi
 import br.com.cuidamed.data.Anuncio
 import br.com.cuidamed.data.CatalogoDeAnuncios
 import br.com.cuidamed.data.linkSeguro
@@ -85,6 +88,7 @@ object AnunciosFechados {
  * "Fechar". Se não houver banner (sem internet e sem cópia guardada), não ocupa espaço nenhum.
  * [local] identifica o lugar da tela ("home-topo", "home-fim"...), para o "Fechar" valer só para ele.
  */
+@OptIn(UnstableApi::class)
 @Composable
 fun BannerDeAnuncio(local: String, modifier: Modifier = Modifier) {
     val catalogo = LocalAnuncios.current ?: return
@@ -108,6 +112,9 @@ fun BannerDeAnuncio(local: String, modifier: Modifier = Modifier) {
     var fracaoVisivel by remember(anuncio.id) { mutableFloatStateOf(0f) }
     var exibicaoContada by remember(anuncio.id) { mutableStateOf(false) }
     val visivel = fracaoVisivel >= FRACAO_MINIMA_VISIVEL
+    val temVideo = remember(anuncio.id) { anuncio.video != null && videoPermitido(contexto) }
+    var jaFicouVisivel by remember(anuncio.id) { mutableStateOf(false) }
+    if (visivel && !jaFicouVisivel) jaFicouVisivel = true
     LaunchedEffect(visivel, exibicaoContada) {
         if (visivel && !exibicaoContada) {
             delay(TEMPO_MINIMO_VISIVEL_MS) // se sair da tela antes disso, este efeito é cancelado e não conta
@@ -135,23 +142,31 @@ fun BannerDeAnuncio(local: String, modifier: Modifier = Modifier) {
                         .semantics { contentDescription = "Fechar anúncio" },
                 ) { Text("Fechar ✕", style = MaterialTheme.typography.labelLarge) }
             }
-            Image(
-                bitmap = imagem,
-                contentDescription = anuncio.texto,
-                contentScale = ContentScale.FillWidth,
-                modifier = Modifier
+            Box(
+                Modifier
                     .fillMaxWidth()
                     .aspectRatio(imagem.width.toFloat() / imagem.height)
                     .onGloballyPositioned { fracaoVisivel = fracaoVisivel(it, janela) }
-                    .let {
-                        if (link != null) {
-                            it.clickable {
-                                metricas?.registrar(TipoDeEvento.CLIQUE, anuncio.id, local, perfil)
-                                abrirLink(contexto, link)
-                            }
-                        } else it
-                    },
-            )
+                    .semantics { contentDescription = anuncio.texto },
+            ) {
+                Image(
+                    bitmap = imagem,
+                    contentDescription = null,
+                    contentScale = ContentScale.FillWidth,
+                    modifier = Modifier.fillMaxSize(),
+                )
+                if (temVideo && jaFicouVisivel) { // só começa a baixar o vídeo quando o banner chega à tela
+                    VideoDoBanner(url = anuncio.video!!, tocando = visivel, modifier = Modifier.matchParentSize())
+                }
+                if (link != null) {
+                    Box(
+                        Modifier.matchParentSize().clickable {
+                            metricas?.registrar(TipoDeEvento.CLIQUE, anuncio.id, local, perfil)
+                            abrirLink(contexto, link)
+                        },
+                    )
+                }
+            }
         }
     }
 }

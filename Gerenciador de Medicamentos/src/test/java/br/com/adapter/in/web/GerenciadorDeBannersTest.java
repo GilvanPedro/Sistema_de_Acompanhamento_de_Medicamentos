@@ -187,6 +187,32 @@ class GerenciadorDeBannersTest {
     }
 
     @Test
+    void bannerRemovidoSomeDoPainelEDosRelatoriosENumerosVelhosNaoRessuscitam() throws Exception {
+        String codigo = codigo(8);
+        mvc.perform(novo("/painel/banners", 8, codigo, "Loja Que Sai", "", "1", BancoDeBannersEmMemoria.png(1280, 400))).andExpect(status().isSeeOther());
+        mvc.perform(post("/api/v1/anuncios/eventos").with(r -> { r.setRemoteAddr(ip(80)); return r; }).contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .content("{\"eventos\":[{\"tipo\":\"EXIBICAO\",\"anuncioId\":\"loja-que-sai\",\"posicao\":\"home-fim\",\"perfil\":\"IDOSO\",\"dia\":\"" + java.time.LocalDate.now() + "\",\"quantidade\":9}]}"))
+                .andExpect(status().isNoContent());
+        String antes = mvc.perform(logado(get("/painel"), 8)).andReturn().getResponse().getContentAsString();
+        assertTrue(antes.contains("Loja Que Sai"));
+        String link = java.util.regex.Pattern.compile("/relatorio/(loja-que-sai)/([0-9a-f]{32})").matcher(antes).results().findFirst().orElseThrow().group();
+        mvc.perform(get(link)).andExpect(status().isOk());
+
+        mvc.perform(logado(post("/painel/banners/loja-que-sai/remover").param("csrf", codigo), 8)).andExpect(status().isSeeOther());
+
+        // some da tabela, do CSV e dos relatórios (o link que a empresa tinha para de funcionar)
+        assertFalse(mvc.perform(logado(get("/painel"), 8)).andReturn().getResponse().getContentAsString().contains("Loja Que Sai"));
+        assertFalse(mvc.perform(logado(get("/painel/exportar.csv"), 8)).andReturn().getResponse().getContentAsString().contains("loja-que-sai"));
+        mvc.perform(logado(get("/painel/anuncio/loja-que-sai"), 8)).andExpect(status().isNotFound());
+        mvc.perform(get(link)).andExpect(status().isNotFound());
+
+        // um banner novo com o mesmo nome começa do zero (não herda os números do antigo)
+        mvc.perform(novo("/painel/banners", 8, codigo, "Loja Que Sai", "", "1", BancoDeBannersEmMemoria.png(1280, 400))).andExpect(status().isSeeOther());
+        String depois = mvc.perform(logado(get("/painel/anuncio/loja-que-sai"), 8)).andReturn().getResponse().getContentAsString();
+        assertTrue(depois.contains("<div class=\"valor\">0</div>"), "o banner novo não pode herdar as exibições do antigo");
+    }
+
+    @Test
     void oNomeDaEmpresaNaListaEEscapado() throws Exception {
         String codigo = codigo(7);
         mvc.perform(novo("/painel/banners", 7, codigo, "<script>alert(1)</script> Ltda", "", "1", BancoDeBannersEmMemoria.png(1280, 400))).andExpect(status().isSeeOther());
@@ -203,7 +229,8 @@ class GerenciadorDeBannersTest {
             public java.util.List<Registro> listar() { return java.util.List.of(); }
             public java.util.Optional<Registro> buscar(String id) { return java.util.Optional.empty(); }
             public java.util.Optional<Imagem> imagem(String id) { return java.util.Optional.empty(); }
-            public void salvar(Registro r, byte[] imagem) { }
+            public java.util.Optional<byte[]> video(String id) { return java.util.Optional.empty(); }
+            public void salvar(Registro r, byte[] imagem, byte[] video, boolean removerVideo) { }
             public boolean remover(String id) { return false; }
         };
         CatalogoDeBanners catalogoVazio = new CatalogoDeBanners(vazio);
@@ -222,5 +249,126 @@ class GerenciadorDeBannersTest {
         org.junit.jupiter.api.Assertions.assertThrows(DadosInvalidosException.class, () -> ValidacaoDeBanner.peso("-1"));
         org.junit.jupiter.api.Assertions.assertThrows(DadosInvalidosException.class, () -> ValidacaoDeBanner.peso("NaN"));
         org.junit.jupiter.api.Assertions.assertThrows(DadosInvalidosException.class, () -> ValidacaoDeBanner.imagem(new byte[2 * 1024 * 1024]));
+    }
+
+    // ------------------------------------------------------------------ vídeo
+
+    private static byte[] arquivo(String nome) throws Exception {
+        try (var in = GerenciadorDeBannersTest.class.getResourceAsStream("/videos/" + nome)) {
+            return java.util.Objects.requireNonNull(in, nome).readAllBytes();
+        }
+    }
+
+    private MockMultipartHttpServletRequestBuilder comVideo(String url, int ip, String csrf, String empresa, byte[] imagem, byte[] video, boolean removerVideo) {
+        MockMultipartHttpServletRequestBuilder req = multipart(url);
+        if (imagem != null) {
+            req.file(new MockMultipartFile("imagem", "banner.png", "image/png", imagem));
+        }
+        if (video != null) {
+            req.file(new MockMultipartFile("video", "banner.mp4", "video/mp4", video));
+        }
+        req.param("csrf", csrf).param("empresa", empresa).param("texto", "").param("link", "").param("peso", "1");
+        if (removerVideo) {
+            req.param("removerVideo", "on");
+        }
+        req.header("Authorization", "Basic " + Base64.getEncoder().encodeToString(("painel:" + SENHA).getBytes()));
+        req.with(r -> { r.setRemoteAddr(ip(ip)); return r; });
+        return req;
+    }
+
+    @Test
+    void oCabecalhoDoMp4EhLidoSemBibliotecaERecusaOQueNaoServe() throws Exception {
+        var ok = ValidacaoDeBanner.video(arquivo("banner-ok.mp4"));
+        assertEquals(1280, ok.largura());
+        assertEquals(400, ok.altura());
+        assertTrue(Math.abs(ok.duracaoMs() - 4000) < 100, "duração de 4 s, deu " + ok.duracaoMs());
+
+        var longo = org.junit.jupiter.api.Assertions.assertThrows(DadosInvalidosException.class, () -> ValidacaoDeBanner.video(arquivo("banner-longo.mp4")));
+        assertTrue(longo.getMessage().contains("1 a 15 segundos"), longo.getMessage());
+        var quadrado = org.junit.jupiter.api.Assertions.assertThrows(DadosInvalidosException.class, () -> ValidacaoDeBanner.video(arquivo("banner-quadrado.mp4")));
+        assertTrue(quadrado.getMessage().contains("320 a 1920") || quadrado.getMessage().contains("formato de banner"), quadrado.getMessage());
+
+        byte[] hevc = arquivo("banner-ok.mp4").clone();
+        for (int i = 0; i < hevc.length - 4; i++) { // troca o nome do codec de avc1 para hvc1 (H.265)
+            if (hevc[i] == 'a' && hevc[i + 1] == 'v' && hevc[i + 2] == 'c' && hevc[i + 3] == '1') { hevc[i] = 'h'; hevc[i + 1] = 'v'; }
+        }
+        assertTrue(org.junit.jupiter.api.Assertions.assertThrows(DadosInvalidosException.class, () -> ValidacaoDeBanner.video(hevc)).getMessage().contains("H.264"));
+
+        assertTrue(org.junit.jupiter.api.Assertions.assertThrows(DadosInvalidosException.class, () -> ValidacaoDeBanner.video("isto não é um vídeo, só texto qualquer".getBytes())).getMessage().contains("MP4"));
+        byte[] cortado = java.util.Arrays.copyOf(arquivo("banner-ok.mp4"), 200); // arquivo truncado: sem moov
+        org.junit.jupiter.api.Assertions.assertThrows(DadosInvalidosException.class, () -> ValidacaoDeBanner.video(cortado));
+        byte[] grande = new byte[4 * 1024 * 1024 + 1];
+        System.arraycopy(arquivo("banner-ok.mp4"), 0, grande, 0, 32);
+        assertTrue(org.junit.jupiter.api.Assertions.assertThrows(DadosInvalidosException.class, () -> ValidacaoDeBanner.video(grande)).getMessage().contains("4 MB"));
+        org.junit.jupiter.api.Assertions.assertThrows(DadosInvalidosException.class, () -> ValidacaoDeBanner.video(new byte[0]));
+    }
+
+    @Test
+    void adicionaBannerComVideoQueEhServidoComSuporteAPedidosParciais() throws Exception {
+        String codigo = codigo(10);
+        mvc.perform(comVideo("/painel/banners", 10, codigo, "Padaria Com Video", BancoDeBannersEmMemoria.png(1280, 400), arquivo("banner-ok.mp4"), false))
+                .andExpect(status().isSeeOther());
+        var registro = banco.buscar("padaria-com-video").orElseThrow();
+        assertTrue(registro.temVideo());
+        assertTrue(Math.abs(registro.duracaoVideoMs() - 4000) < 100);
+
+        // a lista do app traz o endereço completo do vídeo
+        String lista = mvc.perform(get("/api/v1/anuncios")).andReturn().getResponse().getContentAsString();
+        assertTrue(lista.contains("\"video\":\"http://localhost/anuncios/padaria-com-video.mp4?v="), lista);
+
+        // o vídeo é servido com o tipo certo e aceita Range (o player do Android pede pedaços)
+        byte[] completo = mvc.perform(get("/anuncios/padaria-com-video.mp4")).andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "video/mp4")).andExpect(header().string("Accept-Ranges", "bytes"))
+                .andReturn().getResponse().getContentAsByteArray();
+        assertEquals(arquivo("banner-ok.mp4").length, completo.length);
+        mvc.perform(get("/anuncios/padaria-com-video.mp4").header("Range", "bytes=0-99")).andExpect(status().isPartialContent())
+                .andExpect(header().string("Content-Range", "bytes 0-99/" + completo.length));
+        mvc.perform(get("/anuncios/exemplo-1.mp4")).andExpect(status().isNotFound()); // banner sem vídeo
+
+        String pagina = mvc.perform(logado(get("/painel/banners"), 10)).andReturn().getResponse().getContentAsString();
+        assertTrue(pagina.contains("Com vídeo"));
+    }
+
+    @Test
+    void recusaVideoQueNaoServeMostrandoOMotivo() throws Exception {
+        String codigo = codigo(11);
+        long antes = banco.listar().size();
+        byte[] imagem = BancoDeBannersEmMemoria.png(1280, 400);
+        assertTrue(mvc.perform(comVideo("/painel/banners", 11, codigo, "Video Longo", imagem, arquivo("banner-longo.mp4"), false))
+                .andExpect(status().isBadRequest()).andReturn().getResponse().getContentAsString().contains("1 a 15 segundos"));
+        mvc.perform(comVideo("/painel/banners", 11, codigo, "Video Falso", imagem, "isto não é um vídeo, só texto qualquer".getBytes(), false)).andExpect(status().isBadRequest());
+        // vídeo com formato diferente da imagem (6:1 contra 3,2:1)
+        assertTrue(mvc.perform(comVideo("/painel/banners", 11, codigo, "Formato Diferente", BancoDeBannersEmMemoria.png(1200, 200), arquivo("banner-ok.mp4"), false))
+                .andExpect(status().isBadRequest()).andReturn().getResponse().getContentAsString().contains("formato diferente"));
+        assertEquals(antes, banco.listar().size(), "nenhum desses deveria ter sido cadastrado");
+    }
+
+    @Test
+    void editarMantemOVideoAteAPessoaTrocarOuRemover() throws Exception {
+        String codigo = codigo(12);
+        byte[] imagem = BancoDeBannersEmMemoria.png(1280, 400);
+        mvc.perform(comVideo("/painel/banners", 12, codigo, "Loja Video", imagem, arquivo("banner-ok.mp4"), false)).andExpect(status().isSeeOther());
+        long versao = banco.buscar("loja-video").orElseThrow().versao();
+
+        // editar só o texto: o vídeo fica
+        mvc.perform(comVideo("/painel/banners/loja-video", 12, codigo, "Loja Video 2", null, null, false)).andExpect(status().isSeeOther());
+        assertTrue(banco.buscar("loja-video").orElseThrow().temVideo());
+        assertTrue(banco.buscar("loja-video").orElseThrow().versao() > versao);
+        assertTrue(mvc.perform(logado(get("/painel/banners/loja-video/editar"), 12)).andReturn().getResponse().getContentAsString().contains("Remover o vídeo atual"));
+
+        // trocar só a imagem por uma de formato incompatível com o vídeo é recusado
+        assertTrue(mvc.perform(comVideo("/painel/banners/loja-video", 12, codigo, "Loja Video 2", BancoDeBannersEmMemoria.png(1200, 200), null, false))
+                .andExpect(status().isBadRequest()).andReturn().getResponse().getContentAsString().contains("formato diferente"));
+        assertTrue(banco.buscar("loja-video").orElseThrow().temVideo(), "a recusa não pode apagar o vídeo");
+
+        // remover o vídeo: o banner vira só imagem e o endereço do vídeo some
+        mvc.perform(comVideo("/painel/banners/loja-video", 12, codigo, "Loja Video 2", null, null, true)).andExpect(status().isSeeOther());
+        assertFalse(banco.buscar("loja-video").orElseThrow().temVideo());
+        mvc.perform(get("/anuncios/loja-video.mp4")).andExpect(status().isNotFound());
+        assertFalse(mvc.perform(get("/api/v1/anuncios")).andReturn().getResponse().getContentAsString().contains("loja-video.mp4"));
+
+        // acrescentar vídeo a um banner que só tinha imagem
+        mvc.perform(comVideo("/painel/banners/loja-video", 12, codigo, "Loja Video 2", null, arquivo("banner-ok.mp4"), false)).andExpect(status().isSeeOther());
+        assertTrue(banco.buscar("loja-video").orElseThrow().temVideo());
     }
 }

@@ -8,6 +8,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,7 +28,7 @@ import jakarta.servlet.http.HttpServletRequest;
 @RestController
 class CatalogoDeAnunciosController {
 
-    private static final Pattern NOME_DA_IMAGEM = Pattern.compile("([a-z0-9-]{1,64})\\.(png|jpg)");
+    private static final Pattern NOME_DO_ARQUIVO = Pattern.compile("([a-z0-9-]{1,64})\\.(png|jpg|mp4)");
 
     private final PesosDosBanners pesos;
     private final BancoDeBanners banco;
@@ -46,6 +48,9 @@ class CatalogoDeAnunciosController {
             a.put("id", b.banner().id());
             a.put("empresa", b.banner().empresa());
             a.put("imagem", base + b.banner().imagem());
+            if (b.banner().video() != null) {
+                a.put("video", base + b.banner().video());
+            }
             if (b.banner().link() != null) {
                 a.put("link", b.banner().link());
             }
@@ -56,17 +61,27 @@ class CatalogoDeAnunciosController {
         return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(Map.of("anuncios", anuncios));
     }
 
-    /** A imagem de um banner cadastrado. O {@code ?v=} do endereço só serve para o app buscar de novo quando ela muda. */
+    /**
+     * A imagem ou o vídeo de um banner cadastrado. O {@code ?v=} do endereço só serve para o app buscar de novo quando o
+     * arquivo muda. Devolve como {@code Resource} para o Spring atender pedidos parciais (Range), que os players de
+     * vídeo usam.
+     */
     @GetMapping("/anuncios/{nome}")
-    ResponseEntity<byte[]> imagem(@PathVariable("nome") String nome) {
-        Matcher m = NOME_DA_IMAGEM.matcher(nome);
+    ResponseEntity<Resource> arquivo(@PathVariable("nome") String nome) {
+        Matcher m = NOME_DO_ARQUIVO.matcher(nome);
         if (!m.matches()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-        return banco.imagem(m.group(1))
-                .map(i -> ResponseEntity.ok().contentType(MediaType.parseMediaType(i.tipo()))
-                        .cacheControl(CacheControl.maxAge(1, TimeUnit.DAYS).cachePublic())
-                        .header("X-Content-Type-Options", "nosniff").body(i.bytes()))
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        String id = m.group(1);
+        if ("mp4".equals(m.group(2))) {
+            return banco.video(id).map(bytes -> resposta(bytes, "video/mp4")).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        }
+        return banco.imagem(id).map(i -> resposta(i.bytes(), i.tipo())).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+
+    private static ResponseEntity<Resource> resposta(byte[] bytes, String tipo) {
+        return ResponseEntity.ok().contentType(MediaType.parseMediaType(tipo))
+                .cacheControl(CacheControl.maxAge(1, TimeUnit.DAYS).cachePublic())
+                .header("X-Content-Type-Options", "nosniff").body(new ByteArrayResource(bytes));
     }
 }

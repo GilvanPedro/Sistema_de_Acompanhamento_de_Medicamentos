@@ -41,20 +41,25 @@ class GerenciadorDeBannersController {
     private static final MediaType HTML = new MediaType("text", "html", StandardCharsets.UTF_8);
     private static final java.util.regex.Pattern ID_VALIDO = java.util.regex.Pattern.compile("[a-z0-9-]{1,64}");
     private static final int MAXIMO_DE_BANNERS = 50;
+    /** Cada vídeo pode ter 4 MB e o banco gratuito é pequeno: limita quantos banners podem ter vídeo. */
+    private static final int MAXIMO_DE_BANNERS_COM_VIDEO = 15;
 
     private final AcessoAoPainel acesso;
     private final BancoDeBanners banco;
     private final CatalogoDeBanners catalogo;
     private final PesosDosBanners pesos;
     private final TokenDeRelatorio tokens;
+    private final br.com.adapter.in.web.metricas.MetricasDeAnuncios metricas;
 
     GerenciadorDeBannersController(AcessoAoPainel acesso, BancoDeBanners banco, CatalogoDeBanners catalogo,
-                                   PesosDosBanners pesos, TokenDeRelatorio tokens) {
+                                   PesosDosBanners pesos, TokenDeRelatorio tokens,
+                                   br.com.adapter.in.web.metricas.MetricasDeAnuncios metricas) {
         this.acesso = acesso;
         this.banco = banco;
         this.catalogo = catalogo;
         this.pesos = pesos;
         this.tokens = tokens;
+        this.metricas = metricas;
     }
 
     @GetMapping("/painel/banners")
@@ -81,6 +86,7 @@ class GerenciadorDeBannersController {
                                  @RequestParam(value = "link", required = false) String link,
                                  @RequestParam(value = "peso", required = false) String peso,
                                  @RequestParam(value = "imagem", required = false) MultipartFile imagem,
+                                 @RequestParam(value = "video", required = false) MultipartFile video,
                                  HttpServletRequest requisicao) {
         ResponseEntity<String> negado = verificarEnvio(requisicao, csrf);
         if (negado != null) {
@@ -94,6 +100,14 @@ class GerenciadorDeBannersController {
             double pesoValido = ValidacaoDeBanner.peso(peso);
             byte[] bytes = bytesDe(imagem);
             var valida = ValidacaoDeBanner.imagem(bytes);
+            byte[] bytesDoVideo = null;
+            ValidacaoDeBanner.VideoValido videoValido = null;
+            if (video != null && !video.isEmpty()) {
+                bytesDoVideo = bytesDe(video);
+                videoValido = ValidacaoDeBanner.video(bytesDoVideo);
+                ValidacaoDeBanner.videoCombinaComAImagem(videoValido, valida.largura(), valida.altura());
+                exigirEspacoParaVideo(null);
+            }
             Set<String> existentes = banco.listar().stream().map(Registro::id).collect(Collectors.toSet());
             if (existentes.size() >= MAXIMO_DE_BANNERS) {
                 throw new DadosInvalidosException("Já existem " + MAXIMO_DE_BANNERS + " banners. Remova algum antes de adicionar outro.");
@@ -102,9 +116,11 @@ class GerenciadorDeBannersController {
             for (int n = 2; existentes.contains(id); n++) {
                 id = ValidacaoDeBanner.identificacao(nomeDaEmpresa) + "-" + n;
             }
-            banco.salvar(new Registro(id, nomeDaEmpresa, descricao, endereco, pesoValido, valida.tipo(), 0), bytes);
+            metricas.apagarDoBanner(id); // números de um banner antigo com o mesmo nome não podem "ressuscitar" no novo
+            banco.salvar(new Registro(id, nomeDaEmpresa, descricao, endereco, pesoValido, valida.tipo(), 0,
+                    videoValido != null, videoValido == null ? 0 : videoValido.duracaoMs()), bytes, bytesDoVideo, false);
             atualizarCaches();
-            return voltar("Banner de " + nomeDaEmpresa + " adicionado.");
+            return voltar("Banner de " + nomeDaEmpresa + " adicionado" + (videoValido != null ? " com vídeo" : "") + ".");
         } catch (DadosInvalidosException e) {
             return pagina(HttpStatus.BAD_REQUEST, listaHtml(null, e.getMessage(), digitado));
         }
@@ -118,6 +134,8 @@ class GerenciadorDeBannersController {
                                      @RequestParam(value = "link", required = false) String link,
                                      @RequestParam(value = "peso", required = false) String peso,
                                      @RequestParam(value = "imagem", required = false) MultipartFile imagem,
+                                     @RequestParam(value = "video", required = false) MultipartFile video,
+                                     @RequestParam(value = "removerVideo", required = false) String removerVideo,
                                      HttpServletRequest requisicao) {
         ResponseEntity<String> negado = verificarEnvio(requisicao, csrf);
         if (negado != null) {
@@ -135,10 +153,28 @@ class GerenciadorDeBannersController {
             double pesoValido = ValidacaoDeBanner.peso(peso);
             byte[] bytes = imagem == null || imagem.isEmpty() ? null : bytesDe(imagem);
             String tipo = atual.tipoImagem();
+            ValidacaoDeBanner.ImagemValida medidas;
             if (bytes != null) {
-                tipo = ValidacaoDeBanner.imagem(bytes).tipo();
+                medidas = ValidacaoDeBanner.imagem(bytes);
+                tipo = medidas.tipo();
+            } else {
+                medidas = ValidacaoDeBanner.medirImagem(banco.imagem(id).orElseThrow().bytes());
             }
-            banco.salvar(new Registro(id, nomeDaEmpresa, descricao, endereco, pesoValido, tipo, 0), bytes);
+            boolean tirarVideo = removerVideo != null && !removerVideo.isBlank();
+            byte[] bytesDoVideo = video == null || video.isEmpty() ? null : bytesDe(video);
+            ValidacaoDeBanner.VideoValido videoValido = null;
+            if (bytesDoVideo != null) {
+                videoValido = ValidacaoDeBanner.video(bytesDoVideo);
+                ValidacaoDeBanner.videoCombinaComAImagem(videoValido, medidas.largura(), medidas.altura());
+                exigirEspacoParaVideo(atual);
+                tirarVideo = false;
+            } else if (bytes != null && atual.temVideo() && !tirarVideo) {
+                // trocou só a imagem: o vídeo que já existe precisa continuar combinando com ela
+                ValidacaoDeBanner.videoCombinaComAImagem(ValidacaoDeBanner.video(banco.video(id).orElseThrow()), medidas.largura(), medidas.altura());
+            }
+            int duracao = videoValido != null ? videoValido.duracaoMs() : atual.duracaoVideoMs();
+            banco.salvar(new Registro(id, nomeDaEmpresa, descricao, endereco, pesoValido, tipo, 0, videoValido != null || (atual.temVideo() && !tirarVideo), duracao),
+                    bytes, bytesDoVideo, tirarVideo);
             atualizarCaches();
             return voltar("Banner de " + nomeDaEmpresa + " atualizado.");
         } catch (DadosInvalidosException e) {
@@ -170,10 +206,10 @@ class GerenciadorDeBannersController {
         return mudarPeso(id, csrf, requisicao, 1.0, "Banner ativado com peso 1. Ajuste em Editar, se quiser outro peso.");
     }
 
-    /** Imagem grande demais (o limite é 1 MB por arquivo). */
+    /** Arquivo grande demais para o servidor aceitar (o limite de envio é 5 MB por arquivo). */
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     ResponseEntity<String> grandeDemais() {
-        return pagina(HttpStatus.PAYLOAD_TOO_LARGE, listaHtml(null, "A imagem tem mais de 1 MB. Reduza o tamanho do arquivo (o ideal é até uns 300 KB).", Preenchido.vazio()));
+        return pagina(HttpStatus.PAYLOAD_TOO_LARGE, listaHtml(null, "Um dos arquivos é grande demais: a imagem pode ter até 1 MB e o vídeo até 4 MB.", Preenchido.vazio()));
     }
 
     // ------------------------------------------------------------------ por dentro
@@ -214,6 +250,14 @@ class GerenciadorDeBannersController {
             return requisicao.getServerName().equalsIgnoreCase(URI.create(origem).getHost());
         } catch (IllegalArgumentException e) {
             return false;
+        }
+    }
+
+    /** Dá erro se já existem banners demais com vídeo (o banner que está sendo editado, se já tem vídeo, não conta). */
+    private void exigirEspacoParaVideo(Registro editado) {
+        long comVideo = banco.listar().stream().filter(Registro::temVideo).filter(r -> editado == null || !r.id().equals(editado.id())).count();
+        if (comVideo >= MAXIMO_DE_BANNERS_COM_VIDEO) {
+            throw new DadosInvalidosException("Já existem " + MAXIMO_DE_BANNERS_COM_VIDEO + " banners com vídeo. Remova o vídeo de algum antes de acrescentar outro.");
         }
     }
 

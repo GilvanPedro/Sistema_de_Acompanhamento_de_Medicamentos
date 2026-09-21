@@ -17,7 +17,7 @@ import br.com.adapter.in.web.metricas.PesosDosBanners.BannerComPeso;
 class PesosDosBannersTest {
 
     private static Banner banner(String id, double peso) {
-        return new Banner(id, id, "", id + ".png", null, peso);
+        return new Banner(id, id, "", id + ".png", null, null, peso);
     }
 
     private static List<Banner> banners(int n) {

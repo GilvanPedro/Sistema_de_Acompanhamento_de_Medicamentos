@@ -15,6 +15,9 @@ public interface MetricasDeAnuncios {
     /** Todas as linhas de um mês. */
     List<Linha> doMes(YearMonth mes);
 
+    /** Apaga todas as contagens de um banner (usado ao criar um banner com o mesmo nome de um que foi removido). */
+    void apagarDoBanner(String anuncioId);
+
     /** Todas as linhas entre duas datas (inclusive). */
     List<Linha> entre(LocalDate inicio, LocalDate fim);
 }

@@ -41,6 +41,17 @@ public class MetricasDeAnunciosJdbc implements MetricasDeAnuncios {
     }
 
     @Override
+    public void apagarDoBanner(String anuncioId) {
+        try (Connection conexao = dataSource.getConnection();
+             PreparedStatement ps = conexao.prepareStatement("DELETE FROM metrica_anuncio WHERE anuncio_id = ?")) {
+            ps.setString(1, anuncioId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new ErroBancoDadosException("apagar métricas do banner", e);
+        }
+    }
+
+    @Override
     public List<Linha> doMes(YearMonth mes) {
         return entre(mes.atDay(1), mes.atEndOfMonth());
     }

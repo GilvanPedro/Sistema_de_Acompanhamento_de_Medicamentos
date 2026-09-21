@@ -35,7 +35,15 @@ const val URL_DOS_ANUNCIOS = "https://sistema-de-acompanhamento-de-medicamentos.
  * [peso] é a chance relativa de ser sorteado (1 = normal; 0 = pausado); o servidor o ajusta para igualar as exibições.
  */
 @Serializable
-data class Anuncio(val id: String, val imagem: String, val link: String? = null, val texto: String = "Anúncio", val peso: Double = 1.0)
+data class Anuncio(
+    val id: String,
+    val imagem: String,
+    val link: String? = null,
+    val texto: String = "Anúncio",
+    val peso: Double = 1.0,
+    /** Vídeo curto opcional (MP4): toca sem som no lugar da imagem, quando pode. A imagem continua sendo o plano B. */
+    val video: String? = null,
+)
 
 @Serializable
 private data class ArquivoDeAnuncios(val anuncios: List<Anuncio> = emptyList())
@@ -76,9 +84,14 @@ fun List<Anuncio>.escolher(sorteio: Random = Random.Default): Anuncio? {
     return last { it.peso.isFinite() && it.peso > 0 }
 }
 
-/** Põe o endereço completo (https) em cada imagem, relativo ao catálogo de onde a lista veio, e tira as inválidas. */
+/** Põe o endereço completo (https) em cada imagem e vídeo, relativo ao catálogo de onde a lista veio, e tira as inválidas. */
 fun normalizar(urlDoCatalogo: String, anuncios: List<Anuncio>): List<Anuncio> =
-    anuncios.mapNotNull { a -> enderecoDaImagem(urlDoCatalogo, a.imagem)?.let { a.copy(imagem = it) } }
+    anuncios.mapNotNull { a ->
+        enderecoDaImagem(urlDoCatalogo, a.imagem)?.let { imagem ->
+            // vídeo com endereço inválido (ou sem https) só perde o vídeo: o banner continua, com a imagem
+            a.copy(imagem = imagem, video = a.video?.let { enderecoDaImagem(urlDoCatalogo, it) })
+        }
+    }
 
 /**
  * Catálogo de banners: baixa a lista do servidor, guarda uma cópia (para aparecer também sem internet) e carrega as

@@ -125,4 +125,20 @@ class AnunciosTest {
         assertEquals("https://servidor.exemplo/anuncios/b1.png", ok[0].imagem)
         assertEquals("https://cdn.exemplo/b2.png", ok[1].imagem)
     }
+
+    @Test
+    fun videoDoBannerEhLidoEGanhaEnderecoCompletoSoComHttps() {
+        val json = """{"anuncios":[
+            {"id":"a","imagem":"https://cdn.exemplo/a.png","video":"https://cdn.exemplo/a.mp4"},
+            {"id":"b","imagem":"https://cdn.exemplo/b.png","video":"http://cdn.exemplo/b.mp4"},
+            {"id":"c","imagem":"https://cdn.exemplo/c.png"},
+            {"id":"d","imagem":"d.png","video":"d.mp4"}]}"""
+        val lista = normalizar(catalogo, lerCatalogo(json)).associateBy { it.id }
+        assertEquals("https://cdn.exemplo/a.mp4", lista.getValue("a").video)
+        // vídeo sem https perde só o vídeo: o banner continua, com a imagem
+        assertNull(lista.getValue("b").video)
+        assertEquals("https://cdn.exemplo/b.png", lista.getValue("b").imagem)
+        assertNull(lista.getValue("c").video) // banner só de imagem
+        assertEquals("https://servidor.exemplo/anuncios/d.mp4", lista.getValue("d").video)
+    }
 }

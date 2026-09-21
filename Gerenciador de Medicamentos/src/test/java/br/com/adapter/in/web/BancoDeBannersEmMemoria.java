@@ -18,6 +18,7 @@ class BancoDeBannersEmMemoria implements BancoDeBanners {
 
     private final Map<String, Registro> registros = new LinkedHashMap<>();
     private final Map<String, Imagem> imagens = new LinkedHashMap<>();
+    private final Map<String, byte[]> videos = new LinkedHashMap<>();
     private long relogio = 1_000;
 
     BancoDeBannersEmMemoria() {
@@ -51,20 +52,31 @@ class BancoDeBannersEmMemoria implements BancoDeBanners {
     }
 
     @Override
-    public synchronized void salvar(Registro r, byte[] imagem) {
+    public synchronized Optional<byte[]> video(String id) {
+        return Optional.ofNullable(videos.get(id));
+    }
+
+    @Override
+    public synchronized void salvar(Registro r, byte[] imagem, byte[] video, boolean removerVideo) {
         relogio++;
-        Registro novo = new Registro(r.id(), r.empresa(), r.texto(), r.link(), r.peso(), r.tipoImagem(), relogio);
         if (imagem != null) {
             imagens.put(r.id(), new Imagem(r.tipoImagem(), imagem));
         } else if (!registros.containsKey(r.id())) {
             return; // edição de banner que não existe
         }
-        registros.put(r.id(), novo);
+        if (video != null) {
+            videos.put(r.id(), video);
+        } else if (removerVideo) {
+            videos.remove(r.id());
+        }
+        boolean temVideo = videos.containsKey(r.id());
+        registros.put(r.id(), new Registro(r.id(), r.empresa(), r.texto(), r.link(), r.peso(), r.tipoImagem(), relogio, temVideo, temVideo ? r.duracaoVideoMs() : 0));
     }
 
     @Override
     public synchronized boolean remover(String id) {
         imagens.remove(id);
+        videos.remove(id);
         return registros.remove(id) != null;
     }
 }

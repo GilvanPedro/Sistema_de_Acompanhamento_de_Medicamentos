@@ -124,6 +124,11 @@ class ConfiguracaoDeTeste {
             }
 
             @Override
+            public synchronized void apagarDoBanner(String anuncioId) {
+                linhas.values().removeIf(l -> l.anuncioId().equals(anuncioId));
+            }
+
+            @Override
             public synchronized java.util.List<Linha> doMes(java.time.YearMonth mes) {
                 return linhas.values().stream().filter(l -> java.time.YearMonth.from(l.dia()).equals(mes)).toList();
             }

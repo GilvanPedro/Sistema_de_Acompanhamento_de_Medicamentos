@@ -20,9 +20,10 @@ public class CatalogoDeBanners {
 
     /**
      * {@code imagem}: caminho da imagem no servidor, começando com "/" (por exemplo /anuncios/padaria.png?v=123).
+     * {@code video}: caminho do vídeo curto (MP4), ou null se o banner só tem imagem.
      * {@code peso}: parte desejada das exibições (1 = igual aos outros; 2 = o dobro; 0 = pausado).
      */
-    public record Banner(String id, String empresa, String texto, String imagem, String link, double peso) { }
+    public record Banner(String id, String empresa, String texto, String imagem, String video, String link, double peso) { }
 
     private static final long VALIDADE_MS = 30_000;
 
@@ -45,7 +46,8 @@ public class CatalogoDeBanners {
         }
         List<Banner> doBanco = new ArrayList<>();
         for (BancoDeBanners.Registro r : banco.listar()) {
-            doBanco.add(new Banner(r.id(), r.empresa(), r.texto(), "/anuncios/" + r.id() + "." + r.extensao() + "?v=" + r.versao(), r.link(), r.peso()));
+            doBanco.add(new Banner(r.id(), r.empresa(), r.texto(), "/anuncios/" + r.id() + "." + r.extensao() + "?v=" + r.versao(),
+                    r.temVideo() ? "/anuncios/" + r.id() + ".mp4?v=" + r.versao() : null, r.link(), r.peso()));
         }
         sohExemplos = doBanco.isEmpty();
         guardado = doBanco.isEmpty() ? exemplos : List.copyOf(doBanco);
@@ -75,7 +77,7 @@ public class CatalogoDeBanners {
                 String id = n.path("id").asText("");
                 if (!id.isBlank()) {
                     lidos.add(new Banner(id, n.path("empresa").asText(id), n.path("texto").asText(""),
-                            "/anuncios-exemplo/" + n.path("imagem").asText(""), n.hasNonNull("link") ? n.get("link").asText() : null, 1.0));
+                            "/anuncios-exemplo/" + n.path("imagem").asText(""), null, n.hasNonNull("link") ? n.get("link").asText() : null, 1.0));
                 }
             }
         } catch (IOException e) {
