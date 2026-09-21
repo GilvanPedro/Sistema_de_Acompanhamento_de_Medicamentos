@@ -23,7 +23,9 @@ final class PaginasDoPainel {
             "home-topo", "Tela inicial: topo",
             "home-fim", "Tela inicial: fim",
             "idoso-fim", "Tela de um idoso (para o familiar)",
-            "remedios-fim", "Lista de remédios");
+            "remedios-fim", "Lista de remédios",
+            "perfil-topo", "Meus dados: topo",
+            "vinculos-fim", "Vincular idoso ou familiar");
 
     private PaginasDoPainel() {
     }

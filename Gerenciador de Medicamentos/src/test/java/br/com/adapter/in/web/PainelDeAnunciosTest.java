@@ -99,6 +99,19 @@ class PainelDeAnunciosTest {
     }
 
     @Test
+    void asSeteTelasComBannerContamEExibemONomeNoRelatorio() throws Exception {
+        List<String> posicoes = List.of("entrada-fim", "home-topo", "home-fim", "idoso-fim", "remedios-fim", "perfil-topo", "vinculos-fim");
+        long antes = total("exemplo-2", true, "IDOSO");
+        @SuppressWarnings("unchecked")
+        Map<String, Object>[] eventos = posicoes.stream().map(p -> evento("EXIBICAO", "exemplo-2", p, "IDOSO", 1)).toArray(Map[]::new);
+        enviar("198.51.100.70", eventos);
+        assertEquals(antes + 7, total("exemplo-2", true, "IDOSO"), "todas as posições precisam ser aceitas");
+        String pagina = mvc.perform(comSenha(get("/painel"), SENHA).with(r -> { r.setRemoteAddr("198.51.100.71"); return r; }))
+                .andReturn().getResponse().getContentAsString();
+        assertTrue(pagina.contains("Meus dados: topo") && pagina.contains("Vincular idoso ou familiar"));
+    }
+
+    @Test
     void eventosDeDiaMuitoAntigoOuFuturoContamNoDiaDeHoje() throws Exception {
         long antes = total("exemplo-3", true, "FAMILIAR");
         Map<String, Object> velho = Map.of("tipo", "EXIBICAO", "anuncioId", "exemplo-3", "posicao", "home-fim", "perfil", "FAMILIAR",

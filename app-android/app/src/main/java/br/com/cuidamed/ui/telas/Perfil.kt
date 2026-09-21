@@ -22,6 +22,7 @@ import br.com.cuidamed.notificacoes.abrirConfiguracoesDeBateria
 import br.com.cuidamed.notificacoes.abrirConfiguracoesDeNotificacao
 import br.com.cuidamed.ui.Destinos
 import br.com.cuidamed.ui.LocalRepositorio
+import br.com.cuidamed.ui.componentes.BannerDeAnuncio
 import br.com.cuidamed.ui.componentes.AvisoDaTela
 import br.com.cuidamed.ui.componentes.BotaoGrande
 import br.com.cuidamed.ui.componentes.CampoDeTexto
@@ -127,7 +128,7 @@ fun TelaPerfil(usuario: UsuarioDto, destinos: Destinos) {
         }
     }
 
-    Tela("Meus dados", "Mude só o que precisar. O resto fica como está.", destinos::voltar) {
+    Tela("Meus dados", "Mude só o que precisar. O resto fica como está.", destinos::voltar, topo = { BannerDeAnuncio("perfil-topo") }) {
         AvisoDaTela(mensagem)
         CampoDeTexto(nome, { nome = it }, "Nome")
         CampoDeTexto(email, { email = it }, "E-mail", tipoDeTeclado = KeyboardType.Email)

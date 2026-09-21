@@ -48,8 +48,10 @@ Os banners de baixo são sempre o **último elemento da tela** (rolando, se prec
 | Início depois do login (idoso e familiar) | **topo**, antes do "Olá, ..." e **fim** da tela |
 | Tela de um idoso (para ver o histórico ou mudar os remédios) | fim da tela |
 | Lista de remédios de um idoso | fim da tela |
+| "Meus dados" | **topo**, antes do título |
+| Vincular idoso ou familiar ("Meus familiares" ou "Pessoas que eu acompanho") | fim da tela |
 
-Nas telas de formulário de remédio, de tomada, do histórico, de vínculos e de "Meus dados" **não há banner**, de propósito.
+Nas telas de formulário de remédio, de tomada e do histórico **não há banner**, de propósito.
 
 ## Alternativas consideradas
 

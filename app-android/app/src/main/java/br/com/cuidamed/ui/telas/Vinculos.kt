@@ -21,6 +21,7 @@ import br.com.cuidamed.ui.Carregado
 import br.com.cuidamed.ui.CarregadorViewModel
 import br.com.cuidamed.ui.Destinos
 import br.com.cuidamed.ui.LocalRepositorio
+import br.com.cuidamed.ui.componentes.BannerDeAnuncio
 import br.com.cuidamed.ui.componentes.AvisoDaTela
 import br.com.cuidamed.ui.componentes.BotaoGrande
 import br.com.cuidamed.ui.componentes.CampoDeTexto
@@ -142,6 +143,7 @@ fun TelaVinculos(usuario: UsuarioDto, destinos: Destinos) {
             CampoDeTexto(email, { email = it }, "E-mail", tipoDeTeclado = KeyboardType.Email)
             BotaoGrande(if (souIdoso) "Adicionar familiar" else "Pedir para acompanhar", ::enviar, carregando = enviando)
         }
+        BannerDeAnuncio("vinculos-fim")
     }
 
     paraRemover?.let { pessoa ->

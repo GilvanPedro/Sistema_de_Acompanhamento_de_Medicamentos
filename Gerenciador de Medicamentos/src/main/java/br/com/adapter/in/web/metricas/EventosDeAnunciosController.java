@@ -24,7 +24,8 @@ import jakarta.servlet.http.HttpServletRequest;
 @RequestMapping("/api/v1/anuncios")
 class EventosDeAnunciosController {
 
-    static final Set<String> POSICOES = Set.of("entrada-fim", "home-topo", "home-fim", "idoso-fim", "remedios-fim");
+    static final Set<String> POSICOES = Set.of("entrada-fim", "home-topo", "home-fim", "idoso-fim", "remedios-fim",
+            "perfil-topo", "vinculos-fim");
     static final Set<String> PERFIS = Set.of("IDOSO", "FAMILIAR", "VISITANTE");
     private static final int MAXIMO_DE_EVENTOS = 200;
     private static final int MAXIMO_POR_EVENTO = 100;
