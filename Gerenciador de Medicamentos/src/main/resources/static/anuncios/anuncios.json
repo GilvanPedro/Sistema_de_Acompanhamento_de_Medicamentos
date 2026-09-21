@@ -2,6 +2,7 @@
   "anuncios": [
     { "id": "exemplo-1", "imagem": "banner-exemplo-1.png", "link": "mailto:cuidamed.ofc@gmail.com?subject=Quero%20anunciar%20no%20CuidaMed", "texto": "Anuncie aqui: toque para enviar um e-mail" },
     { "id": "exemplo-2", "imagem": "banner-exemplo-2.png", "link": "mailto:cuidamed.ofc@gmail.com?subject=Quero%20anunciar%20no%20CuidaMed", "texto": "Seu banner aqui: toque para enviar um e-mail" },
-    { "id": "exemplo-3", "imagem": "banner-exemplo-3.png", "link": "https://sistema-de-acompanhamento-de-medicamentos.onrender.com/politica-de-privacidade.html", "texto": "Leia a política de privacidade do CuidaMed" }
+    { "id": "exemplo-3", "imagem": "banner-exemplo-3.png", "link": "https://sistema-de-acompanhamento-de-medicamentos.onrender.com/politica-de-privacidade.html", "texto": "Leia a política de privacidade do CuidaMed" },
+    { "id": "afiliado-cs-go", "imagem": "key-drop-afiliado.png", "link": "https://kd.link/?code=GILVANNP", "texto": "Codigo de afiliado com o Key drop" }
   ]
 }
