@@ -99,13 +99,13 @@ class PainelDeAnunciosTest {
     }
 
     @Test
-    void asSeteTelasComBannerContamEExibemONomeNoRelatorio() throws Exception {
-        List<String> posicoes = List.of("entrada-fim", "home-topo", "home-fim", "idoso-fim", "remedios-fim", "perfil-topo", "vinculos-fim");
+    void asOitoTelasComBannerContamEExibemONomeNoRelatorio() throws Exception {
+        List<String> posicoes = List.of("entrada-fim", "home-topo", "home-fim", "idoso-fim", "remedios-fim", "perfil-topo", "vinculos-fim", "historico-topo");
         long antes = total("exemplo-2", true, "IDOSO");
         @SuppressWarnings("unchecked")
         Map<String, Object>[] eventos = posicoes.stream().map(p -> evento("EXIBICAO", "exemplo-2", p, "IDOSO", 1)).toArray(Map[]::new);
         enviar("198.51.100.70", eventos);
-        assertEquals(antes + 7, total("exemplo-2", true, "IDOSO"), "todas as posições precisam ser aceitas");
+        assertEquals(antes + 8, total("exemplo-2", true, "IDOSO"), "todas as posições precisam ser aceitas");
         String pagina = mvc.perform(comSenha(get("/painel"), SENHA).with(r -> { r.setRemoteAddr("198.51.100.71"); return r; }))
                 .andReturn().getResponse().getContentAsString();
         assertTrue(pagina.contains("Meus dados: topo") && pagina.contains("Vincular idoso ou familiar"));

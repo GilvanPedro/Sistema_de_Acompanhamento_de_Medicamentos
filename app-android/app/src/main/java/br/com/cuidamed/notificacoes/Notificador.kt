@@ -31,7 +31,7 @@ object Notificador {
 
     fun atraso(contexto: Context, medicamentoId: Int, nome: String, horario: String) = mostrar(
         contexto, idDoAtraso(medicamentoId), Canais.LEMBRETES,
-        titulo = "Você ainda não tomou o remédio", texto = "Você ainda não tomou $nome. Era para as $horario.",
+        titulo = "Você ainda não tomou o remédio", texto = "Você ainda não tomou o remédio $nome das $horario.",
         textoPublico = "Você ainda não tomou um remédio.", medicamentoParaTomei = medicamentoId,
     )
 

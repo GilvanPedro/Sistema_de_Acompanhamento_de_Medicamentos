@@ -1,6 +1,5 @@
 package br.com.cuidamed.notificacoes
 
-import android.app.KeyguardManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.BroadcastReceiver
@@ -8,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.media.AudioAttributes
+import android.media.AudioManager
 import android.media.MediaPlayer
 import android.media.Ringtone
 import android.media.RingtoneManager
@@ -178,7 +178,7 @@ class ServicoDoAlarme : Service() {
     private fun notificacao(ativo: Ativo, tocando: Boolean): android.app.Notification {
         val atraso = ativo.tipo == AgendadorDeLembretes.TIPO_ATRASO
         val titulo = if (atraso) "Você ainda não tomou o remédio" else "Hora de tomar o remédio"
-        val texto = if (atraso) "Você ainda não tomou ${ativo.nome}. Era para as ${ativo.horario}." else "Está na hora de tomar ${ativo.nome} (${ativo.horario})."
+        val texto = if (atraso) "Você ainda não tomou o remédio ${ativo.nome} das ${ativo.horario}." else "Está na hora de tomar ${ativo.nome} (${ativo.horario})."
         val versaoPublica = NotificationCompat.Builder(this, Canais.ALARMES)
             .setSmallIcon(R.drawable.ic_notificacao)
             .setContentTitle("CuidaMed")
@@ -234,7 +234,36 @@ class ServicoDoAlarme : Service() {
         travaDeCpu = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "cuidamed:alarme").apply { acquire(DURACAO_MS + 5_000) }
     }
 
+    /** O alarme toca no volume máximo do canal de alarme; o volume que a pessoa tinha volta quando o alarme acaba. */
+    private fun volumeNoMaximo() {
+        val audio = getSystemService(AudioManager::class.java)
+        val prefs = getSharedPreferences(PREFS_DO_VOLUME, Context.MODE_PRIVATE)
+        // já guardado = outro alarme (ou um alarme interrompido) já subiu o volume: não guarda o volume alto como se fosse o original
+        if (!prefs.contains(CHAVE_VOLUME_ORIGINAL)) {
+            prefs.edit().putInt(CHAVE_VOLUME_ORIGINAL, audio.getStreamVolume(AudioManager.STREAM_ALARM)).apply()
+        }
+        try {
+            audio.setStreamVolume(AudioManager.STREAM_ALARM, audio.getStreamMaxVolume(AudioManager.STREAM_ALARM), 0)
+        } catch (e: SecurityException) {
+            // o aparelho não deixou mexer no volume: toca no que estiver
+        }
+    }
+
+    private fun restaurarVolume() {
+        val prefs = getSharedPreferences(PREFS_DO_VOLUME, Context.MODE_PRIVATE)
+        if (!prefs.contains(CHAVE_VOLUME_ORIGINAL)) return
+        val original = prefs.getInt(CHAVE_VOLUME_ORIGINAL, -1)
+        prefs.edit().remove(CHAVE_VOLUME_ORIGINAL).apply()
+        if (original < 0) return
+        try {
+            getSystemService(AudioManager::class.java).setStreamVolume(AudioManager.STREAM_ALARM, original, 0)
+        } catch (e: SecurityException) {
+            // sem permissão para mexer no volume: fica como está
+        }
+    }
+
     private fun tocarSomEVibrar() {
+        volumeNoMaximo()
         val atributos = AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_ALARM)
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
@@ -247,6 +276,7 @@ class ServicoDoAlarme : Service() {
                 tocador = MediaPlayer().apply {
                     setAudioAttributes(atributos)
                     setDataSource(this@ServicoDoAlarme, uri)
+                    setVolume(1f, 1f)
                     isLooping = true
                     prepare()
                     start()
@@ -278,6 +308,7 @@ class ServicoDoAlarme : Service() {
         toque?.stop()
         toque = null
         ContextCompat.getSystemService(this, Vibrator::class.java)?.cancel()
+        restaurarVolume()
         if (travaDeCpu?.isHeld == true) travaDeCpu?.release()
         travaDeCpu = null
     }
@@ -285,6 +316,9 @@ class ServicoDoAlarme : Service() {
     companion object {
         /** Quanto tempo o alarme toca sem resposta. Depois disso vem o aviso de atraso, 10 minutos após o horário. */
         const val DURACAO_MS = 60_000L
+
+        private const val PREFS_DO_VOLUME = "alarme_volume"
+        private const val CHAVE_VOLUME_ORIGINAL = "original"
 
         @Volatile
         private var instancia: ServicoDoAlarme? = null
@@ -318,8 +352,7 @@ class PararAlarmeReceiver : BroadcastReceiver() {
 }
 
 /**
- * A tela que aparece por cima da tela de bloqueio quando o alarme toca: letras enormes e só dois botões.
- * Com o celular bloqueado, o nome do remédio não aparece (só o horário), como nas notificações.
+ * A tela que aparece por cima da tela de bloqueio quando o alarme toca: letras enormes, o nome do remédio e só dois botões.
  */
 class AlarmeActivity : ComponentActivity() {
 
@@ -338,7 +371,6 @@ class AlarmeActivity : ComponentActivity() {
         setContent {
             CuidaMedTheme(escuro = app.preferencias.escuro, escalaDaLetra = app.preferencias.escala) {
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    val bloqueado = getSystemService(KeyguardManager::class.java).isKeyguardLocked
                     Column(
                         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
                         verticalArrangement = Arrangement.Center,
@@ -349,13 +381,11 @@ class AlarmeActivity : ComponentActivity() {
                             style = MaterialTheme.typography.headlineLarge, textAlign = TextAlign.Center,
                         )
                         Spacer(Modifier.height(20.dp))
+                        Text(nome, style = MaterialTheme.typography.displaySmall, textAlign = TextAlign.Center)
                         Text(
-                            if (bloqueado) "Seu remédio das $horario" else nome,
-                            style = MaterialTheme.typography.displaySmall, textAlign = TextAlign.Center,
+                            if (atraso) "das $horario" else "às $horario",
+                            style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center,
                         )
-                        if (!bloqueado) {
-                            Text("às $horario", style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center)
-                        }
                         Spacer(Modifier.height(36.dp))
                         BotaoGrande("Já tomei", {
                             TomeiNoAparelho.registrar(applicationContext, medicamentoId)

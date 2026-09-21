@@ -123,6 +123,12 @@ object AgendadorDeLembretes {
     fun agendarAtraso(contexto: Context, remedio: MedicamentoDto, quando: ZonedDateTime) =
         marcar(contexto, codigoDoAtraso(remedio.id), quando, TIPO_ATRASO, remedio)
 
+    /** O remédio foi tomado: o segundo alarme (o de 10 minutos depois) não precisa mais tocar, e some da barra de status. */
+    fun cancelarAtraso(contexto: Context, medicamentoId: Int) {
+        contexto.getSystemService(AlarmManager::class.java)
+            .cancel(intencao(contexto, codigoDoAtraso(medicamentoId), TIPO_ATRASO, "", ""))
+    }
+
     private fun cancelar(contexto: Context, medicamentoId: Int) {
         val alarmes = contexto.getSystemService(AlarmManager::class.java)
         alarmes.cancel(intencao(contexto, codigoDoLembrete(medicamentoId), TIPO_LEMBRETE, "", ""))
@@ -195,6 +201,7 @@ object TomeiNoAparelho {
     fun registrar(contexto: Context, medicamentoId: Int) {
         Confirmacoes.marcar(contexto, medicamentoId)
         Notificador.cancelar(contexto, medicamentoId)
+        AgendadorDeLembretes.cancelarAtraso(contexto, medicamentoId)
         ServicoDoAlarme.parar(medicamentoId)
         WorkManager.getInstance(contexto).enqueue(
             OneTimeWorkRequestBuilder<TomadaWorker>()

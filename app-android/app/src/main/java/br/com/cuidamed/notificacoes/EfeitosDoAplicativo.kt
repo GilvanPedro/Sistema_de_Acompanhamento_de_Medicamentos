@@ -36,6 +36,7 @@ class EfeitosDoAplicativo(private val contexto: Context) : EfeitosLocais {
     override fun aoRegistrarTomada(medicamentoId: Int) {
         Confirmacoes.marcar(contexto, medicamentoId)
         Notificador.cancelar(contexto, medicamentoId)
+        AgendadorDeLembretes.cancelarAtraso(contexto, medicamentoId)
         ServicoDoAlarme.parar(medicamentoId)
     }
 }

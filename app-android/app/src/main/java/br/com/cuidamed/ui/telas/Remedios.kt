@@ -258,7 +258,7 @@ fun TelaHistorico(idosoId: Int, nomeDoIdoso: String, usuario: UsuarioDto, destin
     val repo = LocalRepositorio.current
     val carregador = rememberCarregador("historico-$idosoId", buscarLocal = { repo.historicoLocal(idosoId) }) { repo.historico(idosoId) }
     val meu = usuario.id == idosoId
-    Tela(if (meu) "Meu histórico" else "Histórico de ${primeiroNome(nomeDoIdoso)}", aoVoltar = destinos::voltar) {
+    Tela(if (meu) "Meu histórico" else "Histórico de ${primeiroNome(nomeDoIdoso)}", aoVoltar = destinos::voltar, topo = { BannerDeAnuncio("historico-topo") }) {
         BaixarHistoricoEmPdf(idosoId, nomeDoIdoso)
         Carregado(carregador) { lista ->
             if (lista.isEmpty()) {

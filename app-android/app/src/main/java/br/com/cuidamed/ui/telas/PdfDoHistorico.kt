@@ -3,9 +3,10 @@ package br.com.cuidamed.ui.telas
 import android.content.Context
 import android.content.Intent
 import android.content.ActivityNotFoundException
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -58,6 +59,7 @@ fun BaixarHistoricoEmPdf(idosoId: Int, nomeDoIdoso: String) {
     val repo = LocalRepositorio.current
     val contexto = LocalContext.current
     val escopo = rememberCoroutineScope()
+    var escolhendoOpcao by remember { mutableStateOf(false) }
     var escolhendo by remember { mutableStateOf(false) }
     var baixando by remember { mutableStateOf(false) }
     var mensagem by remember { mutableStateOf<Mensagem?>(null) }
@@ -86,13 +88,30 @@ fun BaixarHistoricoEmPdf(idosoId: Int, nomeDoIdoso: String) {
 
     Secao("Levar ao médico")
     AvisoDaTela(mensagem)
-    BotaoGrande("Baixar histórico em PDF", { escolhendo = true }, estilo = EstiloDoBotao.SECUNDARIO, carregando = baixando)
+    BotaoGrande("Baixar histórico em PDF", { escolhendoOpcao = true }, estilo = EstiloDoBotao.SECUNDARIO, carregando = baixando)
     pronto?.let { (arquivo, periodo) ->
         Cartao(Tom.OK) {
             Text("PDF pronto ($periodo)", style = MaterialTheme.typography.titleMedium)
             BotaoGrande("Abrir", { abrirPdf(contexto, arquivo) })
             BotaoGrande("Compartilhar ou imprimir", { compartilharPdf(contexto, arquivo, nomeDoIdoso) }, estilo = EstiloDoBotao.SECUNDARIO)
         }
+    }
+
+    if (escolhendoOpcao) {
+        val hoje = LocalDate.now()
+        AlertDialog(
+            onDismissRequest = { escolhendoOpcao = false },
+            title = { Text("Qual período?") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    BotaoGrande("Últimos 30 dias", { escolhendoOpcao = false; baixar(hoje.minusDays(29), hoje) })
+                    BotaoGrande("Últimos 3 meses", { escolhendoOpcao = false; baixar(hoje.minusDays(89), hoje) })
+                    BotaoGrande("Escolher as datas", { escolhendoOpcao = false; escolhendo = true }, estilo = EstiloDoBotao.SECUNDARIO)
+                }
+            },
+            confirmButton = {},
+            dismissButton = { TextButton(onClick = { escolhendoOpcao = false }) { Text("Cancelar", style = MaterialTheme.typography.titleMedium) } },
+        )
     }
 
     if (escolhendo) {
@@ -106,7 +125,7 @@ fun BaixarHistoricoEmPdf(idosoId: Int, nomeDoIdoso: String) {
     }
 }
 
-/** Atalhos comuns e, logo abaixo, o calendário para escolher o primeiro e o último dia. */
+/** O calendário para escolher o primeiro e o último dia do período. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SeletorDePeriodo(aoCancelar: () -> Unit, aoEscolher: (LocalDate, LocalDate) -> Unit) {
@@ -128,12 +147,12 @@ private fun SeletorDePeriodo(aoCancelar: () -> Unit, aoEscolher: (LocalDate, Loc
         },
         dismissButton = { TextButton(onClick = aoCancelar) { Text("Cancelar", style = MaterialTheme.typography.titleMedium) } },
     ) {
-        Column(Modifier.padding(horizontal = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            TextoSuave("Toque no primeiro e no último dia do período. Para um dia só, toque duas vezes no mesmo dia.")
-            TextButton(onClick = { aoEscolher(hoje.minusDays(29), hoje) }) { Text("Últimos 30 dias") }
-            TextButton(onClick = { aoEscolher(hoje.minusDays(89), hoje) }) { Text("Últimos 3 meses") }
-        }
-        DateRangePicker(estado, modifier = Modifier.weight(1f, fill = false), showModeToggle = false)
+        DateRangePicker(
+            estado,
+            modifier = Modifier.weight(1f, fill = false),
+            title = { Text("Toque no primeiro e no último dia", Modifier.padding(start = 24.dp, end = 12.dp, top = 16.dp), style = MaterialTheme.typography.titleMedium) },
+            showModeToggle = false,
+        )
     }
 }
 
