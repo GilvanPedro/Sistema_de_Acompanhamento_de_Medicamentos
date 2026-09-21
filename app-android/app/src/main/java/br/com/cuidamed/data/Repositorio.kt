@@ -225,6 +225,8 @@ class Repositorio(
     }
 
     /** Qual versão da política o servidor já tem aceita para esta conta. */
+    suspend fun esqueciSenha(email: String): Resultado<MensagemDto> = chamar { api.esqueciSenha(EmailRequest(email.trim())) }
+
     suspend fun consentimento(): Resultado<ConsentimentoDto> = chamar { api.consentimento() }
 
     suspend fun aceitarPolitica(): Resultado<Unit> = chamarVazio { api.aceitarPolitica(ConsentimentoRequest(VERSAO_DA_POLITICA)) }

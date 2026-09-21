@@ -30,6 +30,10 @@ interface CuidaMedApi {
     @POST("auth/registro")
     suspend fun registro(@Body corpo: RegistroRequest): UsuarioDto
 
+    /** Pede o link para criar uma senha nova (vai por e-mail). A resposta é igual exista a conta ou não. */
+    @POST("auth/esqueci-senha")
+    suspend fun esqueciSenha(@Body corpo: EmailRequest): MensagemDto
+
     @POST("auth/login")
     suspend fun login(@Body corpo: LoginRequest): LoginResposta
 

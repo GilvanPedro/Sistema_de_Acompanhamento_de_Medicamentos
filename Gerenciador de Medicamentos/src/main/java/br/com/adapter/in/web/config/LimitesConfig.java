@@ -55,4 +55,22 @@ class LimitesConfig {
     LimiteDeTentativas limiteCadastro(@Value("${cuidamed.limite.cadastro-maximo:10}") int maximo) {
         return new LimiteDeTentativas(maximo, Duration.ofHours(1), CAPACIDADE);
     }
+
+    /** Pedidos de "esqueci minha senha" por IP. */
+    @Bean
+    LimiteDeTentativas limiteEsqueciPorIp() {
+        return new LimiteDeTentativas(5, Duration.ofHours(1), CAPACIDADE);
+    }
+
+    /** Pedidos de "esqueci minha senha" por e-mail: ninguém consegue encher a caixa de outra pessoa. */
+    @Bean
+    LimiteDeTentativas limiteEsqueciPorEmail() {
+        return new LimiteDeTentativas(3, Duration.ofHours(1), CAPACIDADE);
+    }
+
+    /** Envios do formulário de nova senha, por IP. */
+    @Bean
+    LimiteDeTentativas limiteRedefinicao() {
+        return new LimiteDeTentativas(20, Duration.ofHours(1), CAPACIDADE);
+    }
 }

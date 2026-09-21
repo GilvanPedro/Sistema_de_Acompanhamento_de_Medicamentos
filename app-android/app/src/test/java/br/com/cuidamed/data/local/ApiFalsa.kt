@@ -133,6 +133,7 @@ class ApiFalsa : CuidaMedApi {
     override suspend fun historicoEmPdf(idosoId: Int, de: String, ate: String): okhttp3.ResponseBody = comRede("historicoEmPdf:$idosoId") {
         "%PDF-falso".toResponseBody("application/pdf".toMediaType())
     }
+    override suspend fun esqueciSenha(corpo: EmailRequest): MensagemDto = comRede("esqueciSenha:${corpo.email}") { MensagemDto("ok") }
     override suspend fun exportar(corpo: ExcluirContaRequest): okhttp3.ResponseBody =
         "{}".toResponseBody("application/json".toMediaType())
     override suspend fun registrarDispositivo(corpo: DispositivoRequest): Response<Unit> = comRede("registrarDispositivo:${corpo.token}") { Response.success(Unit) }

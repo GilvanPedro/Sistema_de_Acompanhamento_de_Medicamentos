@@ -2,6 +2,7 @@ package br.com.cuidamed.ui.telas
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -20,6 +21,7 @@ import br.com.cuidamed.ui.componentes.BannerDeAnuncio
 import br.com.cuidamed.ui.componentes.AvisoDaTela
 import br.com.cuidamed.ui.componentes.BotaoGrande
 import br.com.cuidamed.ui.componentes.CampoDeTexto
+import br.com.cuidamed.ui.componentes.Cartao
 import br.com.cuidamed.ui.componentes.EstiloDoBotao
 import br.com.cuidamed.ui.componentes.Mensagem
 import br.com.cuidamed.ui.componentes.Tela
@@ -72,7 +74,50 @@ fun TelaLogin(destinos: Destinos) {
         CampoDeTexto(senha, { senha = it }, "Sua senha", senha = true)
         BotaoGrande("Entrar", ::entrar, carregando = carregando)
         if (carregando) TextoSuave("Entrando… se o servidor estiver descansando, pode levar até um minuto.")
+        BotaoGrande("Esqueci minha senha", destinos::esqueciSenha, estilo = EstiloDoBotao.SECUNDARIO, habilitado = !carregando)
         BannerDeAnuncio("entrada-fim")
+    }
+}
+
+/** "Esqueci minha senha": a pessoa digita o e-mail e recebe um link para escolher uma senha nova. */
+@Composable
+fun TelaEsqueciSenha(destinos: Destinos) {
+    val repo = LocalRepositorio.current
+    val escopo = rememberCoroutineScope()
+    var email by rememberSaveable { mutableStateOf("") }
+    var carregando by remember { mutableStateOf(false) }
+    var enviado by rememberSaveable { mutableStateOf(false) }
+    var mensagem by remember { mutableStateOf<Mensagem?>(null) }
+
+    fun enviar() {
+        if (email.isBlank() || !email.contains('@')) {
+            mensagem = Mensagem("Digite o e-mail da sua conta.", Tom.AVISO)
+            return
+        }
+        carregando = true
+        mensagem = null
+        escopo.launch {
+            when (val r = repo.esqueciSenha(email)) {
+                is Resultado.Ok -> enviado = true
+                is Resultado.Falha -> mensagem = Mensagem(r.mensagem, Tom.ERRO)
+            }
+            carregando = false
+        }
+    }
+
+    Tela("Esqueci minha senha", "Digite o e-mail da sua conta. Vamos mandar para ele um link para você escolher uma senha nova.", destinos::voltar) {
+        AvisoDaTela(mensagem)
+        if (enviado) {
+            Cartao(Tom.OK) {
+                Text("Pronto! Se esse e-mail tiver uma conta, o link já está a caminho.", style = MaterialTheme.typography.titleMedium)
+                Text("Abra o e-mail, toque no link e escolha a senha nova. O link vale por 30 minutos. Se não achar a mensagem, olhe também a caixa de spam.", style = MaterialTheme.typography.bodyLarge)
+            }
+            BotaoGrande("Voltar para entrar", destinos::voltar)
+        } else {
+            CampoDeTexto(email, { email = it }, "Seu e-mail", tipoDeTeclado = KeyboardType.Email)
+            BotaoGrande("Enviar o link", ::enviar, carregando = carregando)
+            if (carregando) TextoSuave("Enviando… se o servidor estiver descansando, pode levar até um minuto.")
+        }
     }
 }
 

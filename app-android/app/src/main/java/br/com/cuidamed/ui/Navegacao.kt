@@ -22,6 +22,7 @@ import br.com.cuidamed.ui.telas.TelaLogin
 import br.com.cuidamed.ui.telas.TelaMedicamentos
 import br.com.cuidamed.ui.telas.TelaPerfil
 import br.com.cuidamed.ui.telas.TelaPolitica
+import br.com.cuidamed.ui.telas.TelaEsqueciSenha
 import br.com.cuidamed.ui.telas.TelaTomeiUmRemedio
 import br.com.cuidamed.ui.telas.TelaVinculos
 
@@ -37,6 +38,7 @@ class Destinos(private val nav: NavHostController) {
         nav.popBackStack()
     }
     fun entrar() = nav.navigate("login")
+    fun esqueciSenha() = nav.navigate("esqueci")
     fun criarConta(tipo: String) = nav.navigate("cadastro/$tipo")
     fun medicamentos(idosoId: Int, nome: String) = nav.navigate("remedios/$idosoId/${Uri.encode(nome)}")
     fun formMedicamento(idosoId: Int, medicamentoId: Int) = nav.navigate("remedio/$idosoId/$medicamentoId")
@@ -56,6 +58,7 @@ fun NavegacaoDeEntrada() {
     NavHost(navController = nav, startDestination = "inicio") {
         composable("inicio") { TelaInicio(destinos) }
         composable("login") { TelaLogin(destinos) }
+        composable("esqueci") { TelaEsqueciSenha(destinos) }
         composable("politica") { TelaPolitica(destinos) }
         composable("cadastro/{tipo}", arguments = listOf(navArgument("tipo") { type = NavType.StringType })) {
             TelaCadastro(it.arguments!!.getString("tipo")!!, destinos)

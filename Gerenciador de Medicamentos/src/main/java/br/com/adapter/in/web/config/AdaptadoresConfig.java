@@ -144,6 +144,42 @@ class AdaptadoresConfig {
     }
 
     @Bean
+    br.com.adapter.in.web.recuperacao.RedefinicoesDeSenha redefinicoesDeSenha(DataSource dataSource) {
+        return new br.com.adapter.in.web.recuperacao.RedefinicoesDeSenhaJdbc(dataSource);
+    }
+
+    /**
+     * E-mail de "esqueci minha senha" pela Brevo (HTTPS; o plano grátis do Render bloqueia SMTP). Precisa de
+     * EMAIL_BREVO_CHAVE (chave de API) e EMAIL_REMETENTE (um e-mail já validado na Brevo); sem eles, nada é enviado.
+     */
+    @Bean
+    br.com.adapter.in.web.recuperacao.EnviadorDeEmail enviadorDeEmail() {
+        String chave = Ambiente.valor("EMAIL_BREVO_CHAVE");
+        String remetente = Ambiente.valor("EMAIL_REMETENTE");
+        Logger log = Logger.getLogger(AdaptadoresConfig.class.getName());
+        if (chave == null || remetente == null) {
+            log.info("E-mail: DESLIGADO (variáveis EMAIL_BREVO_CHAVE e EMAIL_REMETENTE não definidas)");
+            return new br.com.adapter.in.web.recuperacao.EnviadorDeEmailDesligado();
+        }
+        log.info("E-mail: LIGADO (Brevo)");
+        return new br.com.adapter.in.web.recuperacao.EnviadorDeEmailBrevo(chave, remetente, Ambiente.valor("EMAIL_NOME_REMETENTE", "CuidaMed"));
+    }
+
+    /** Um só trabalhador para os e-mails: a resposta da API não espera o envio, e nenhum pico cria dezenas de conexões. */
+    @Bean
+    @Qualifier("executorDeEmail")
+    java.util.concurrent.Executor executorDeEmail() {
+        return new java.util.concurrent.ThreadPoolExecutor(1, 1, 0L, java.util.concurrent.TimeUnit.MILLISECONDS,
+                new java.util.concurrent.ArrayBlockingQueue<>(200),
+                tarefa -> {
+                    Thread t = new Thread(tarefa, "envio-de-email");
+                    t.setDaemon(true);
+                    return t;
+                },
+                new java.util.concurrent.ThreadPoolExecutor.DiscardPolicy());
+    }
+
+    @Bean
     JwtService jwtService() {
         return new JwtService(Ambiente.valor("JWT_SECRET"));
     }

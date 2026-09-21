@@ -73,6 +73,11 @@ public class ClienteApi {
         return conta(r.get("usuario"));
     }
 
+    /** Pede o link para criar uma senha nova (vai por e-mail). Devolve a mensagem da API, igual exista a conta ou não. */
+    public String esqueciSenha(String email) {
+        return chamar("POST", "auth/esqueci-senha", Map.of("email", email), false).get("mensagem").asText();
+    }
+
     /** Cria a conta (com o aceite da política, obrigatório) e já entra. */
     public Conta cadastrar(String tipo, String nome, String email, String senha) {
         Map<String, Object> corpo = new LinkedHashMap<>();

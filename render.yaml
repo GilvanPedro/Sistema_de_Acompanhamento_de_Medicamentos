@@ -15,3 +15,8 @@ services:
         sync: false
       - key: APP_TIMEZONE
         value: America/Sao_Paulo
+      # "Esqueci minha senha" por e-mail (ADR-0063). Sem as duas, o envio fica desligado.
+      - key: EMAIL_BREVO_CHAVE
+        sync: false
+      - key: EMAIL_REMETENTE
+        sync: false

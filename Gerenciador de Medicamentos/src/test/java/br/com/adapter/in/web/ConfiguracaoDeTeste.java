@@ -146,6 +146,23 @@ class ConfiguracaoDeTeste {
     }
 
     @Bean
+    EmailsEnviados emailsEnviados() {
+        return new EmailsEnviados();
+    }
+
+    @Bean
+    br.com.adapter.in.web.recuperacao.RedefinicoesDeSenha redefinicoesDeSenha() {
+        return new RedefinicoesEmMemoria();
+    }
+
+    /** Os e-mails saem na hora e na mesma linha de execução, para o teste poder olhar o que foi enviado. */
+    @Bean
+    @Qualifier("executorDeEmail")
+    java.util.concurrent.Executor executorDeEmail() {
+        return Runnable::run;
+    }
+
+    @Bean
     JwtService jwtService() {
         return new JwtService("segredo-somente-para-testes-com-mais-de-32-caracteres");
     }

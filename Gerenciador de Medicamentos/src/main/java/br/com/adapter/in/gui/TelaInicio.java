@@ -30,12 +30,25 @@ class TelaInicio extends Pagina {
                     erro -> aviso(erro.getMessage(), Tom.ERRO));
         });
 
+        Botao esqueci = Botao.secundario("Esqueci minha senha");
+        esqueci.addActionListener(e -> {
+            if (email.getText().isBlank()) {
+                aviso("Digite o seu e-mail acima e clique de novo: vamos mandar um link para você escolher uma senha nova.", Tom.AVISO);
+                email.requestFocusInWindow();
+                return;
+            }
+            String emailDigitado = email.getText().trim();
+            nav.fazer(() -> nav.api().esqueciSenha(emailDigitado), mensagem -> aviso(mensagem, Tom.OK),
+                    erro -> aviso(erro.getMessage(), Tom.ERRO));
+        });
+
         Cartao entrada = new Cartao();
         entrada.add(Texto.secao("Entrar na minha conta"));
         entrada.add(Ui.pilha(6, Texto.rotulo("E-mail"), email));
         entrada.add(Ui.pilha(6, Texto.rotulo("Senha"), senha));
         entrada.add(Ui.esquerda(mostrar));
         entrada.add(entrar);
+        entrada.add(esqueci);
         adicionar(entrada);
 
         Botao criarIdoso = Botao.secundario("Sou idoso");

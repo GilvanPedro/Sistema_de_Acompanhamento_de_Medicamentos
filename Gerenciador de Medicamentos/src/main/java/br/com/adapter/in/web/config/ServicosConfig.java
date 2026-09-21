@@ -51,6 +51,16 @@ class ServicosConfig {
         return new EditarUsuarioService(usuarios, cripto);
     }
 
+    /** URL_PUBLICA: endereço da API, usado no link do e-mail de "esqueci minha senha". */
+    @Bean
+    br.com.adapter.in.web.recuperacao.RecuperacaoDeSenha recuperacaoDeSenha(SalvarUsuarioPort usuarios, CriptografarSenhaPort cripto,
+            br.com.adapter.in.web.recuperacao.RedefinicoesDeSenha redefinicoes, br.com.adapter.in.web.auth.RefreshTokenStore sessoes,
+            br.com.adapter.in.web.recuperacao.EnviadorDeEmail email, @Qualifier("executorDeEmail") java.util.concurrent.Executor executor) {
+        return new br.com.adapter.in.web.recuperacao.RecuperacaoDeSenha(usuarios, cripto, redefinicoes, sessoes, email, executor,
+                br.com.config.Ambiente.valor("URL_PUBLICA", "https://sistema-de-acompanhamento-de-medicamentos.onrender.com"),
+                java.time.Clock.systemDefaultZone());
+    }
+
     @Bean
     ExcluirUsuarioService excluirUsuarioService(SalvarUsuarioPort usuarios) {
         return new ExcluirUsuarioService(usuarios);
