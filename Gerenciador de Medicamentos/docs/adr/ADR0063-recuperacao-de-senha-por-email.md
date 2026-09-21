@@ -44,7 +44,7 @@ Sem `EMAIL_BREVO_CHAVE` e `EMAIL_REMETENTE`, o envio fica **desligado**: o pedid
 
 ## Consequências
 
-- O e-mail passa a ser enviado por uma operadora nova (Brevo), que recebe o endereço e o nome da pessoa **só** no envio do link. **A política de privacidade lista as operadoras e ainda não cita a Brevo**: ao ligar o recurso, vale incluí-la e aumentar a versão da política (todos precisarão aceitar de novo).
+- O e-mail passa a ser enviado por uma operadora nova (Brevo), que recebe o endereço e o nome da pessoa **só** no envio do link. A política de privacidade foi atualizada para a **versão 1.1** (cita a Brevo, o envio do link e a marca criptografada guardada por pouco tempo): quem aceitou a 1.0 precisa aceitar de novo. Um app antigo (1.0) não consegue criar conta no servidor novo, e o servidor pede para atualizar o app.
 - Quem perde acesso ao próprio e-mail continua sem conseguir recuperar a conta por conta própria.
 - A Brevo pode pedir a validação do e-mail remetente (e, para não cair em spam, é melhor usar um domínio próprio com SPF/DKIM).
 

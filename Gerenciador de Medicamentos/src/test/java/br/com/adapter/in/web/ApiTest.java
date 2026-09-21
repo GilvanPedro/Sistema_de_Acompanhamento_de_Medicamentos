@@ -41,7 +41,7 @@ class ApiTest {
             corpo.put((String) paresChaveValor[i], paresChaveValor[i + 1]);
         }
         corpo.put("aceitouPolitica", true);
-        corpo.put("versaoPolitica", "1.0");
+        corpo.put("versaoPolitica", br.com.adapter.in.web.privacidade.PoliticaDePrivacidade.VERSAO_ATUAL);
         return corpo;
     }
 
@@ -554,7 +554,7 @@ class ApiTest {
                 .andExpect(status().isBadRequest());
         Map<String, Object> naoAceitou = new java.util.HashMap<>(base);
         naoAceitou.put("aceitouPolitica", false);
-        naoAceitou.put("versaoPolitica", "1.0");
+        naoAceitou.put("versaoPolitica", br.com.adapter.in.web.privacidade.PoliticaDePrivacidade.VERSAO_ATUAL);
         mvc.perform(post("/api/v1/auth/registro").contentType(MediaType.APPLICATION_JSON).content(corpo(naoAceitou)))
                 .andExpect(status().isBadRequest());
         Map<String, Object> versaoVelha = new java.util.HashMap<>(base);
@@ -565,7 +565,7 @@ class ApiTest {
 
         Sessao pessoa = criarConta("IDOSO", "Com Aceite");
         mvc.perform(com(get("/api/v1/me/consentimento"), pessoa)).andExpect(status().isOk())
-                .andExpect(jsonPath("$.versaoAtual").value("1.0")).andExpect(jsonPath("$.versaoAceita").value("1.0"));
+                .andExpect(jsonPath("$.versaoAtual").value(br.com.adapter.in.web.privacidade.PoliticaDePrivacidade.VERSAO_ATUAL)).andExpect(jsonPath("$.versaoAceita").value(br.com.adapter.in.web.privacidade.PoliticaDePrivacidade.VERSAO_ATUAL));
     }
 
     @Test
@@ -575,7 +575,7 @@ class ApiTest {
         mvc.perform(com(post("/api/v1/me/consentimento"), pessoa).contentType(MediaType.APPLICATION_JSON)
                 .content(corpo(Map.of("versao", "0.1")))).andExpect(status().isBadRequest());
         mvc.perform(com(post("/api/v1/me/consentimento"), pessoa).contentType(MediaType.APPLICATION_JSON)
-                .content(corpo(Map.of("versao", "1.0")))).andExpect(status().isNoContent());
+                .content(corpo(Map.of("versao", br.com.adapter.in.web.privacidade.PoliticaDePrivacidade.VERSAO_ATUAL)))).andExpect(status().isNoContent());
         mvc.perform(get("/api/v1/me/consentimento")).andExpect(status().isUnauthorized());
     }
 
@@ -601,7 +601,7 @@ class ApiTest {
                 .andExpect(jsonPath("$.medicamentos[0].nome").value("Sinvastatina"))
                 .andExpect(jsonPath("$.historico.length()").value(1))
                 .andExpect(jsonPath("$.familiaresVinculados[0]").value("Genro Caio"))
-                .andExpect(jsonPath("$.aceitesDaPolitica[0].versao").value("1.0"))
+                .andExpect(jsonPath("$.aceitesDaPolitica[0].versao").value(br.com.adapter.in.web.privacidade.PoliticaDePrivacidade.VERSAO_ATUAL))
                 .andReturn().getResponse().getContentAsString();
         assertFalse(resposta.toLowerCase().contains("senha"), "a exportação nunca pode conter senha nem hash");
 

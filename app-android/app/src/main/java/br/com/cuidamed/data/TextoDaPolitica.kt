@@ -2,12 +2,12 @@ package br.com.cuidamed.data
 
 // Gerado a partir do mesmo texto da página do servidor (politica-de-privacidade.html). Mudou o texto? Suba a versão nos dois.
 
-const val VERSAO_DA_POLITICA = "1.0"
+const val VERSAO_DA_POLITICA = "1.1"
 const val EMAIL_DE_PRIVACIDADE = "gilvanpedro2006@gmail.com"
 
 val INTRODUCAO_DA_POLITICA = "Esta política explica, em linguagem simples, quais dados o CuidaMed guarda, para que usa, com quem divide e como você controla tudo isso, conforme a Lei Geral de Proteção de Dados (LGPD, Lei 13.709/2018)."
 
-const val VIGENCIA_DA_POLITICA = "Versão 1.0 · em vigor desde 19 de setembro de 2026"
+const val VIGENCIA_DA_POLITICA = "Versão 1.1 · em vigor desde 21 de setembro de 2026"
 
 /** Cada seção: título e parágrafos. */
 val SECOES_DA_POLITICA: List<Pair<String, List<String>>> = listOf(
@@ -20,10 +20,11 @@ val SECOES_DA_POLITICA: List<Pair<String, List<String>>> = listOf(
         "Dados de saúde (dados pessoais sensíveis): o nome, o tipo, o dia da semana e o horário dos remédios cadastrados, e o registro de cada vez que o remédio foi marcado como tomado (com data e hora).",
         "Vínculos: quem é familiar de quem, e os pedidos de vínculo.",
         "Dados técnicos: o código do aparelho para enviar notificações (push) e as datas em que você aceitou esta política.",
+        "Recuperação de senha: quando você pede para criar uma nova senha, guardamos por pouco tempo uma marca criptografada do link enviado (não o link em si) e até quando ele vale.",
         "No seu celular, o app guarda uma cópia dos seus dados, criptografada, para funcionar sem internet. Sair da conta apaga essa cópia.",
     ),
     "3. Para que usamos" to listOf(
-        "Só para o app funcionar: lembrar os horários dos remédios, mostrar o histórico, avisar familiares quando um remédio é esquecido ou tomado e manter sua conta segura.",
+        "Só para o app funcionar: lembrar os horários dos remédios, mostrar o histórico, avisar familiares quando um remédio é esquecido ou tomado, enviar por e-mail o link para criar uma nova senha (só quando você pede em \"Esqueci minha senha\") e o aviso de que a senha foi alterada, e manter sua conta segura.",
         "Não vendemos seus dados e não os usamos para propaganda.",
         "O app mostra banners de anúncios, escolhidos ao acaso e iguais para todos: eles não usam os seus dados pessoais nem os seus remédios. Você pode fechar qualquer anúncio no botão \"Fechar\". Ao tocar num anúncio, você sai do CuidaMed e vai para o site do anunciante, que tem a política de privacidade própria dele.",
         "Para mostrar aos anunciantes como os banners se saem, o app conta, sem identificar ninguém, quantas vezes cada banner apareceu e foi tocado e se quem usa o app é idoso ou familiar. Essas contagens são somas por dia, sem nome, e-mail, endereço de IP nem identificador do aparelho.",
@@ -34,13 +35,13 @@ val SECOES_DA_POLITICA: List<Pair<String, List<String>>> = listOf(
     ),
     "5. Com quem os dados são compartilhados" to listOf(
         "Com os familiares vinculados: quando o idoso aceita o vínculo, o familiar passa a ver os remédios, os horários e o histórico dele. O idoso pode remover um familiar a qualquer momento.",
-        "Com empresas que mantêm o serviço no ar (operadoras): Render (hospedagem da API), Neon (banco de dados) e Google Firebase (envio de notificações). O aviso enviado pelo Firebase só diz que há novidade: não leva nome, remédio nem horário.",
+        "Com empresas que mantêm o serviço no ar (operadoras): Render (hospedagem da API), Neon (banco de dados), Google Firebase (envio de notificações) e Brevo (envio de e-mails, como o link para criar uma nova senha). O aviso enviado pelo Firebase só diz que há novidade: não leva nome, remédio nem horário. A Brevo recebe o seu e-mail e o seu nome apenas para entregar essa mensagem.",
         "Esses serviços podem ter servidores fora do Brasil (transferência internacional, LGPD art. 33). Escolhemos provedores que adotam medidas de segurança e protegem os dados.",
         "Não compartilhamos seus dados com mais ninguém, a não ser por obrigação legal.",
     ),
     "6. Por quanto tempo guardamos" to listOf(
         "Enquanto a sua conta existir.",
-        "Ao excluir a conta, apagamos os seus remédios, o histórico, os vínculos e os códigos de notificação, e o cadastro deixa de ter nome e e-mail. Cópias de segurança dos provedores podem levar algum tempo para desaparecer.",
+        "Ao excluir a conta, apagamos os seus remédios, o histórico, os vínculos, os códigos de notificação e os links de recuperação de senha, e o cadastro deixa de ter nome e e-mail. Cópias de segurança dos provedores podem levar algum tempo para desaparecer.",
     ),
     "7. Seus direitos" to listOf(
         "Você pode, a qualquer momento (LGPD, art. 18): confirmar que tratamos seus dados; acessar e receber uma cópia; corrigir; pedir a eliminação; saber com quem compartilhamos; e retirar o consentimento.",
@@ -55,6 +56,6 @@ val SECOES_DA_POLITICA: List<Pair<String, List<String>>> = listOf(
         "O CuidaMed é destinado a maiores de 18 anos. Um familiar ou responsável pode ajudar o idoso a criar a conta, com o consentimento dele.",
     ),
     "10. Mudanças nesta política" to listOf(
-        "Esta é a versão 1.0, em vigor desde 19 de setembro de 2026. Se o texto mudar, o app pedirá que você leia e aceite de novo.",
+        "Esta é a versão 1.1, em vigor desde 21 de setembro de 2026 (a 1.0 era de 19 de setembro; a 1.1 incluiu o envio de e-mails para recuperar a senha). Se o texto mudar, o app pedirá que você leia e aceite de novo.",
     ),
 )

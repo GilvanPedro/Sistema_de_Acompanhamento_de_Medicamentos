@@ -6,7 +6,7 @@ package br.com.adapter.in.web.privacidade;
  */
 public final class PoliticaDePrivacidade {
 
-    public static final String VERSAO_ATUAL = "1.0";
+    public static final String VERSAO_ATUAL = "1.1";
 
     private PoliticaDePrivacidade() {
     }

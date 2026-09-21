@@ -29,7 +29,7 @@ import br.com.domain.model.TipoNotificacao;
 public class ClienteApi {
 
     /** Versão da política de privacidade que esta tela mostra (a mesma do servidor; se mudar lá, muda aqui). */
-    public static final String VERSAO_DA_POLITICA = "1.0";
+    public static final String VERSAO_DA_POLITICA = "1.1";
 
     private final String raiz;
     private final URI base;

@@ -34,7 +34,7 @@ class LimiteDeCadastroApiTest {
             corpo.put((String) paresChaveValor[i], paresChaveValor[i + 1]);
         }
         corpo.put("aceitouPolitica", true);
-        corpo.put("versaoPolitica", "1.0");
+        corpo.put("versaoPolitica", br.com.adapter.in.web.privacidade.PoliticaDePrivacidade.VERSAO_ATUAL);
         return corpo;
     }
 

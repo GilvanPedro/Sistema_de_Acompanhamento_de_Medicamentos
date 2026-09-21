@@ -70,7 +70,7 @@ class RecuperacaoDeSenhaTest {
     private String criarConta() throws Exception {
         String email = "esqueci." + UUID.randomUUID().toString().substring(0, 8) + "@teste.com";
         Map<String, Object> corpo = Map.of("tipo", "IDOSO", "nome", "Dona Esquecida", "email", email, "senha", SENHA_ANTIGA,
-                "aceitouPolitica", true, "versaoPolitica", "1.0");
+                "aceitouPolitica", true, "versaoPolitica", br.com.adapter.in.web.privacidade.PoliticaDePrivacidade.VERSAO_ATUAL);
         mvc.perform(doIp(post("/api/v1/auth/registro"), ipNovo()).contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsString(corpo)))
                 .andExpect(status().isCreated());
         return email;
