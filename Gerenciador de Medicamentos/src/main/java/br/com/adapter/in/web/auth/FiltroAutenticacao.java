@@ -29,7 +29,7 @@ public class FiltroAutenticacao extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String caminho = request.getRequestURI();
-        return !caminho.startsWith(PREFIXO) || caminho.startsWith(PREFIXO + "auth/") || caminho.startsWith(PREFIXO + "interno/") || caminho.equals(PREFIXO + "anuncios/eventos") || caminho.equals(PREFIXO + "saude");
+        return !caminho.startsWith(PREFIXO) || caminho.startsWith(PREFIXO + "auth/") || caminho.startsWith(PREFIXO + "interno/") || caminho.equals(PREFIXO + "anuncios/eventos") || caminho.equals(PREFIXO + "anuncios") || caminho.equals(PREFIXO + "saude");
     }
 
     @Override

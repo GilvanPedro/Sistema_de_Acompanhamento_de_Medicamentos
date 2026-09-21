@@ -58,15 +58,15 @@ final class PaginasDoPainel {
         h.append(graficos(r));
 
         h.append("<h2>Por banner</h2><div class=\"tabela\"><table><thead><tr><th>Empresa / banner</th><th class=\"n\">Exibições</th>")
-                .append("<th class=\"n\">Cliques</th><th class=\"n\">Taxa de cliques</th><th class=\"nao-imprimir\">Relatório para a empresa</th></tr></thead><tbody>");
+                .append("<th class=\"n\">% das exibições</th><th class=\"n\">Cliques</th><th class=\"n\">Taxa de cliques</th><th class=\"nao-imprimir\">Relatório para a empresa</th></tr></thead><tbody>");
         java.util.Set<String> mostrados = new java.util.LinkedHashSet<>();
         for (Banner b : catalogo.todos()) {
             mostrados.add(b.id());
-            linhaDeBanner(h, b.empresa(), b.id(), r.porAnuncio.getOrDefault(b.id(), Totais.ZERO), r.mes, linkParaEmpresa.apply(b));
+            linhaDeBanner(h, b.empresa(), b.id(), r.porAnuncio.getOrDefault(b.id(), Totais.ZERO), r.geral.exibicoes(), r.mes, linkParaEmpresa.apply(b));
         }
         for (Map.Entry<String, Totais> e : r.porAnuncio.entrySet()) {
             if (mostrados.add(e.getKey())) { // banner que já saiu do catálogo, mas tem números neste mês
-                linhaDeBanner(h, e.getKey() + " (fora do catálogo)", e.getKey(), e.getValue(), r.mes, null);
+                linhaDeBanner(h, e.getKey() + " (fora do catálogo)", e.getKey(), e.getValue(), r.geral.exibicoes(), r.mes, null);
             }
         }
         h.append("</tbody></table></div>");
@@ -107,9 +107,10 @@ final class PaginasDoPainel {
 
     // ------------------------------------------------------------------ pedaços
 
-    private static void linhaDeBanner(StringBuilder h, String nome, String id, Totais t, YearMonth mes, String linkParaEmpresa) {
+    private static void linhaDeBanner(StringBuilder h, String nome, String id, Totais t, long totalDeExibicoes, YearMonth mes, String linkParaEmpresa) {
         h.append("<tr><td><a href=\"/painel/anuncio/").append(esc(id)).append("?mes=").append(mes).append("\">")
                 .append(esc(nome)).append("</a></td><td class=\"n\">").append(numero(t.exibicoes()))
+                .append("</td><td class=\"n\">").append(porcento(totalDeExibicoes == 0 ? 0 : 100.0 * t.exibicoes() / totalDeExibicoes))
                 .append("</td><td class=\"n\">").append(numero(t.cliques())).append("</td><td class=\"n\">")
                 .append(porcento(t.ctr())).append("</td><td class=\"nao-imprimir\">");
         if (linkParaEmpresa != null) {

@@ -17,7 +17,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class CatalogoDeBanners {
 
-    public record Banner(String id, String empresa, String texto, String imagem) { }
+    /** {@code peso}: parte desejada das exibições (1 = igual aos outros; 2 = o dobro; 0 = pausado). */
+    public record Banner(String id, String empresa, String texto, String imagem, String link, double peso) { }
 
     private final List<Banner> banners;
 
@@ -27,7 +28,9 @@ public class CatalogoDeBanners {
             for (JsonNode n : new ObjectMapper().readTree(in).path("anuncios")) {
                 String id = n.path("id").asText("");
                 if (!id.isBlank()) {
-                    lidos.add(new Banner(id, n.path("empresa").asText(id), n.path("texto").asText(""), n.path("imagem").asText("")));
+                    double peso = n.path("peso").asDouble(1.0);
+                    lidos.add(new Banner(id, n.path("empresa").asText(id), n.path("texto").asText(""), n.path("imagem").asText(""),
+                            n.hasNonNull("link") ? n.get("link").asText() : null, Double.isFinite(peso) && peso >= 0 ? peso : 1.0));
                 }
             }
         } catch (IOException e) {

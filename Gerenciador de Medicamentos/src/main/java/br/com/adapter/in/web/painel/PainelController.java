@@ -97,7 +97,7 @@ class PainelController {
         if (!ID_VALIDO.matcher(id).matches()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(HTML).body(PaginasDoPainel.naoEncontrada());
         }
-        Banner banner = catalogo.buscar(id).orElse(new Banner(id, id, "", ""));
+        Banner banner = catalogo.buscar(id).orElse(new Banner(id, id, "", "", null, 1.0));
         ResumoDoMes resumo = ResumoDoMes.de(m, metricas.doMes(m), id::equals);
         String link = publico ? null : linkDeCompartilhar(raiz, id, m);
         return html(PaginasDoPainel.anuncio(resumo, banner, publico, raiz, caminho, link));

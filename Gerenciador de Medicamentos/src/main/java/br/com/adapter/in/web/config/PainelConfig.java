@@ -20,6 +20,12 @@ class PainelConfig {
     }
 
     @Bean
+    br.com.adapter.in.web.metricas.PesosDosBanners pesosDosBanners(CatalogoDeBanners catalogo,
+                                                                    br.com.adapter.in.web.metricas.MetricasDeAnuncios metricas) {
+        return new br.com.adapter.in.web.metricas.PesosDosBanners(catalogo, metricas);
+    }
+
+    @Bean
     TokenDeRelatorio tokenDeRelatorio(SenhaDoPainel senha) {
         return new TokenDeRelatorio(senha);
     }

@@ -301,6 +301,7 @@ O que foi decidido, as alternativas consideradas e o porquê estão documentados
 - [ADR-0053](Gerenciador%20de%20Medicamentos/docs/adr/ADR0053-remocao-do-terminal-e-do-csv-gui-como-cliente-da-api.md): remoção do terminal e do CSV; a interface gráfica passa a usar a API
 - [ADR-0054](Gerenciador%20de%20Medicamentos/docs/adr/ADR0054-banners-de-anuncios-no-app-android.md): banners de anúncios no app Android
 - [ADR-0055](Gerenciador%20de%20Medicamentos/docs/adr/ADR0055-metricas-e-painel-de-anuncios.md): métricas dos banners e painel de anúncios
+- [ADR-0056](Gerenciador%20de%20Medicamentos/docs/adr/ADR0056-rodizio-justo-dos-banners.md): rodízio justo dos banners (exibições parecidas para todos)
 
 ## Próximos passos
 

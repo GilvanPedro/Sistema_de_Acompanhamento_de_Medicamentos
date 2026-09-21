@@ -14,4 +14,7 @@ public interface MetricasDeAnuncios {
 
     /** Todas as linhas de um mês. */
     List<Linha> doMes(YearMonth mes);
+
+    /** Todas as linhas entre duas datas (inclusive). */
+    List<Linha> entre(LocalDate inicio, LocalDate fim);
 }

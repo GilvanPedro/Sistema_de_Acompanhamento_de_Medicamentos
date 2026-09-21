@@ -26,7 +26,7 @@ Os banners ficam num arquivo JSON público do servidor (`/anuncios/anuncios.json
 
 ### 2. Como o app usa o catálogo (`CatalogoDeAnuncios`)
 
-- Baixa a lista (timeouts curtos), **guarda uma cópia** no aparelho (aparece também sem internet) e escolhe **um banner ao acaso** cada vez que um local de anúncio aparece na tela.
+- Baixa a lista (timeouts curtos), **guarda uma cópia** no aparelho (aparece também sem internet) e escolhe **um banner** cada vez que um local de anúncio aparece na tela. No início o sorteio era simples; hoje ele segue pesos que igualam as exibições ([ADR-0056](ADR0056-rodizio-justo-dos-banners.md)).
 - Imagens com cache em memória e em disco (válido por 24 h; sem rede, a cópia velha ainda serve), limite de 3 MB por imagem e redução de imagens muito grandes.
 - **Sem banner disponível, não aparece nada** e o espaço não é reservado: a tela fica como sempre foi.
 - **Segurança:** imagens só por `https`. Links só `https` ou `mailto:` (este só com destinatário, `subject` e `body`: sem `cc`, `bcc` nem `attach`); nada de `tel:`, `intent:`, `file:`... Um link `mailto:` abre o app de e-mail já com o destinatário e o assunto preenchidos (é como os banners "Anuncie aqui" levam ao contato do desenvolvedor). Um cliente HTTP próprio, **sem o token de login**: nenhum dado da conta vai nesses pedidos.

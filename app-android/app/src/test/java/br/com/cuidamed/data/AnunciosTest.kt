@@ -80,4 +80,49 @@ class AnunciosTest {
         // o mesmo sorteio dá o mesmo resultado (é o gerador que decide, não o estado do teste)
         assertEquals(lista.escolher(Random(7)), lista.escolher(Random(7)))
     }
+
+    @Test
+    fun sorteioSegueOsPesosEPesoZeroOuInvalidoTiraODoSorteio() {
+        val lista = listOf(
+            Anuncio("a", "a.png", peso = 1.0),
+            Anuncio("b", "b.png", peso = 3.0),
+            Anuncio("pausado", "p.png", peso = 0.0),
+            Anuncio("negativo", "n.png", peso = -2.0),
+            Anuncio("invalido", "i.png", peso = Double.NaN),
+        )
+        val sorteio = Random(123)
+        val contagem = (1..20_000).groupingBy { lista.escolher(sorteio)!!.id }.eachCount()
+        assertEquals(setOf("a", "b"), contagem.keys) // os pausados/inválidos nunca saem
+        val parteDeB = contagem.getValue("b") / 20_000.0
+        assertTrue("b tem 3 de 4 partes (75%), deu $parteDeB", parteDeB in 0.73..0.77)
+    }
+
+    @Test
+    fun semNenhumPesoValidoTodosValemIgualEmVezDeNaoMostrarNada() {
+        val lista = listOf(Anuncio("a", "a.png", peso = 0.0), Anuncio("b", "b.png", peso = 0.0))
+        val sorteados = (1..200).map { lista.escolher(Random(it))!!.id }.toSet()
+        assertEquals(setOf("a", "b"), sorteados)
+    }
+
+    @Test
+    fun aListaDoServidorJaVemComPesoEAEstaticaAssumePesoUm() {
+        val comPeso = lerCatalogo("""{"anuncios":[{"id":"a","imagem":"https://cdn.exemplo/a.png","peso":2.5}]}""")
+        assertEquals(2.5, comPeso[0].peso, 1e-9)
+        val estatica = lerCatalogo("""{"anuncios":[{"id":"a","imagem":"a.png"}]}""")
+        assertEquals(1.0, estatica[0].peso, 1e-9)
+    }
+
+    @Test
+    fun normalizarPoeEnderecoCompletoNaImagemETiraAsInvalidas() {
+        val lista = listOf(
+            Anuncio("rel", "b1.png"),
+            Anuncio("abs", "https://cdn.exemplo/b2.png"),
+            Anuncio("http", "http://cdn.exemplo/b3.png"),
+            Anuncio("lixo", "isto nao e endereco"),
+        )
+        val ok = normalizar(catalogo, lista)
+        assertEquals(listOf("rel", "abs"), ok.map { it.id })
+        assertEquals("https://servidor.exemplo/anuncios/b1.png", ok[0].imagem)
+        assertEquals("https://cdn.exemplo/b2.png", ok[1].imagem)
+    }
 }

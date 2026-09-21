@@ -21,11 +21,21 @@ import kotlin.random.Random
  * Onde fica a lista de banners (um JSON no servidor). Para trocar os anúncios basta mudar esse arquivo e as imagens
  * ao lado dele no servidor: o app não precisa de atualização. Os endereços das imagens são relativos a este arquivo.
  */
-const val URL_DOS_ANUNCIOS = "https://sistema-de-acompanhamento-de-medicamentos.onrender.com/anuncios/anuncios.json"
+const val URL_DO_CATALOGO_ESTATICO = "https://sistema-de-acompanhamento-de-medicamentos.onrender.com/anuncios/anuncios.json"
 
-/** Um banner: a imagem, para onde ele leva ao ser tocado (opcional) e um texto para leitores de tela. */
+/**
+ * A lista que o app usa de preferência: a mesma dos banners, mas com o peso de cada um calculado pelo servidor
+ * (rodízio justo: quem está abaixo da sua parte de exibições ganha mais chance). Se falhar, o app cai no arquivo
+ * estático acima (sorteio simples) e, por último, na cópia guardada no aparelho.
+ */
+const val URL_DOS_ANUNCIOS = "https://sistema-de-acompanhamento-de-medicamentos.onrender.com/api/v1/anuncios"
+
+/**
+ * Um banner: a imagem, para onde ele leva ao ser tocado (opcional) e um texto para leitores de tela.
+ * [peso] é a chance relativa de ser sorteado (1 = normal; 0 = pausado); o servidor o ajusta para igualar as exibições.
+ */
 @Serializable
-data class Anuncio(val id: String, val imagem: String, val link: String? = null, val texto: String = "Anúncio")
+data class Anuncio(val id: String, val imagem: String, val link: String? = null, val texto: String = "Anúncio", val peso: Double = 1.0)
 
 @Serializable
 private data class ArquivoDeAnuncios(val anuncios: List<Anuncio> = emptyList())
@@ -52,7 +62,23 @@ fun linkSeguro(link: String?): String? = link?.trim()?.takeIf {
 fun lerCatalogo(texto: String): List<Anuncio> =
     runCatching { jsonDaApi.decodeFromString<ArquivoDeAnuncios>(texto).anuncios }.getOrDefault(emptyList())
 
-fun List<Anuncio>.escolher(sorteio: Random = Random.Default): Anuncio? = randomOrNull(sorteio)
+/** Sorteia um banner com chance proporcional ao peso. Peso zero, negativo ou inválido tira o banner do sorteio. */
+fun List<Anuncio>.escolher(sorteio: Random = Random.Default): Anuncio? {
+    if (isEmpty()) return null
+    val pesos = map { if (it.peso.isFinite() && it.peso > 0) it.peso else 0.0 }
+    val total = pesos.sum()
+    if (total <= 0) return random(sorteio) // nenhum peso válido: todos valem igual, em vez de não mostrar nada
+    var restante = sorteio.nextDouble() * total
+    forEachIndexed { i, anuncio ->
+        restante -= pesos[i]
+        if (restante < 0) return anuncio
+    }
+    return last { it.peso.isFinite() && it.peso > 0 }
+}
+
+/** Põe o endereço completo (https) em cada imagem, relativo ao catálogo de onde a lista veio, e tira as inválidas. */
+fun normalizar(urlDoCatalogo: String, anuncios: List<Anuncio>): List<Anuncio> =
+    anuncios.mapNotNull { a -> enderecoDaImagem(urlDoCatalogo, a.imagem)?.let { a.copy(imagem = it) } }
 
 /**
  * Catálogo de banners: baixa a lista do servidor, guarda uma cópia (para aparecer também sem internet) e carrega as
@@ -61,7 +87,7 @@ fun List<Anuncio>.escolher(sorteio: Random = Random.Default): Anuncio? = randomO
  */
 class CatalogoDeAnuncios(
     private val contexto: Context,
-    private val urlDoCatalogo: String = URL_DOS_ANUNCIOS,
+    private val urlsDoCatalogo: List<String> = listOf(URL_DOS_ANUNCIOS, URL_DO_CATALOGO_ESTATICO),
     private val http: OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(6, TimeUnit.SECONDS).readTimeout(8, TimeUnit.SECONDS).callTimeout(12, TimeUnit.SECONDS).build(),
 ) {
@@ -70,6 +96,8 @@ class CatalogoDeAnuncios(
         const val LARGURA_MAXIMA = 1280
         const val VALIDADE_DA_IMAGEM_MS = 24L * 60 * 60 * 1000
         const val ESPERA_APOS_FALHA_MS = 60_000L
+        /** A lista (e os pesos) são pedidos de novo depois disso, para o rodízio acompanhar o servidor. */
+        const val VALIDADE_DA_LISTA_MS = 15L * 60 * 1000
     }
 
     private val prefs by lazy { contexto.getSharedPreferences("anuncios", Context.MODE_PRIVATE) }
@@ -78,36 +106,53 @@ class CatalogoDeAnuncios(
     }
     private val trava = Mutex()
     @Volatile private var lista: List<Anuncio>? = null
+    @Volatile private var listaObtidaEm = 0L
     @Volatile private var ultimaFalha = 0L
 
     /** Um banner ao acaso, ou null se não houver nenhum (sem internet e sem cópia guardada). */
     suspend fun escolher(sorteio: Random = Random.Default): Anuncio? = anuncios().escolher(sorteio)
 
     private suspend fun anuncios(): List<Anuncio> {
-        lista?.let { return it }
+        lista?.let { if (System.currentTimeMillis() - listaObtidaEm < VALIDADE_DA_LISTA_MS) return it }
         return trava.withLock {
-            lista ?: run {
-                if (System.currentTimeMillis() - ultimaFalha < ESPERA_APOS_FALHA_MS) return@run emptyList()
-                val carregada = carregarLista()
-                if (carregada.isNotEmpty()) lista = carregada else ultimaFalha = System.currentTimeMillis()
-                carregada
+            val atual = lista
+            if (atual != null && System.currentTimeMillis() - listaObtidaEm < VALIDADE_DA_LISTA_MS) return@withLock atual
+            if (System.currentTimeMillis() - ultimaFalha < ESPERA_APOS_FALHA_MS) return@withLock atual.orEmpty()
+            val nova = carregarLista()
+            when {
+                nova != null -> { lista = nova; listaObtidaEm = System.currentTimeMillis(); nova }
+                atual != null -> { ultimaFalha = System.currentTimeMillis(); atual } // mantém a última boa e tenta de novo em 1 min
+                else -> {
+                    val guardada = lerDaCopia()
+                    if (guardada.isEmpty()) ultimaFalha = System.currentTimeMillis()
+                    else { lista = guardada; listaObtidaEm = System.currentTimeMillis() - VALIDADE_DA_LISTA_MS + ESPERA_APOS_FALHA_MS }
+                    guardada
+                }
             }
         }
     }
 
-    private suspend fun carregarLista(): List<Anuncio> = withContext(Dispatchers.IO) {
-        val doServidor = runCatching {
-            http.newCall(Request.Builder().url(urlDoCatalogo).build()).execute().use { r ->
-                if (!r.isSuccessful) null else r.body.string().also { prefs.edit().putString("lista", it).apply() }
+    /** Baixa a lista (primeiro a com pesos, depois a estática). null se nenhuma respondeu com algum banner. */
+    private suspend fun carregarLista(): List<Anuncio>? = withContext(Dispatchers.IO) {
+        for (url in urlsDoCatalogo) {
+            val texto = runCatching {
+                http.newCall(Request.Builder().url(url).build()).execute().use { r -> if (r.isSuccessful) r.body.string() else null }
+            }.getOrNull() ?: continue
+            val anuncios = normalizar(url, lerCatalogo(texto))
+            if (anuncios.isNotEmpty()) {
+                prefs.edit().putString("lista", jsonDaApi.encodeToString(ArquivoDeAnuncios(anuncios))).apply()
+                return@withContext anuncios
             }
-        }.getOrNull()
-        (doServidor ?: prefs.getString("lista", null))?.let(::lerCatalogo).orEmpty()
-            .filter { enderecoDaImagem(urlDoCatalogo, it.imagem) != null }
+        }
+        null
     }
+
+    private fun lerDaCopia(): List<Anuncio> =
+        prefs.getString("lista", null)?.let(::lerCatalogo).orEmpty().filter { enderecoDaImagem(urlsDoCatalogo.last(), it.imagem) != null }
 
     /** A imagem do banner (memória, depois disco, depois rede), ou null se não deu para obter. */
     suspend fun imagem(anuncio: Anuncio): Bitmap? = withContext(Dispatchers.IO) {
-        val url = enderecoDaImagem(urlDoCatalogo, anuncio.imagem) ?: return@withContext null
+        val url = enderecoDaImagem(urlsDoCatalogo.last(), anuncio.imagem) ?: return@withContext null
         imagens.get(url)?.let { return@withContext it }
         val arquivo = File(contexto.cacheDir, "anuncios/${Integer.toHexString(url.hashCode())}.img")
         val velho = arquivo.exists() && System.currentTimeMillis() - arquivo.lastModified() > VALIDADE_DA_IMAGEM_MS

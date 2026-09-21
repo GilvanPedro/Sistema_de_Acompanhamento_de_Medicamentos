@@ -122,6 +122,11 @@ class ConfiguracaoDeTeste {
             public synchronized java.util.List<Linha> doMes(java.time.YearMonth mes) {
                 return linhas.values().stream().filter(l -> java.time.YearMonth.from(l.dia()).equals(mes)).toList();
             }
+
+            @Override
+            public synchronized java.util.List<Linha> entre(java.time.LocalDate inicio, java.time.LocalDate fim) {
+                return linhas.values().stream().filter(l -> !l.dia().isBefore(inicio) && !l.dia().isAfter(fim)).toList();
+            }
         };
     }
 

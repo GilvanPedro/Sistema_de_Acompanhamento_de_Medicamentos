@@ -42,11 +42,16 @@ public class MetricasDeAnunciosJdbc implements MetricasDeAnuncios {
 
     @Override
     public List<Linha> doMes(YearMonth mes) {
+        return entre(mes.atDay(1), mes.atEndOfMonth());
+    }
+
+    @Override
+    public List<Linha> entre(LocalDate inicio, LocalDate fim) {
         String sql = "SELECT dia, anuncio_id, posicao, perfil, exibicoes, cliques FROM metrica_anuncio "
-                + "WHERE dia >= ? AND dia < ? ORDER BY dia, anuncio_id, posicao, perfil";
+                + "WHERE dia >= ? AND dia <= ? ORDER BY dia, anuncio_id, posicao, perfil";
         try (Connection conexao = dataSource.getConnection(); PreparedStatement ps = conexao.prepareStatement(sql)) {
-            ps.setDate(1, Date.valueOf(mes.atDay(1)));
-            ps.setDate(2, Date.valueOf(mes.plusMonths(1).atDay(1)));
+            ps.setDate(1, Date.valueOf(inicio));
+            ps.setDate(2, Date.valueOf(fim));
             try (ResultSet rs = ps.executeQuery()) {
                 List<Linha> linhas = new ArrayList<>();
                 while (rs.next()) {

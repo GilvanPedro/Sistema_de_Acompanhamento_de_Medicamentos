@@ -112,6 +112,20 @@ class PainelDeAnunciosTest {
     }
 
     @Test
+    void listaDeBannersDoAppEPublicaTemPesoEImagemComEnderecoCompleto() throws Exception {
+        String texto = mvc.perform(get("/api/v1/anuncios")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        var anuncios = json.readTree(texto).get("anuncios");
+        assertTrue(anuncios.size() >= 3);
+        for (var a : anuncios) {
+            assertTrue(a.get("imagem").asText().startsWith("http://localhost/anuncios/"), "imagem com endereço completo: " + a.get("imagem"));
+            assertTrue(a.get("peso").asDouble() > 0);
+            assertFalse(a.get("id").asText().isBlank());
+        }
+        // o arquivo estático que as versões antigas do app usam continua existindo
+        mvc.perform(get("/anuncios/anuncios.json")).andExpect(status().isOk());
+    }
+
+    @Test
     void eventosDeDiaMuitoAntigoOuFuturoContamNoDiaDeHoje() throws Exception {
         long antes = total("exemplo-3", true, "FAMILIAR");
         Map<String, Object> velho = Map.of("tipo", "EXIBICAO", "anuncioId", "exemplo-3", "posicao", "home-fim", "perfil", "FAMILIAR",
