@@ -53,6 +53,7 @@ final class PaginasDoPainel {
     static String geral(ResumoDoMes r, CatalogoDeBanners catalogo, Function<Banner, String> linkParaEmpresa) {
         StringBuilder h = new StringBuilder();
         h.append("<h1>Painel de anúncios</h1><p class=\"suave\">Relatório geral de ").append(esc(nomeDoMes(r.mes))).append("</p>");
+        h.append("<p class=\"nao-imprimir\"><a class=\"botao\" href=\"/painel/banners\">Gerenciar banners</a></p>");
         h.append(navegacao(r.mes, "/painel", true));
         h.append(cartoes(r.geral));
         h.append(graficos(r));
@@ -83,7 +84,7 @@ final class PaginasDoPainel {
         h.append("<h1>Relatório de anúncio</h1>");
         h.append("<p class=\"suave\">").append(esc(banner.empresa())).append(" · ").append(esc(nomeDoMes(r.mes))).append("</p>");
         if (!banner.imagem().isBlank()) {
-            h.append("<img class=\"banner\" src=\"").append(esc(raiz + "/anuncios/" + banner.imagem())).append("\" alt=\"")
+            h.append("<img class=\"banner\" src=\"").append(esc(raiz + banner.imagem())).append("\" alt=\"")
                     .append(esc(banner.texto())).append("\">");
         }
         h.append(navegacao(r.mes, caminho, false));
@@ -216,7 +217,7 @@ final class PaginasDoPainel {
 
     // ------------------------------------------------------------------ estrutura
 
-    private static String pagina(String titulo, String corpo) {
+    static String pagina(String titulo, String corpo) {
         return "<!DOCTYPE html><html lang=\"pt-BR\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
                 + "<meta name=\"robots\" content=\"noindex, nofollow\"><title>" + esc(titulo) + "</title><style>" + ESTILO + "</style></head><body><main>"
                 + corpo + "<p class=\"suave pequeno rodape\">Gerado pelo CuidaMed em " + esc(LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))) + ".</p>"

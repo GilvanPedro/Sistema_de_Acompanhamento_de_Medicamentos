@@ -131,6 +131,7 @@ Os erros voltam como `{"erro": "mensagem"}`. Idoso só acessa os próprios dados
    - `V6__criar_aviso_atraso_enviado.sql` (necessário para o aviso de "remédio esquecido" na hora: evita repetir o mesmo aviso)
    - `V7__criar_consentimento.sql` (necessário para a LGPD: guarda qual versão da política cada pessoa aceitou e quando)
    - `V8__criar_metrica_anuncio.sql` (contagens anônimas dos banners, para o painel de anúncios)
+   - `V9__criar_banner.sql` (os banners de anúncio, com a imagem; cadastrados pelo painel)
 2. Copie `.env.example` para `.env` na raiz do repositório e preencha:
    - `DATABASE_URL`: a string de conexão da Neon (botão **Connect**)
    - `JWT_SECRET`: só para a API; um texto aleatório com pelo menos 32 caracteres (`openssl rand -base64 48`)
@@ -302,6 +303,7 @@ O que foi decidido, as alternativas consideradas e o porquê estão documentados
 - [ADR-0054](Gerenciador%20de%20Medicamentos/docs/adr/ADR0054-banners-de-anuncios-no-app-android.md): banners de anúncios no app Android
 - [ADR-0055](Gerenciador%20de%20Medicamentos/docs/adr/ADR0055-metricas-e-painel-de-anuncios.md): métricas dos banners e painel de anúncios
 - [ADR-0056](Gerenciador%20de%20Medicamentos/docs/adr/ADR0056-rodizio-justo-dos-banners.md): rodízio justo dos banners (exibições parecidas para todos)
+- [ADR-0057](Gerenciador%20de%20Medicamentos/docs/adr/ADR0057-banners-no-banco-e-cadastro-pelo-painel.md): banners no banco de dados e cadastro pelo painel
 
 ## Próximos passos
 

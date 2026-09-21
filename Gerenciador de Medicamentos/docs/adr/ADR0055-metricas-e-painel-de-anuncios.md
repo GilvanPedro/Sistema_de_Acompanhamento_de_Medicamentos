@@ -43,7 +43,7 @@ O servidor não exige login (a tela de entrada também tem banner) e **ignora** 
 
 ### 4. Catálogo
 
-O `anuncios.json` ganhou o campo opcional `empresa` (nome mostrado nos relatórios; sem ele aparece o `id`). O app ignora o campo.
+(Atualização: hoje os banners ficam no banco e o nome da empresa é um campo do cadastro, ver o [ADR-0057](ADR0057-banners-no-banco-e-cadastro-pelo-painel.md).) O `anuncios.json` ganhou o campo opcional `empresa` (nome mostrado nos relatórios; sem ele aparece o `id`). O app ignora o campo.
 
 ## Alternativas consideradas
 

@@ -55,8 +55,9 @@ class EventosDeAnunciosController {
             throw new DadosInvalidosException("Envie de 1 a " + MAXIMO_DE_EVENTOS + " eventos.");
         }
         LocalDate hoje = LocalDate.now();
+        Set<String> conhecidos = catalogo.todos().stream().map(CatalogoDeBanners.Banner::id).collect(java.util.stream.Collectors.toSet());
         for (EventoDto e : corpo.eventos()) {
-            if (e == null || e.anuncioId() == null || catalogo.buscar(e.anuncioId()).isEmpty()
+            if (e == null || e.anuncioId() == null || !conhecidos.contains(e.anuncioId())
                     || !POSICOES.contains(e.posicao()) || e.quantidade() < 1 || e.quantidade() > MAXIMO_POR_EVENTO) {
                 continue; // banner que não existe, posição estranha ou quantidade fora do razoável: ignora
             }

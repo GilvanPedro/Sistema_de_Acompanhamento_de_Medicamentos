@@ -108,6 +108,11 @@ class ConfiguracaoDeTeste {
     }
 
     @Bean
+    br.com.adapter.in.web.metricas.BancoDeBanners bancoDeBanners() {
+        return new BancoDeBannersEmMemoria();
+    }
+
+    @Bean
     br.com.adapter.in.web.metricas.MetricasDeAnuncios metricasDeAnuncios() {
         return new br.com.adapter.in.web.metricas.MetricasDeAnuncios() {
             private final java.util.Map<String, Linha> linhas = new java.util.LinkedHashMap<>();

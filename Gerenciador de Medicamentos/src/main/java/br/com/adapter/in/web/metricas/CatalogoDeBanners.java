@@ -12,38 +12,75 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Os banners que existem (o mesmo {@code anuncios.json} que o app baixa). Serve para saber quais ids são válidos ao
- * contar eventos e para mostrar o nome da empresa e a imagem nos relatórios.
+ * Os banners que existem. Os de verdade ficam no banco (cadastrados pelo painel); enquanto não houver nenhum, vale só o
+ * banner de exemplo que acompanha o projeto ({@code static/anuncios-exemplo}). Serve para saber quais ids são válidos ao
+ * contar eventos, calcular os pesos e mostrar nome e imagem nos relatórios.
  */
 public class CatalogoDeBanners {
 
-    /** {@code peso}: parte desejada das exibições (1 = igual aos outros; 2 = o dobro; 0 = pausado). */
+    /**
+     * {@code imagem}: caminho da imagem no servidor, começando com "/" (por exemplo /anuncios/padaria.png?v=123).
+     * {@code peso}: parte desejada das exibições (1 = igual aos outros; 2 = o dobro; 0 = pausado).
+     */
     public record Banner(String id, String empresa, String texto, String imagem, String link, double peso) { }
 
-    private final List<Banner> banners;
+    private static final long VALIDADE_MS = 30_000;
 
-    public CatalogoDeBanners() {
-        List<Banner> lidos = new ArrayList<>();
-        try (InputStream in = new ClassPathResource("static/anuncios/anuncios.json").getInputStream()) {
-            for (JsonNode n : new ObjectMapper().readTree(in).path("anuncios")) {
-                String id = n.path("id").asText("");
-                if (!id.isBlank()) {
-                    double peso = n.path("peso").asDouble(1.0);
-                    lidos.add(new Banner(id, n.path("empresa").asText(id), n.path("texto").asText(""), n.path("imagem").asText(""),
-                            n.hasNonNull("link") ? n.get("link").asText() : null, Double.isFinite(peso) && peso >= 0 ? peso : 1.0));
-                }
-            }
-        } catch (IOException e) {
-            // sem catálogo legível: nenhum id é aceito (e os relatórios ficam vazios)
-        }
-        this.banners = List.copyOf(lidos);
+    private final BancoDeBanners banco;
+    private final List<Banner> exemplos;
+    private volatile List<Banner> guardado = List.of();
+    private volatile long guardadoEm;
+    private volatile boolean sohExemplos;
+
+    public CatalogoDeBanners(BancoDeBanners banco) {
+        this.banco = banco;
+        this.exemplos = carregarExemplos();
     }
 
+    /** Os banners de agora (a lista é guardada por 30 segundos para não ir ao banco a cada pedido). */
     public List<Banner> todos() {
-        return banners;
+        long agora = System.currentTimeMillis();
+        if (agora - guardadoEm < VALIDADE_MS) {
+            return guardado;
+        }
+        List<Banner> doBanco = new ArrayList<>();
+        for (BancoDeBanners.Registro r : banco.listar()) {
+            doBanco.add(new Banner(r.id(), r.empresa(), r.texto(), "/anuncios/" + r.id() + "." + r.extensao() + "?v=" + r.versao(), r.link(), r.peso()));
+        }
+        sohExemplos = doBanco.isEmpty();
+        guardado = doBanco.isEmpty() ? exemplos : List.copyOf(doBanco);
+        guardadoEm = agora;
+        return guardado;
     }
 
     public Optional<Banner> buscar(String id) {
-        return banners.stream().filter(b -> b.id().equals(id)).findFirst();
+        return todos().stream().filter(b -> b.id().equals(id)).findFirst();
+    }
+
+    /** true se ainda não há nenhum banner cadastrado e o que aparece é só o exemplo do projeto. */
+    public boolean somenteExemplos() {
+        todos();
+        return sohExemplos;
+    }
+
+    /** Depois de cadastrar, alterar ou remover: a próxima consulta vai ao banco. */
+    public void esquecer() {
+        guardadoEm = 0;
+    }
+
+    private static List<Banner> carregarExemplos() {
+        List<Banner> lidos = new ArrayList<>();
+        try (InputStream in = new ClassPathResource("static/anuncios-exemplo/anuncios.json").getInputStream()) {
+            for (JsonNode n : new ObjectMapper().readTree(in).path("anuncios")) {
+                String id = n.path("id").asText("");
+                if (!id.isBlank()) {
+                    lidos.add(new Banner(id, n.path("empresa").asText(id), n.path("texto").asText(""),
+                            "/anuncios-exemplo/" + n.path("imagem").asText(""), n.hasNonNull("link") ? n.get("link").asText() : null, 1.0));
+                }
+            }
+        } catch (IOException e) {
+            // sem exemplo legível: a lista fica vazia
+        }
+        return List.copyOf(lidos);
     }
 }

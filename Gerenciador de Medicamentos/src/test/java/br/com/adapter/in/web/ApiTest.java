@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -600,10 +601,10 @@ class ApiTest {
         for (JsonNode a : anuncios) {
             assertTrue(ids.add(a.get("id").asText()), "ids de anúncio não podem repetir");
             String imagem = a.get("imagem").asText();
-            // imagens relativas ao catálogo têm de existir de verdade (senão o banner some sem aviso)
-            if (!imagem.startsWith("https://")) {
-                mvc.perform(get("/anuncios/" + imagem)).andExpect(status().isOk());
-            }
+            // as imagens têm de existir de verdade (senão o banner some sem aviso) e ser imagem
+            java.net.URI endereco = java.net.URI.create(imagem);
+            mvc.perform(get(endereco.getPath() + (endereco.getQuery() == null ? "" : "?" + endereco.getQuery())))
+                    .andExpect(status().isOk()).andExpect(header().string("Content-Type", org.hamcrest.Matchers.startsWith("image/")));
             if (a.hasNonNull("link")) {
                 String link = a.get("link").asText();
                 assertTrue(link.startsWith("https://") || link.matches("^mailto:[^\\s@]+@[^\\s@]+\\.[A-Za-z]{2,}(\\?.*)?$"),

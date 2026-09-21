@@ -2,7 +2,7 @@
 
 ## Status
 
-Aceito (código pronto e testado; a conferência no celular depende de publicar o servidor com o catálogo)
+Aceito. **Atualização:** os banners passaram a ficar no banco de dados e a ser cadastrados pelo painel (ADR-0057); o arquivo `anuncios.json` descrito abaixo é o desenho original e hoje só existe como o exemplo do projeto e como formato de resposta.
 
 ## Contexto
 
@@ -71,6 +71,4 @@ Nas telas de formulário de remédio, de tomada e do histórico **não há banne
 
 ## Como adicionar ou trocar um banner
 
-1. Colocar a imagem (PNG ou JPEG, proporção parecida com 3,2:1, por exemplo 640×200) em `Gerenciador de Medicamentos/src/main/resources/static/anuncios/`.
-2. Acrescentar uma entrada em `anuncios.json` (`id` único, `imagem`, `link` opcional em `https`, `texto` descrevendo o banner).
-3. Publicar o servidor. Os celulares pegam o catálogo novo na próxima abertura do app (a imagem nova, em até 24 h).
+Hoje, pelo painel: `/painel/banners` (ver o [ADR-0057](ADR0057-banners-no-banco-e-cadastro-pelo-painel.md)). Não precisa de commit nem de deploy.

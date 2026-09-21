@@ -52,6 +52,11 @@ public class PesosDosBanners {
         this.hoje = hoje;
     }
 
+    /** Depois de mexer nos banners: o próximo pedido recalcula. */
+    public void esquecer() {
+        guardadoEm = 0;
+    }
+
     /** Os banners com o peso de agora (calculado no máximo uma vez por minuto, para não pesar no banco). */
     public List<BannerComPeso> atuais() {
         long agora = System.currentTimeMillis();

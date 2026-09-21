@@ -15,8 +15,8 @@ import br.com.adapter.in.web.painel.TokenDeRelatorio;
 class PainelConfig {
 
     @Bean
-    CatalogoDeBanners catalogoDeBanners() {
-        return new CatalogoDeBanners();
+    CatalogoDeBanners catalogoDeBanners(br.com.adapter.in.web.metricas.BancoDeBanners banco) {
+        return new CatalogoDeBanners(banco);
     }
 
     @Bean

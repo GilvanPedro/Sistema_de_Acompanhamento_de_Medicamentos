@@ -6,3 +6,7 @@ target/
 
 # Dados do modo CSV (contêm dados pessoais e hashes de senha): nunca versionar.
 arquivos/*.csv
+
+# Banners de anúncio de verdade (patrocinadores): ficam no banco de dados e são enviados pelo painel (/painel/banners).
+# Só o exemplo em static/anuncios-exemplo/ vai para o Git.
+Gerenciador de Medicamentos/src/main/resources/static/anuncios/

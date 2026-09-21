@@ -14,6 +14,8 @@ import br.com.adapter.in.web.auth.RefreshTokenJdbcStore;
 import br.com.adapter.in.web.auth.RefreshTokenStore;
 import br.com.adapter.in.web.idempotencia.ChavesDeIdempotencia;
 import br.com.adapter.in.web.idempotencia.ChavesDeIdempotenciaJdbc;
+import br.com.adapter.in.web.metricas.BancoDeBanners;
+import br.com.adapter.in.web.metricas.BancoDeBannersJdbc;
 import br.com.adapter.in.web.metricas.MetricasDeAnuncios;
 import br.com.adapter.in.web.metricas.MetricasDeAnunciosJdbc;
 import br.com.adapter.in.web.painel.SenhaDoPainel;
@@ -89,6 +91,11 @@ class AdaptadoresConfig {
     @Bean
     ChavesDeIdempotencia chavesDeIdempotencia(DataSource dataSource) {
         return new ChavesDeIdempotenciaJdbc(dataSource);
+    }
+
+    @Bean
+    BancoDeBanners bancoDeBanners(DataSource dataSource) {
+        return new BancoDeBannersJdbc(dataSource);
     }
 
     @Bean

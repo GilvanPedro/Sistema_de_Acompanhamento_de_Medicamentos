@@ -1,0 +1,5 @@
+{
+  "anuncios": [
+    { "id": "exemplo", "empresa": "Espaço para anunciar (exemplo)", "imagem": "banner-exemplo.png", "link": "mailto:cuidamed.ofc@gmail.com?subject=Quero%20anunciar%20no%20CuidaMed", "texto": "Anuncie aqui: toque para enviar um e-mail" }
+  ]
+}

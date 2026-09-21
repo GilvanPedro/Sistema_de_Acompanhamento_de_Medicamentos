@@ -29,6 +29,15 @@ public class TokenDeRelatorio {
         }
     }
 
+    /** Código escondido nos formulários do painel: sem ele, um site de fora não consegue enviar um formulário em seu nome. */
+    public String paraFormularios() {
+        return para("formularios-do-painel");
+    }
+
+    public boolean formularioConfere(String token) {
+        return confere("formularios-do-painel", token);
+    }
+
     public boolean confere(String anuncioId, String token) {
         return senha.configurada() && token != null && MessageDigest.isEqual(
                 para(anuncioId).getBytes(StandardCharsets.UTF_8), token.getBytes(StandardCharsets.UTF_8));

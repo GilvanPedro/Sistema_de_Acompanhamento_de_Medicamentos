@@ -25,6 +25,8 @@ O app baixa a lista com pesos, sorteia com chance proporcional ao peso e **renov
 
 ### 3. Campo opcional `peso` no catálogo
 
+> Atualização: hoje o peso é um campo do cadastro do banner no painel (ADR-0057); o texto abaixo descreve o desenho original com o arquivo `anuncios.json`.
+
 Em cada entrada do `anuncios.json`, `"peso"` define a parte desejada relativa (padrão 1): `2` recebe o dobro da parte dos outros; `0` **pausa** o banner sem apagá-lo. Não é preciso mexer nele para manter todos iguais. Se todos os pesos forem 0, todos valem igual (em vez de não mostrar nada).
 
 ## Como validamos (simulação de 60 dias)
