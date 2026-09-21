@@ -72,6 +72,16 @@ class GerenciadorDeBannersTest {
     }
 
     @Test
+    void oFormularioDeCadastroFicaEscondidoNumaJanelaQueAbreComOBotaoDoTopo() throws Exception {
+        String pagina = mvc.perform(logado(get("/painel/banners"), 20)).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        assertTrue(pagina.contains("class=\"novo\"") && pagina.contains("Adicionar banner"), "botão de destaque no topo");
+        assertTrue(pagina.indexOf("class=\"novo\"") < pagina.indexOf("<h1>"), "o botão fica no topo, antes do título");
+        assertTrue(pagina.contains("<dialog id=\"novo-banner\""), "o formulário fica numa janela");
+        assertFalse(pagina.contains("data-abrir"), "sem erro, a janela começa fechada");
+        assertTrue(pagina.contains("Voltar ao painel"));
+    }
+
+    @Test
     void semSenhaNaoVeNemMexeNosBanners() throws Exception {
         mvc.perform(get("/painel/banners")).andExpect(status().isUnauthorized());
         mvc.perform(post("/painel/banners/exemplo-1/remover").param("csrf", "x")).andExpect(status().isUnauthorized());
@@ -124,6 +134,8 @@ class GerenciadorDeBannersTest {
         String falsa = mvc.perform(novo("/painel/banners", 5, codigo, "Empresa Falsa", "", "1", "<svg onload=alert(1)></svg>".getBytes()))
                 .andExpect(status().isBadRequest()).andReturn().getResponse().getContentAsString();
         assertTrue(falsa.contains("PNG ou JPEG"));
+        assertTrue(falsa.contains("data-abrir=\"sim\""), "com erro, a janela já volta aberta");
+        assertTrue(falsa.contains("value=\"Empresa Falsa\""), "o que foi digitado não se perde");
         assertFalse(falsa.contains("<svg onload"), "nada digitado pode voltar sem escape");
         mvc.perform(novo("/painel/banners", 5, codigo, "Sem Imagem", "", "1", null)).andExpect(status().isBadRequest());
         // formato que não é de banner

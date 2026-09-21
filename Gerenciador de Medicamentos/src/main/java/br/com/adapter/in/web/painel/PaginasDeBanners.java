@@ -26,6 +26,19 @@ final class PaginasDeBanners {
             .formulario input:not([type=file]){font:inherit;padding:.5rem;border:1px solid var(--borda);border-radius:.5rem;background:var(--fundo);color:var(--texto)}
             .miniatura{width:14rem;max-width:100%;border-radius:.4rem;border:1px solid var(--borda)}
             .acoes{display:flex;flex-wrap:wrap;gap:.4rem}.acoes form{margin:0}.perigo{color:#b42318}.pausado{color:var(--suave)}
+            .topo-banners{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;margin:.4rem 0 1rem}
+            .voltar{display:inline-block;padding:.5rem 0}
+            .novo{--texto-do-botao:#fff;background:var(--azul);color:var(--texto-do-botao);border:0;border-radius:.8rem;padding:.75rem 1.4rem;font:inherit;font-weight:700;font-size:1.05rem;
+            cursor:pointer;box-shadow:0 3px 10px rgba(11,79,196,.35);transition:transform .08s,box-shadow .08s}
+            .novo:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(11,79,196,.45)}.novo:active{transform:none}
+            .novo:focus-visible{outline:3px solid var(--laranja);outline-offset:2px}
+            @media (prefers-color-scheme:dark){.novo{--texto-do-botao:#0b1a33;box-shadow:0 3px 10px rgba(0,0,0,.5)}}
+            dialog{border:1px solid var(--borda);border-radius:1rem;background:var(--cartao);color:var(--texto);padding:1.2rem 1.3rem;width:min(42rem,calc(100% - 1.5rem));max-height:92vh;overflow:auto}
+            dialog::backdrop{background:rgba(10,15,25,.6)}
+            dialog .cabecalho{display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:.4rem}
+            dialog h2{margin:0}.fechar{border-radius:50%;width:2.4rem;height:2.4rem;padding:0;font-size:1.2rem;line-height:1}
+            dialog .formulario{border:0;padding:0;margin:.4rem 0 0;background:transparent}
+            .acoes-do-formulario{display:flex;gap:.6rem;flex-wrap:wrap}.acoes-do-formulario .principal{background:var(--azul);color:var(--texto-do-botao,#fff);border-color:transparent;font-weight:700}
             </style>""";
 
     private PaginasDeBanners() {
@@ -33,10 +46,12 @@ final class PaginasDeBanners {
 
     static String lista(List<Registro> banners, boolean somenteExemplos, String csrf, String ok, String erro, Preenchido preenchido) {
         StringBuilder h = new StringBuilder(ESTILO_EXTRA);
-        h.append("<h1>Banners de anúncio</h1><p class=\"suave\"><a href=\"/painel\">← Voltar ao painel</a></p>");
-        avisos(h, ok, erro);
+        h.append("<div class=\"topo-banners\"><a class=\"voltar\" href=\"/painel\">← Voltar ao painel</a>"
+                + "<button type=\"button\" class=\"novo\" onclick=\"abrirNovo()\">＋ Adicionar banner</button></div>");
+        h.append("<h1>Banners de anúncio</h1>");
+        avisos(h, ok, null);
         if (somenteExemplos) {
-            h.append("<p class=\"aviso\" style=\"background:var(--cartao);border:1px solid var(--borda)\">Você ainda não cadastrou nenhum banner: o app está mostrando só o banner de exemplo que acompanha o projeto. Adicione o primeiro abaixo e o exemplo deixa de aparecer.</p>");
+            h.append("<p class=\"aviso\" style=\"background:var(--cartao);border:1px solid var(--borda)\">Você ainda não cadastrou nenhum banner: o app está mostrando só o banner de exemplo que acompanha o projeto. Clique em <b>Adicionar banner</b>, no topo da página, para cadastrar o primeiro; o exemplo deixa de aparecer.</p>");
         }
         h.append("<h2>Seus banners (").append(banners.size()).append(")</h2>");
         if (banners.isEmpty()) {
@@ -58,8 +73,7 @@ final class PaginasDeBanners {
             }
             h.append("</tbody></table></div>");
         }
-        h.append("<h2>Adicionar banner</h2>");
-        h.append(formulario("/painel/banners", "Adicionar banner", csrf, preenchido, true, null));
+        h.append(janelaDeNovoBanner(csrf, erro, preenchido));
         h.append(dicas());
         return PaginasDoPainel.pagina("Banners de anúncio", h.toString());
     }
@@ -78,6 +92,27 @@ final class PaginasDeBanners {
         return PaginasDoPainel.pagina("Editar banner", h.toString());
     }
 
+    /**
+     * O formulário de cadastro fica numa janela (elemento {@code <dialog>}) que abre ao clicar em "Adicionar banner".
+     * Se o envio anterior deu erro, a página já volta com a janela aberta, mostrando o motivo e o que foi digitado.
+     */
+    private static String janelaDeNovoBanner(String csrf, String erro, Preenchido preenchido) {
+        boolean abrir = erro != null && !erro.isBlank();
+        StringBuilder h = new StringBuilder("<dialog id=\"novo-banner\"" + (abrir ? " data-abrir=\"sim\"" : "") + " aria-labelledby=\"titulo-novo\">");
+        h.append("<div class=\"cabecalho\"><h2 id=\"titulo-novo\">Adicionar banner</h2>"
+                + "<button type=\"button\" class=\"fechar\" aria-label=\"Fechar\" onclick=\"document.getElementById('novo-banner').close()\">✕</button></div>");
+        if (abrir) {
+            h.append("<p class=\"aviso erro\">").append(esc(erro)).append("</p>");
+        }
+        h.append(formulario("/painel/banners", "Adicionar banner", csrf, preenchido, true, null));
+        h.append("</dialog>");
+        h.append("<script>function abrirNovo(){document.getElementById('novo-banner').showModal()}"
+                + "(function(){var d=document.getElementById('novo-banner');"
+                + "d.addEventListener('click',function(e){if(e.target===d)d.close()});"
+                + "if(d.dataset.abrir||location.hash==='#novo')d.showModal()})()</script>");
+        return h.toString();
+    }
+
     private static String formulario(String destino, String botao, String csrf, Preenchido p, boolean imagemObrigatoria, Registro atual) {
         return "<form class=\"formulario\" method=\"post\" action=\"" + esc(destino) + "\" enctype=\"multipart/form-data\">"
                 + "<input type=\"hidden\" name=\"csrf\" value=\"" + esc(csrf) + "\">"
@@ -94,7 +129,10 @@ final class PaginasDeBanners {
                 + (atual != null && atual.temVideo() ? "; deixe em branco para manter o atual" : "") + ". Toca sem som, em repetição)</small>"
                 + "<input type=\"file\" name=\"video\" accept=\"video/mp4\"></label>"
                 + (atual != null && atual.temVideo() ? "<label style=\"display:flex;gap:.5rem;align-items:center;font-weight:400\"><input type=\"checkbox\" name=\"removerVideo\" value=\"on\"> Remover o vídeo atual (o banner volta a ser só imagem)</label>" : "")
-                + "<button type=\"submit\">" + esc(botao) + "</button></form>";
+                + "<div class=\"acoes-do-formulario\"><button type=\"submit\" class=\"principal\">" + esc(botao) + "</button>"
+                + (imagemObrigatoria ? "<button type=\"button\" onclick=\"document.getElementById('novo-banner').close()\">Cancelar</button>"
+                        : "<a class=\"botao\" href=\"/painel/banners\">Cancelar</a>")
+                + "</div></form>";
     }
 
     private static String acao(String id, String acao, String texto, String csrf, String confirmacao) {
