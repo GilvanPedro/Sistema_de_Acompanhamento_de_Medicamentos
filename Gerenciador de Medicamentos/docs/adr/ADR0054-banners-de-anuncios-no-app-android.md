@@ -22,14 +22,14 @@ Os banners ficam num arquivo JSON público do servidor (`/anuncios/anuncios.json
 
 - **Trocar os anúncios não exige atualizar o app**: basta mudar o JSON e as imagens e publicar o servidor.
 - `imagem` pode ser relativa ao JSON ou um endereço `https` completo (permite hospedar em outro lugar depois). `link` é opcional; sem link, o banner não é clicável.
-- Um teste do servidor garante que a lista existe, que cada imagem relativa existe de verdade, que os `id` não se repetem e que todo link é `https`.
+- Um teste do servidor garante que a lista existe, que cada imagem relativa existe de verdade, que os `id` não se repetem e que todo link é `https` ou `mailto`.
 
 ### 2. Como o app usa o catálogo (`CatalogoDeAnuncios`)
 
 - Baixa a lista (timeouts curtos), **guarda uma cópia** no aparelho (aparece também sem internet) e escolhe **um banner ao acaso** cada vez que um local de anúncio aparece na tela.
 - Imagens com cache em memória e em disco (válido por 24 h; sem rede, a cópia velha ainda serve), limite de 3 MB por imagem e redução de imagens muito grandes.
 - **Sem banner disponível, não aparece nada** e o espaço não é reservado: a tela fica como sempre foi.
-- **Segurança:** só `https`, tanto para imagens quanto para links (nada de `tel:`, `intent:`, `file:`...). Um cliente HTTP próprio, **sem o token de login**: nenhum dado da conta vai nesses pedidos.
+- **Segurança:** imagens só por `https`. Links só `https` ou `mailto:` (este só com destinatário, `subject` e `body`: sem `cc`, `bcc` nem `attach`); nada de `tel:`, `intent:`, `file:`... Um link `mailto:` abre o app de e-mail já com o destinatário e o assunto preenchidos (é como os banners "Anuncie aqui" levam ao contato do desenvolvedor). Um cliente HTTP próprio, **sem o token de login**: nenhum dado da conta vai nesses pedidos.
 - Sem rastreamento: o app não mede nem envia impressões, toques ou qualquer dado do usuário para os banners.
 
 ### 3. Como o banner se comporta

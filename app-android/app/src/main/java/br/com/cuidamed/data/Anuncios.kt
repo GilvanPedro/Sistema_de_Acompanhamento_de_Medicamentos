@@ -36,9 +36,16 @@ fun enderecoDaImagem(urlDoCatalogo: String, imagem: String): String? = runCatchi
     url.takeIf { it.scheme == "https" && !it.host.isNullOrBlank() }?.toString()
 }.getOrNull()
 
-/** O link do anúncio só vale se for https: nada de outros esquemas (tel:, intent:, file:...). */
+private val LINK_DE_EMAIL = Regex(
+    "^mailto:[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}(\\?(subject|body)=[^&\\s]*(&(subject|body)=[^&\\s]*)?)?$",
+)
+
+/**
+ * O link do anúncio só vale se for https ou um e-mail (mailto: só com destinatário, assunto e mensagem). Nada de outros
+ * esquemas (tel:, intent:, file:...) nem de campos de e-mail que possam anexar arquivos ou copiar terceiros.
+ */
 fun linkSeguro(link: String?): String? = link?.trim()?.takeIf {
-    it.startsWith("https://") && runCatching { URI(it).host }.getOrNull()?.isNotBlank() == true
+    (it.startsWith("https://") && runCatching { URI(it).host }.getOrNull()?.isNotBlank() == true) || LINK_DE_EMAIL.matches(it)
 }
 
 /** Lê o JSON do catálogo; texto inválido vira lista vazia (nunca derruba o app). */

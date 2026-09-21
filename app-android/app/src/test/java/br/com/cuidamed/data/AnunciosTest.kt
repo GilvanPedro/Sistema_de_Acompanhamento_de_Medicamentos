@@ -37,6 +37,25 @@ class AnunciosTest {
     }
 
     @Test
+    fun linkDeEmailSoValeComDestinatarioAssuntoEMensagem() {
+        assertEquals("mailto:pessoa@exemplo.com", linkSeguro("mailto:pessoa@exemplo.com"))
+        assertEquals(
+            "mailto:pessoa@exemplo.com?subject=Quero%20anunciar",
+            linkSeguro(" mailto:pessoa@exemplo.com?subject=Quero%20anunciar "),
+        )
+        assertEquals(
+            "mailto:a.b+c@exemplo.com.br?subject=Oi&body=Ola%20tudo%20bem",
+            linkSeguro("mailto:a.b+c@exemplo.com.br?subject=Oi&body=Ola%20tudo%20bem"),
+        )
+        assertNull(linkSeguro("mailto:"))
+        assertNull(linkSeguro("mailto:sem-arroba"))
+        assertNull(linkSeguro("mailto:pessoa@exemplo.com?bcc=outro@exemplo.com"))
+        assertNull(linkSeguro("mailto:pessoa@exemplo.com?attach=/sdcard/segredo.txt"))
+        assertNull(linkSeguro("mailto:pessoa@exemplo.com?subject=a&cc=b@c.com"))
+        assertNull(linkSeguro("mailto:pessoa@exemplo.com,outro@exemplo.com"))
+    }
+
+    @Test
     fun catalogoEhLidoIgnorandoCamposDesconhecidosEInvalidoViraListaVazia() {
         val json = """{"versao": 3, "anuncios": [
             {"id": "a", "imagem": "a.png", "link": "https://x.exemplo", "texto": "Anúncio A", "novo": true},

@@ -591,7 +591,7 @@ class ApiTest {
     }
 
     @Test
-    void catalogoDeAnunciosEstaNoArComImagensQueExistemELinksHttps() throws Exception {
+    void catalogoDeAnunciosEstaNoArComImagensQueExistemELinksValidos() throws Exception {
         String texto = mvc.perform(get("/anuncios/anuncios.json")).andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         JsonNode anuncios = json.readTree(texto).get("anuncios");
@@ -605,7 +605,9 @@ class ApiTest {
                 mvc.perform(get("/anuncios/" + imagem)).andExpect(status().isOk());
             }
             if (a.hasNonNull("link")) {
-                assertTrue(a.get("link").asText().startsWith("https://"), "o link do anúncio precisa ser https");
+                String link = a.get("link").asText();
+                assertTrue(link.startsWith("https://") || link.matches("^mailto:[^\\s@]+@[^\\s@]+\\.[A-Za-z]{2,}(\\?.*)?$"),
+                        "o link do anúncio precisa ser https ou mailto");
             }
         }
     }

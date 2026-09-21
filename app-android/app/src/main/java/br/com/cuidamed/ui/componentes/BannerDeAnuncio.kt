@@ -111,10 +111,12 @@ fun BannerDeAnuncio(local: String, modifier: Modifier = Modifier) {
     }
 }
 
+/** https abre no navegador; mailto: abre o app de e-mail já com o destinatário (e assunto) preenchidos. */
 private fun abrirLink(contexto: Context, link: String) {
+    val acao = if (link.startsWith("mailto:")) Intent.ACTION_SENDTO else Intent.ACTION_VIEW
     try {
-        contexto.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link)))
+        contexto.startActivity(Intent(acao, Uri.parse(link)))
     } catch (e: ActivityNotFoundException) {
-        // sem navegador no aparelho: não há o que fazer
+        // sem navegador ou app de e-mail no aparelho: não há o que fazer
     }
 }
