@@ -13,6 +13,7 @@ import br.com.cuidamed.data.NotificacaoDto
 import br.com.cuidamed.data.PedidoVinculoDto
 import br.com.cuidamed.data.Resultado
 import br.com.cuidamed.data.UsuarioDto
+import br.com.cuidamed.notificacoes.AvisoDeAlarmeEmTelaCheia
 import br.com.cuidamed.notificacoes.AvisoDeNotificacoesDesligadas
 import br.com.cuidamed.ui.BarraDeAtualizacao
 import br.com.cuidamed.ui.Carregado
@@ -59,6 +60,7 @@ fun TelaHomeIdoso(usuario: UsuarioDto, destinos: Destinos) {
 
     Tela("Olá, ${primeiroNome(usuario.nome)}!", "Hoje é ${dataDeHoje()}.", topo = { BannerDeAnuncio("home-topo") }) {
         AvisoDeNotificacoesDesligadas()
+        AvisoDeAlarmeEmTelaCheia()
         AvisoDaTela(mensagem)
         BarraDeAtualizacao(carregador)
         Carregado(carregador) { dados ->

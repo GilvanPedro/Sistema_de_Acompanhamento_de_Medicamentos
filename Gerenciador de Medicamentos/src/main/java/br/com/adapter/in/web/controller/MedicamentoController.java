@@ -1,8 +1,13 @@
 package br.com.adapter.in.web.controller;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.adapter.in.web.auth.Acesso;
@@ -22,6 +28,7 @@ import br.com.adapter.in.web.dto.Dtos.MedicamentoDto;
 import br.com.adapter.in.web.dto.Dtos.MedicamentoRequest;
 import br.com.adapter.in.web.dto.Dtos.NotificacaoDto;
 import br.com.adapter.in.web.dto.Dtos.TomadaRequest;
+import br.com.adapter.in.web.relatorio.PdfDoHistorico;
 import br.com.application.service.BuscarHistoricoPorIdosoService;
 import br.com.application.service.EditarMedicamentoService;
 import br.com.application.service.ExcluirMedicamentoService;
@@ -147,7 +154,41 @@ class MedicamentoController {
     @GetMapping("/idosos/{idosoId}/historico")
     List<HistoricoDto> historico(@PathVariable("idosoId") int idosoId, HttpServletRequest requisicao) {
         Idoso idoso = acesso.idosoAcessivel(requisicao, idosoId);
-        return historico.buscarHistoricoDoIdoso(idoso.getId()).stream().map(HistoricoDto::de).toList();
+        return historico.buscarHistoricoCompleto(idoso.getId(), null, null).stream().map(HistoricoDto::de).toList();
+    }
+
+    /** Período máximo de um PDF, para o arquivo não ficar enorme. */
+    private static final int MAXIMO_DE_DIAS_NO_PDF = 366;
+
+    /** O histórico de um período em PDF, para levar ao médico. O idoso baixa o dele; o familiar, o de quem acompanha. */
+    @GetMapping("/idosos/{idosoId}/historico.pdf")
+    ResponseEntity<byte[]> historicoEmPdf(@PathVariable("idosoId") int idosoId,
+                                          @RequestParam("de") String de, @RequestParam("ate") String ate,
+                                          HttpServletRequest requisicao) {
+        Idoso idoso = acesso.idosoAcessivel(requisicao, idosoId);
+        LocalDate inicio = lerData(de, "inicial");
+        LocalDate fim = lerData(ate, "final");
+        if (fim.isBefore(inicio)) {
+            throw new DadosInvalidosException("A data final não pode ser antes da data inicial.");
+        }
+        if (ChronoUnit.DAYS.between(inicio, fim) >= MAXIMO_DE_DIAS_NO_PDF) {
+            throw new DadosInvalidosException("Escolha um período de até um ano.");
+        }
+        byte[] pdf = PdfDoHistorico.gerar(idoso, inicio, fim, historico.buscarHistoricoCompleto(idoso.getId(), inicio, fim),
+                LocalDateTime.now());
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"historico-" + inicio + "-a-" + fim + ".pdf\"")
+                .header(HttpHeaders.CACHE_CONTROL, "no-store")
+                .body(pdf);
+    }
+
+    private static LocalDate lerData(String texto, String qual) {
+        try {
+            return LocalDate.parse(texto);
+        } catch (RuntimeException e) {
+            throw new DadosInvalidosException("A data " + qual + " é inválida. Use o formato aaaa-mm-dd.");
+        }
     }
 
     @GetMapping("/idosos/{idosoId}/notificacoes")

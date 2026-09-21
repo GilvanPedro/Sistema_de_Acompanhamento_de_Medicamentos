@@ -133,6 +133,7 @@ Os erros voltam como `{"erro": "mensagem"}`. Idoso só acessa os próprios dados
    - `V8__criar_metrica_anuncio.sql` (contagens anônimas dos banners, para o painel de anúncios)
    - `V9__criar_banner.sql` (os banners de anúncio, com a imagem; cadastrados pelo painel)
    - `V10__adicionar_video_ao_banner.sql` (vídeo curto opcional no banner)
+   - `V11__medicamento_vigente_desde.sql` (desde quando o horário do remédio vale, para o "não tomou" do histórico)
 2. Copie `.env.example` para `.env` na raiz do repositório e preencha:
    - `DATABASE_URL`: a string de conexão da Neon (botão **Connect**)
    - `JWT_SECRET`: só para a API; um texto aleatório com pelo menos 32 caracteres (`openssl rand -base64 48`)
@@ -306,6 +307,10 @@ O que foi decidido, as alternativas consideradas e o porquê estão documentados
 - [ADR-0056](Gerenciador%20de%20Medicamentos/docs/adr/ADR0056-rodizio-justo-dos-banners.md): rodízio justo dos banners (exibições parecidas para todos)
 - [ADR-0057](Gerenciador%20de%20Medicamentos/docs/adr/ADR0057-banners-no-banco-e-cadastro-pelo-painel.md): banners no banco de dados e cadastro pelo painel
 - [ADR-0058](Gerenciador%20de%20Medicamentos/docs/adr/ADR0058-video-curto-nos-banners.md): vídeo curto nos banners
+- [ADR-0059](Gerenciador%20de%20Medicamentos/docs/adr/ADR0059-remedio-em-varios-dias-da-semana.md): remédio em vários dias da semana
+- [ADR-0060](Gerenciador%20de%20Medicamentos/docs/adr/ADR0060-nao-tomou-no-historico.md): "não tomou" no histórico
+- [ADR-0061](Gerenciador%20de%20Medicamentos/docs/adr/ADR0061-historico-em-pdf.md): histórico em PDF para levar ao médico
+- [ADR-0062](Gerenciador%20de%20Medicamentos/docs/adr/ADR0062-alarme-no-lugar-da-notificacao.md): alarme de remédio no lugar da notificação
 
 ## Próximos passos
 

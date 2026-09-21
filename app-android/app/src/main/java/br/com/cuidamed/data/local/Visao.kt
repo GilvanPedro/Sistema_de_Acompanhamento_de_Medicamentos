@@ -37,9 +37,19 @@ object Visao {
 
     /** As tomadas ainda não enviadas aparecem no histórico e contam para os avisos, com um id local negativo. */
     fun historico(base: List<HistoricoDto>, pendencias: List<Operacao>, idosoId: Int): List<HistoricoDto> {
-        val locais = pendencias.filterIsInstance<RegistrarTomada>().filter { it.idosoId == idosoId }
-            .mapIndexed { i, t -> HistoricoDto(-(i + 1), t.remedioId, t.nomeDoRemedio, t.quando, true) }
-        return base + locais
+        val tomadas = pendencias.filterIsInstance<RegistrarTomada>().filter { it.idosoId == idosoId }
+        val locais = tomadas.mapIndexed { i, t -> HistoricoDto(-(i + 1), t.remedioId, t.nomeDoRemedio, t.quando, true) }
+        // Um "não tomou" que o servidor calculou some quando uma tomada ainda não enviada já o cobre (o servidor confirma depois).
+        val semFaltasCobertas = base.filterNot { h ->
+            !h.foiTomado && tomadas.any { t ->
+                t.remedioId == h.medicamentoId && try {
+                    HorariosDeRemedio.tomadaCobre(LocalDateTime.parse(t.quando), LocalDateTime.parse(h.dataHora))
+                } catch (e: Exception) {
+                    false
+                }
+            }
+        }
+        return semFaltasCobertas + locais
     }
 
     /** Os avisos do dia calculados no aparelho (o servidor calcula o mesmo, com as mesmas regras). */

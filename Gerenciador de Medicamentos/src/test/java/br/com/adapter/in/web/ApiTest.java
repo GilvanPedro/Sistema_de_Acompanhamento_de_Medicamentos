@@ -220,6 +220,32 @@ class ApiTest {
     }
 
     @Test
+    void historicoEmPdfSoParaQuemPodeVerEValidaOPeriodo() throws Exception {
+        Sessao idoso = criarConta("IDOSO", "Dona Amelia");
+        Sessao familiar = criarConta("FAMILIAR", "Neto Beto");
+        Sessao estranho = criarConta("IDOSO", "Seu Zeca");
+        vincular(familiar, idoso);
+        int id = cadastrarMedicamento(idoso, "Losartana");
+        mvc.perform(com(post("/api/v1/medicamentos/" + id + "/tomadas"), idoso)).andExpect(status().isCreated());
+
+        String url = "/api/v1/idosos/" + idoso.id() + "/historico.pdf?de=2026-01-01&ate=2026-12-31";
+        for (Sessao quem : new Sessao[] {idoso, familiar}) {
+            byte[] pdf = mvc.perform(com(get(url), quem)).andExpect(status().isOk())
+                    .andExpect(header().string("Content-Type", "application/pdf"))
+                    .andExpect(header().string("Content-Disposition", org.hamcrest.Matchers.containsString("attachment")))
+                    .andReturn().getResponse().getContentAsByteArray();
+            assertEquals("%PDF", new String(pdf, 0, 4, java.nio.charset.StandardCharsets.ISO_8859_1));
+        }
+        mvc.perform(com(get(url), estranho)).andExpect(status().isForbidden());
+        mvc.perform(get(url)).andExpect(status().isUnauthorized());
+        String base = "/api/v1/idosos/" + idoso.id() + "/historico.pdf";
+        mvc.perform(com(get(base + "?de=2026-09-05&ate=2026-09-04"), idoso)).andExpect(status().isBadRequest());
+        mvc.perform(com(get(base + "?de=ontem&ate=2026-09-04"), idoso)).andExpect(status().isBadRequest());
+        mvc.perform(com(get(base + "?de=2024-01-01&ate=2026-09-04"), idoso)).andExpect(status().isBadRequest());
+        mvc.perform(com(get(base + "?de=2026-09-01"), idoso)).andExpect(status().isBadRequest());
+    }
+
+    @Test
     void soOIdosoRegistraTomadaDoProprioRemedioEUmaVezPorDia() throws Exception {
         Sessao idoso = criarConta("IDOSO", "Dona Neusa");
         Sessao familiar = criarConta("FAMILIAR", "Filho Ze");

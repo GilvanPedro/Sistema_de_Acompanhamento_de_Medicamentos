@@ -18,6 +18,7 @@ class EfeitosDoAplicativo(private val contexto: Context) : EfeitosLocais {
         Eventos.parar(contexto)
         RegistroDePush.esquecer(contexto)
         AgendadorDeLembretes.cancelarTudo(contexto)
+        ServicoDoAlarme.pararTudo()
         EventosJaAvisados.limpar(contexto)
         Confirmacoes.limpar(contexto)
         // As notificações que já estão na gaveta são da conta que saiu: não podem ficar para a próxima pessoa ver.
@@ -35,5 +36,6 @@ class EfeitosDoAplicativo(private val contexto: Context) : EfeitosLocais {
     override fun aoRegistrarTomada(medicamentoId: Int) {
         Confirmacoes.marcar(contexto, medicamentoId)
         Notificador.cancelar(contexto, medicamentoId)
+        ServicoDoAlarme.parar(medicamentoId)
     }
 }

@@ -283,6 +283,41 @@ fun Escolhas(opcoes: List<Pair<String, String>>, selecionada: String?, aoEscolhe
     }
 }
 
+/**
+ * Vários botões que se marcam e desmarcam (dias da semana). O botão "Todos os dias" marca ou desmarca todos de uma vez.
+ * A marcação é o azul cheio; o leitor de tela anuncia "marcado" (Checkbox).
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun EscolhasMultiplas(opcoes: List<Pair<String, String>>, marcadas: Set<String>, textoDeTodos: String, aoMudar: (Set<String>) -> Unit) {
+    val todasMarcadas = opcoes.all { it.first in marcadas }
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        opcoes.forEach { (chave, rotulo) ->
+            val marcada = chave in marcadas
+            val modificador = Modifier
+                .heightIn(min = 56.dp)
+                .semantics {
+                    selected = marcada
+                    role = Role.Checkbox
+                }
+            val alternar = { aoMudar(if (marcada) marcadas - chave else marcadas + chave) }
+            if (marcada) {
+                Button(onClick = alternar, modifier = modificador) { Text(rotulo, style = MaterialTheme.typography.bodyLarge) }
+            } else {
+                OutlinedButton(onClick = alternar, modifier = modificador) { Text(rotulo, style = MaterialTheme.typography.bodyLarge) }
+            }
+        }
+    }
+    OutlinedButton(
+        onClick = { aoMudar(if (todasMarcadas) emptySet() else opcoes.map { it.first }.toSet()) },
+        modifier = Modifier
+            .heightIn(min = 56.dp)
+            .semantics { role = Role.Button },
+    ) {
+        Text(if (todasMarcadas) "Desmarcar todos" else textoDeTodos, style = MaterialTheme.typography.bodyLarge)
+    }
+}
+
 /** Número com botões − e + (hora e minutos sem digitar). */
 @Composable
 fun Contador(rotulo: String, valor: Int, minimo: Int, maximo: Int, passo: Int, aoMudar: (Int) -> Unit) {

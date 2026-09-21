@@ -75,8 +75,8 @@ object Confirmacoes {
 }
 
 /**
- * Marca no Android os alarmes dos lembretes: um no horário de cada remédio (repetindo toda semana) e, se passarem
- * 10 minutos sem "já tomei", um aviso de atraso. Tudo local, então funciona sem internet.
+ * Marca no Android os alarmes dos remédios: um no horário de cada remédio (repetindo toda semana) e, se passarem
+ * 10 minutos sem "já tomei", um segundo alarme de atraso. Tudo local, então funciona sem internet.
  */
 object AgendadorDeLembretes {
 
@@ -154,15 +154,20 @@ object AgendadorDeLembretes {
         val intencao = intencao(contexto, codigo, tipo, remedio.nome, remedio.horario, remedio.id)
         val momento = quando.toInstant().toEpochMilli()
         try {
-            // Exato e permitido em modo de economia: lembrete de remédio não pode atrasar.
-            alarmes.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, momento, intencao)
+            // Como o despertador do celular: exato, dispara mesmo em modo de economia e pode ligar a tela.
+            // (Aparece o ícone de alarme na barra de status enquanto houver um marcado.)
+            val abrirApp = PendingIntent.getActivity(
+                contexto, 0, Intent(contexto, br.com.cuidamed.MainActivity::class.java),
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+            )
+            alarmes.setAlarmClock(AlarmManager.AlarmClockInfo(momento, abrirApp), intencao)
         } catch (e: SecurityException) {
             alarmes.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, momento, intencao)
         }
     }
 }
 
-/** Toca quando chega a hora de um lembrete (ou de um aviso de atraso). */
+/** Toca quando chega a hora de um lembrete (ou de um aviso de atraso): dispara o alarme. */
 class LembreteReceiver : BroadcastReceiver() {
     override fun onReceive(contexto: Context, intent: Intent) {
         val medicamentoId = intent.getIntExtra(EXTRA_MEDICAMENTO, -1)
@@ -172,7 +177,7 @@ class LembreteReceiver : BroadcastReceiver() {
 
         when (intent.getStringExtra("tipo")) {
             AgendadorDeLembretes.TIPO_LEMBRETE -> {
-                if (!Confirmacoes.tomouHoje(contexto, medicamentoId)) Notificador.lembrete(contexto, medicamentoId, nome, horario)
+                if (!Confirmacoes.tomouHoje(contexto, medicamentoId)) ServicoDoAlarme.tocar(contexto, medicamentoId, nome, horario, AgendadorDeLembretes.TIPO_LEMBRETE)
                 // Se o remédio foi removido da lista, para de repetir; senão, marca o atraso e o horário da semana que vem.
                 val remedio = PlanoLocal.ler(contexto).firstOrNull { it.id == medicamentoId } ?: return
                 val agora = ZonedDateTime.now()
@@ -180,18 +185,17 @@ class LembreteReceiver : BroadcastReceiver() {
                 AgendadorDeLembretes.agendarProximo(contexto, remedio, agora.plusMinutes(1))
             }
             AgendadorDeLembretes.TIPO_ATRASO ->
-                if (!Confirmacoes.tomouHoje(contexto, medicamentoId)) Notificador.atraso(contexto, medicamentoId, nome, horario)
+                if (!Confirmacoes.tomouHoje(contexto, medicamentoId)) ServicoDoAlarme.tocar(contexto, medicamentoId, nome, horario, AgendadorDeLembretes.TIPO_ATRASO)
         }
     }
 }
 
-/** O botão "Já tomei" da notificação: marca na hora no aparelho e registra no servidor assim que houver internet. */
-class TomeiReceiver : BroadcastReceiver() {
-    override fun onReceive(contexto: Context, intent: Intent) {
-        val medicamentoId = intent.getIntExtra(EXTRA_MEDICAMENTO, -1)
-        if (medicamentoId < 0) return
+/** "Já tomei" (da notificação ou da tela do alarme): marca na hora no aparelho e registra no servidor assim que houver internet. */
+object TomeiNoAparelho {
+    fun registrar(contexto: Context, medicamentoId: Int) {
         Confirmacoes.marcar(contexto, medicamentoId)
         Notificador.cancelar(contexto, medicamentoId)
+        ServicoDoAlarme.parar(medicamentoId)
         WorkManager.getInstance(contexto).enqueue(
             OneTimeWorkRequestBuilder<TomadaWorker>()
                 .setInputData(workDataOf(EXTRA_MEDICAMENTO to medicamentoId))
@@ -199,6 +203,15 @@ class TomeiReceiver : BroadcastReceiver() {
                 .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
                 .build()
         )
+    }
+}
+
+/** O botão "Já tomei" da notificação. */
+class TomeiReceiver : BroadcastReceiver() {
+    override fun onReceive(contexto: Context, intent: Intent) {
+        val medicamentoId = intent.getIntExtra(EXTRA_MEDICAMENTO, -1)
+        if (medicamentoId < 0) return
+        TomeiNoAparelho.registrar(contexto, medicamentoId)
     }
 }
 

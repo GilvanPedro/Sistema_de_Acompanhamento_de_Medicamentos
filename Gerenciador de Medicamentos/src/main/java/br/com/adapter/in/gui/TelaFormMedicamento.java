@@ -29,10 +29,13 @@ class TelaFormMedicamento extends Pagina {
 
         DayOfWeek[] dias = DayOfWeek.values();
         Escolha[] botoesDia = new Escolha[dias.length];
+        // Ao cadastrar, dá para marcar vários dias (um registro por dia); ao editar, o registro é de um dia só.
         ButtonGroup grupoDia = new ButtonGroup();
         for (int i = 0; i < dias.length; i++) {
             botoesDia[i] = new Escolha(Rotulos.diaCurto(dias[i]));
-            grupoDia.add(botoesDia[i]);
+            if (existente != null) {
+                grupoDia.add(botoesDia[i]);
+            }
         }
 
         Contador hora = new Contador("Hora", 0, 23, 1, 8);
@@ -50,11 +53,11 @@ class TelaFormMedicamento extends Pagina {
 
         Botao salvar = Botao.primario(existente == null ? "Salvar remédio" : "Salvar mudanças");
         salvar.addActionListener(e -> {
-            int diaEscolhido = -1;
+            java.util.List<DayOfWeek> diasEscolhidos = new java.util.ArrayList<>();
             int tipoEscolhido = -1;
             for (int i = 0; i < botoesDia.length; i++) {
                 if (botoesDia[i].isSelected()) {
-                    diaEscolhido = i;
+                    diasEscolhidos.add(dias[i]);
                 }
             }
             for (int i = 0; i < botoesTipo.length; i++) {
@@ -67,17 +70,23 @@ class TelaFormMedicamento extends Pagina {
                 nome.requestFocusInWindow();
                 return;
             }
-            if (diaEscolhido < 0) {
-                aviso("Escolha o dia da semana em que você toma este remédio.", Tom.AVISO);
+            if (diasEscolhidos.isEmpty()) {
+                aviso("Escolha pelo menos um dia da semana em que você toma este remédio.", Tom.AVISO);
                 return;
             }
             LocalTime horario = LocalTime.of(hora.valor(), minuto.valor());
             String nomeFinal = nome.getText().trim();
-            DayOfWeek dia = dias[diaEscolhido];
             TipoMedicamento tipo = tipos[tipoEscolhido];
-            nav.fazer(() -> existente == null
-                            ? nav.api().cadastrarRemedio(idoso.id(), nomeFinal, dia, horario, tipo)
-                            : nav.api().editarRemedio(existente.id(), nomeFinal, dia, horario, tipo),
+            nav.fazer(() -> {
+                        if (existente != null) {
+                            return nav.api().editarRemedio(existente.id(), nomeFinal, diasEscolhidos.get(0), horario, tipo);
+                        }
+                        Remedio ultimo = null;
+                        for (DayOfWeek dia : diasEscolhidos) {
+                            ultimo = nav.api().cadastrarRemedio(idoso.id(), nomeFinal, dia, horario, tipo);
+                        }
+                        return ultimo;
+                    },
                     salvo -> aoVoltar.accept(nomeFinal + " foi salvo."),
                     erro -> aviso(erro.getMessage(), Tom.ERRO));
         });
@@ -87,7 +96,7 @@ class TelaFormMedicamento extends Pagina {
         Cartao form = new Cartao();
         form.add(Ui.pilha(6, Texto.rotulo("Nome do remédio"), nome));
         form.add(Ui.pilha(6, Texto.rotulo("Como é o remédio?"), Ui.linha(4, botoesTipo)));
-        form.add(Ui.pilha(6, Texto.rotulo("Em que dia da semana?"), Ui.linha(4, botoesDia)));
+        form.add(Ui.pilha(6, Texto.rotulo(existente == null ? "Em quais dias da semana? (marque quantos quiser)" : "Em que dia da semana?"), Ui.linha(4, botoesDia)));
         form.add(Ui.pilha(6, Texto.rotulo("A que horas?"), Ui.lado(hora, minuto)));
         adicionar(form);
         adicionar(salvar);

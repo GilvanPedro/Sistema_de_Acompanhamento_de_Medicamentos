@@ -9,6 +9,13 @@
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- O alarme do remédio: serviço em primeiro plano que toca som (não é encerrado pelo Android), vibra, mantém o
+         processador acordado e abre a tela por cima da tela de bloqueio. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <!-- Dados de saúde: sem backup na nuvem, e só tráfego HTTPS (sem texto puro). -->
     <application
@@ -42,7 +49,33 @@
             </intent-filter>
         </service>
 
+        <!-- Entrega o PDF do histórico (guardado no cache do app) ao leitor de PDF ou ao app de compartilhar escolhido. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.arquivos"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/arquivos_compartilhados" />
+        </provider>
+
+        <service
+            android:name=".notificacoes.ServicoDoAlarme"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+
+        <!-- A tela do alarme: aparece por cima da tela de bloqueio e liga a tela. -->
+        <activity
+            android:name=".notificacoes.AlarmeActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity=""
+            android:excludeFromRecents="true"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:theme="@style/Theme.CuidaMed" />
+
         <receiver android:name=".notificacoes.LembreteReceiver" android:exported="false" />
+        <receiver android:name=".notificacoes.PararAlarmeReceiver" android:exported="false" />
         <receiver android:name=".notificacoes.TomeiReceiver" android:exported="false" />
         <!-- Depois de reiniciar o celular ou atualizar o app, os alarmes precisam ser marcados de novo. -->
         <receiver android:name=".notificacoes.ReinicioReceiver" android:exported="true">

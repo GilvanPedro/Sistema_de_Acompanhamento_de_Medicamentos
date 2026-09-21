@@ -399,6 +399,16 @@ class Repositorio(
         }
     }
 
+    /** Baixa o histórico do período em PDF e o grava em [destino]. Precisa de internet: quem calcula os "não tomou" é o servidor. */
+    suspend fun baixarHistoricoEmPdf(idosoId: Int, de: java.time.LocalDate, ate: java.time.LocalDate, destino: java.io.File): Resultado<java.io.File> =
+        chamar {
+            val corpo = api.historicoEmPdf(idosoId, de.toString(), ate.toString())
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                corpo.use { c -> destino.outputStream().use { saida -> c.byteStream().copyTo(saida) } }
+            }
+            destino
+        }
+
     suspend fun historicoLocal(idosoId: Int): List<HistoricoDto>? {
         val id = uid() ?: return null
         val d = armazenamento.ler(id)

@@ -15,6 +15,8 @@ import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.PUT
+import retrofit2.http.Query
+import retrofit2.http.Streaming
 import java.util.concurrent.TimeUnit
 
 /** A API no Render (plano gratuito): hiberna quando fica parada, e a primeira resposta pode levar cerca de um minuto. */
@@ -103,6 +105,11 @@ interface CuidaMedApi {
 
     @GET("idosos/{id}/historico")
     suspend fun historico(@Path("id") idosoId: Int): List<HistoricoDto>
+
+    /** O histórico de um período em PDF (datas aaaa-mm-dd). Vem em fluxo: o arquivo é gravado aos poucos, não carregado inteiro. */
+    @Streaming
+    @GET("idosos/{id}/historico.pdf")
+    suspend fun historicoEmPdf(@Path("id") idosoId: Int, @Query("de") de: String, @Query("ate") ate: String): ResponseBody
 
     @GET("idosos/{id}/notificacoes")
     suspend fun notificacoes(@Path("id") idosoId: Int): List<NotificacaoDto>

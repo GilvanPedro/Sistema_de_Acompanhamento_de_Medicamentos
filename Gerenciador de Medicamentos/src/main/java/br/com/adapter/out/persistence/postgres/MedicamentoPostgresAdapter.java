@@ -19,7 +19,7 @@ import br.com.domain.port.out.SalvarMedicamentoPort;
 
 public class MedicamentoPostgresAdapter implements SalvarMedicamentoPort {
 
-    private static final String COLUNAS = "id, idoso_id, nome, horario, dia_semana, tipo";
+    private static final String COLUNAS = "id, idoso_id, nome, horario, dia_semana, tipo, vigente_desde";
 
     private final DataSource dataSource;
 
@@ -80,7 +80,8 @@ public class MedicamentoPostgresAdapter implements SalvarMedicamentoPort {
 
     @Override
     public void atualizar(Medicamento medicamento) {
-        String sql = "UPDATE medicamento SET nome = ?, horario = ?, dia_semana = ?, tipo = ?, atualizado_em = now() "
+        String sql = "UPDATE medicamento SET nome = ?, horario = ?, dia_semana = ?, tipo = ?, atualizado_em = now(), "
+                + "vigente_desde = CASE WHEN horario <> ? OR dia_semana <> ? THEN now() ELSE vigente_desde END "
                 + "WHERE id = ? AND excluido_em IS NULL";
         try (Connection conexao = dataSource.getConnection();
              PreparedStatement ps = conexao.prepareStatement(sql)) {
@@ -88,7 +89,9 @@ public class MedicamentoPostgresAdapter implements SalvarMedicamentoPort {
             ps.setObject(2, medicamento.getHorarioMedicamento());
             ps.setString(3, medicamento.getDiaSemana().name());
             ps.setString(4, medicamento.getTipoMedicamento().name());
-            ps.setInt(5, medicamento.getId());
+            ps.setObject(5, medicamento.getHorarioMedicamento());
+            ps.setString(6, medicamento.getDiaSemana().name());
+            ps.setInt(7, medicamento.getId());
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new ErroBancoDadosException("atualizar medicamento", e);
@@ -133,6 +136,8 @@ public class MedicamentoPostgresAdapter implements SalvarMedicamentoPort {
                 rs.getString("nome"),
                 rs.getObject("horario", LocalTime.class),
                 DayOfWeek.valueOf(rs.getString("dia_semana")),
-                TipoMedicamento.valueOf(rs.getString("tipo")));
+                TipoMedicamento.valueOf(rs.getString("tipo")),
+                rs.getObject("vigente_desde", java.time.OffsetDateTime.class)
+                        .atZoneSameInstant(java.time.ZoneId.systemDefault()).toLocalDateTime());
     }
 }

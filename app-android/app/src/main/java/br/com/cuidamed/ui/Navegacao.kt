@@ -31,9 +31,9 @@ const val REMEDIO_SALVO = "remedio_salvo"
 class Destinos(private val nav: NavHostController) {
     fun voltar() { nav.popBackStack() }
 
-    /** Volta para a lista entregando o remédio que acabou de ser salvo, para ela mostrá-lo na hora. */
-    fun voltarComRemedioSalvo(remedio: MedicamentoDto) {
-        nav.previousBackStackEntry?.savedStateHandle?.set(REMEDIO_SALVO, jsonDaApi.encodeToString(remedio))
+    /** Volta para a lista avisando o nome do remédio que acabou de ser salvo, para ela reler o que está no aparelho. */
+    fun voltarComRemedioSalvo(nome: String) {
+        nav.previousBackStackEntry?.savedStateHandle?.set(REMEDIO_SALVO, nome)
         nav.popBackStack()
     }
     fun entrar() = nav.navigate("login")

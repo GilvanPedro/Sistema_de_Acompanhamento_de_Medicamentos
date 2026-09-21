@@ -56,6 +56,37 @@ fun AvisoDeNotificacoesDesligadas() {
     }
 }
 
+/**
+ * No Android 14 ou mais novo, abrir a tela do alarme por cima da tela de bloqueio depende de uma permissão que a pessoa
+ * pode ter desligado. Sem ela o alarme ainda toca e a notificação aparece, mas a tela grande não abre sozinha.
+ */
+@Composable
+fun AvisoDeAlarmeEmTelaCheia() {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) return
+    val contexto = LocalContext.current
+    var permitido by remember { mutableStateOf(podeAbrirTelaCheia(contexto)) }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { permitido = podeAbrirTelaCheia(contexto) }
+    if (!permitido) {
+        Cartao(Tom.AVISO) {
+            Text(
+                "Para o alarme do remédio aparecer na tela com o celular bloqueado, permita \"Notificações em tela cheia\" para o CuidaMed.",
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            BotaoGrande("Permitir", {
+                contexto.startActivity(
+                    Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT)
+                        .setData(android.net.Uri.parse("package:${contexto.packageName}"))
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                )
+            })
+        }
+    }
+}
+
+private fun podeAbrirTelaCheia(contexto: Context): Boolean =
+    Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE ||
+        contexto.getSystemService(android.app.NotificationManager::class.java).canUseFullScreenIntent()
+
 fun abrirConfiguracoesDeNotificacao(contexto: Context) {
     val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
         .putExtra(Settings.EXTRA_APP_PACKAGE, contexto.packageName)

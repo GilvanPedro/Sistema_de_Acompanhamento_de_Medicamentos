@@ -17,9 +17,11 @@ object Notificador {
 
     private const val ESCOPO_IDS_LEMBRETE = 1
     private const val ESCOPO_IDS_ATRASO = 2
+    private const val ESCOPO_IDS_ALARME = 3
 
     fun idDoLembrete(medicamentoId: Int) = medicamentoId * 10 + ESCOPO_IDS_LEMBRETE
     fun idDoAtraso(medicamentoId: Int) = medicamentoId * 10 + ESCOPO_IDS_ATRASO
+    fun idDoAlarme(medicamentoId: Int) = medicamentoId * 10 + ESCOPO_IDS_ALARME
 
     fun lembrete(contexto: Context, medicamentoId: Int, nome: String, horario: String) = mostrar(
         contexto, idDoLembrete(medicamentoId), Canais.LEMBRETES,
@@ -49,6 +51,7 @@ object Notificador {
         val gerente = NotificationManagerCompat.from(contexto)
         gerente.cancel(idDoLembrete(medicamentoId))
         gerente.cancel(idDoAtraso(medicamentoId))
+        gerente.cancel(idDoAlarme(medicamentoId))
     }
 
     fun estaoLigadas(contexto: Context): Boolean = NotificationManagerCompat.from(contexto).areNotificationsEnabled()

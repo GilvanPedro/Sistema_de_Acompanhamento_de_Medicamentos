@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Só a pasta dos PDFs do histórico (dentro do cache do app) pode ser entregue a outro app. -->
+<paths>
+    <cache-path name="historico_pdf" path="historico_pdf/" />
+</paths>
