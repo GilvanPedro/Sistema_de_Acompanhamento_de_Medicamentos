@@ -26,6 +26,7 @@ val SECOES_DA_POLITICA: List<Pair<String, List<String>>> = listOf(
         "Só para o app funcionar: lembrar os horários dos remédios, mostrar o histórico, avisar familiares quando um remédio é esquecido ou tomado e manter sua conta segura.",
         "Não vendemos seus dados e não os usamos para propaganda.",
         "O app mostra banners de anúncios, escolhidos ao acaso e iguais para todos: eles não usam os seus dados pessoais nem os seus remédios. Você pode fechar qualquer anúncio no botão \"Fechar\". Ao tocar num anúncio, você sai do CuidaMed e vai para o site do anunciante, que tem a política de privacidade própria dele.",
+        "Para mostrar aos anunciantes como os banners se saem, o app conta, sem identificar ninguém, quantas vezes cada banner apareceu e foi tocado e se quem usa o app é idoso ou familiar. Essas contagens são somas por dia, sem nome, e-mail, endereço de IP nem identificador do aparelho.",
     ),
     "4. Por que podemos usar (base legal)" to listOf(
         "O seu consentimento (LGPD, art. 7º, I). Como os dados de remédios são dados de saúde, pedimos o consentimento de forma específica e destacada (art. 11, I): é o aceite que você dá ao criar a conta.",

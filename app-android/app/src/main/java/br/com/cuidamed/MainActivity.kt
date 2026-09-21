@@ -23,6 +23,7 @@ import br.com.cuidamed.ui.componentes.Carregando
 import br.com.cuidamed.ui.componentes.ErroComTentarDeNovo
 import br.com.cuidamed.ui.componentes.EstiloDoBotao
 import br.com.cuidamed.ui.componentes.LocalAnuncios
+import br.com.cuidamed.ui.componentes.LocalMetricasDeAnuncios
 import br.com.cuidamed.ui.componentes.LocalPreferencias
 import br.com.cuidamed.ui.componentes.Tela
 import br.com.cuidamed.ui.telas.PortaoDaPolitica
@@ -30,10 +31,18 @@ import br.com.cuidamed.ui.theme.CuidaMedTheme
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+
+    override fun onStop() {
+        super.onStop()
+        // O app foi para o fundo: manda as contagens dos banners que estiverem pendentes.
+        (application as CuidaMedApp).metricasDeAnuncios.enviarEmSegundoPlano()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val app = application as CuidaMedApp
+        app.metricasDeAnuncios.iniciar()
         setContent {
             CuidaMedRaiz(app, app.repositorio, app.preferencias)
         }
@@ -55,6 +64,7 @@ private fun CuidaMedRaiz(app: CuidaMedApp, repositorio: Repositorio, preferencia
             LocalPreferencias provides preferencias,
             LocalRepositorio provides repositorio,
             LocalAnuncios provides app.anuncios,
+            LocalMetricasDeAnuncios provides app.metricasDeAnuncios,
         ) {
             when (val e = estado) {
                 EstadoDaSessao.Verificando -> Tela("CuidaMed") { Carregando("Entrando…") }

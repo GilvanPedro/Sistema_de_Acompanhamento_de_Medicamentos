@@ -43,6 +43,10 @@ interface CuidaMedApi {
     @HTTP(method = "DELETE", path = "me", hasBody = true)
     suspend fun excluirConta(@Body corpo: ExcluirContaRequest): Response<Unit>
 
+    /** Contagens anônimas dos banners (exibições e toques), em lote. Não exige login. */
+    @POST("anuncios/eventos")
+    suspend fun enviarEventosDeAnuncios(@Body corpo: EventosDeAnunciosRequest): Response<Unit>
+
     @GET("me/consentimento")
     suspend fun consentimento(): ConsentimentoDto
 

@@ -108,6 +108,29 @@ class ConfiguracaoDeTeste {
     }
 
     @Bean
+    br.com.adapter.in.web.metricas.MetricasDeAnuncios metricasDeAnuncios() {
+        return new br.com.adapter.in.web.metricas.MetricasDeAnuncios() {
+            private final java.util.Map<String, Linha> linhas = new java.util.LinkedHashMap<>();
+
+            @Override
+            public synchronized void somar(java.time.LocalDate dia, String anuncioId, String posicao, String perfil, long exibicoes, long cliques) {
+                linhas.merge(dia + "|" + anuncioId + "|" + posicao + "|" + perfil, new Linha(dia, anuncioId, posicao, perfil, exibicoes, cliques),
+                        (a, b) -> new Linha(a.dia(), a.anuncioId(), a.posicao(), a.perfil(), a.exibicoes() + b.exibicoes(), a.cliques() + b.cliques()));
+            }
+
+            @Override
+            public synchronized java.util.List<Linha> doMes(java.time.YearMonth mes) {
+                return linhas.values().stream().filter(l -> java.time.YearMonth.from(l.dia()).equals(mes)).toList();
+            }
+        };
+    }
+
+    @Bean
+    br.com.adapter.in.web.painel.SenhaDoPainel senhaDoPainel() {
+        return new br.com.adapter.in.web.painel.SenhaDoPainel("senha-do-painel-de-teste");
+    }
+
+    @Bean
     JwtService jwtService() {
         return new JwtService("segredo-somente-para-testes-com-mais-de-32-caracteres");
     }

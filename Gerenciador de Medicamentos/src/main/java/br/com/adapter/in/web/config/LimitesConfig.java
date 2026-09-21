@@ -38,6 +38,18 @@ class LimitesConfig {
         return new LimiteDeTentativas(5, Duration.ofMinutes(15), CAPACIDADE);
     }
 
+    /** Envios de contagens de banner por IP (o app envia em lotes, então o limite é folgado). */
+    @Bean
+    LimiteDeTentativas limiteMetricas() {
+        return new LimiteDeTentativas(120, Duration.ofHours(1), CAPACIDADE);
+    }
+
+    /** Senha errada no painel de anúncios, por IP. */
+    @Bean
+    LimiteDeTentativas limitePainel() {
+        return new LimiteDeTentativas(5, Duration.ofMinutes(15), CAPACIDADE);
+    }
+
     /** Contas criadas por IP, para ninguém encher o banco gratuito. */
     @Bean
     LimiteDeTentativas limiteCadastro(@Value("${cuidamed.limite.cadastro-maximo:10}") int maximo) {

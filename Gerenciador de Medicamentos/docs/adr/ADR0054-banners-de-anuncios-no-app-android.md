@@ -30,7 +30,7 @@ Os banners ficam num arquivo JSON público do servidor (`/anuncios/anuncios.json
 - Imagens com cache em memória e em disco (válido por 24 h; sem rede, a cópia velha ainda serve), limite de 3 MB por imagem e redução de imagens muito grandes.
 - **Sem banner disponível, não aparece nada** e o espaço não é reservado: a tela fica como sempre foi.
 - **Segurança:** imagens só por `https`. Links só `https` ou `mailto:` (este só com destinatário, `subject` e `body`: sem `cc`, `bcc` nem `attach`); nada de `tel:`, `intent:`, `file:`... Um link `mailto:` abre o app de e-mail já com o destinatário e o assunto preenchidos (é como os banners "Anuncie aqui" levam ao contato do desenvolvedor). Um cliente HTTP próprio, **sem o token de login**: nenhum dado da conta vai nesses pedidos.
-- Sem rastreamento: o app não mede nem envia impressões, toques ou qualquer dado do usuário para os banners.
+- Sem rastreamento de pessoas. As contagens anônimas de exibições e toques (para os relatórios dos anunciantes) vieram depois, no [ADR-0055](ADR0055-metricas-e-painel-de-anuncios.md).
 
 ### 3. Como o banner se comporta
 
@@ -63,7 +63,7 @@ Nas telas de formulário de remédio, de tomada, do histórico, de vínculos e d
 
 - **Política de privacidade:** ganhou uma frase dizendo que os banners são escolhidos ao acaso, não usam dados pessoais nem os remédios, podem ser fechados e levam ao site do anunciante ao toque. A versão do texto **não foi alterada** (1.0), porque nenhum tratamento de dado novo foi criado; se preferir que todos aceitem de novo, é só subir a versão (ADR-0052).
 - **Play Store:** o app passa a **conter anúncios** e isso precisa ser declarado no console.
-- **Sem métricas:** não há contagem de exibições nem de toques. Se um anunciante pedir isso, é uma decisão nova (e de privacidade).
+- **Métricas:** inicialmente não havia contagem de exibições nem de toques; ela foi acrescentada no [ADR-0055](ADR0055-metricas-e-painel-de-anuncios.md).
 - Os banners atuais são **imagens de exemplo**, para serem trocadas pelas reais.
 - A interface gráfica do computador não tem banners.
 

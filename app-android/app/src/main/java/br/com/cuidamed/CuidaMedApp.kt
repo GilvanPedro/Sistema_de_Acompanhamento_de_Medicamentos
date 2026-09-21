@@ -2,6 +2,11 @@ package br.com.cuidamed
 
 import android.app.Application
 import br.com.cuidamed.data.CatalogoDeAnuncios
+import br.com.cuidamed.data.EventosDeAnunciosRequest
+import br.com.cuidamed.data.GuardaDeContagens
+import br.com.cuidamed.data.MetricasDeAnuncios
+import br.com.cuidamed.data.Resultado
+import br.com.cuidamed.data.chamarVazio
 import br.com.cuidamed.data.CofreDeTokens
 import br.com.cuidamed.data.Preferencias
 import br.com.cuidamed.data.UltimaSessao
@@ -29,6 +34,8 @@ class CuidaMedApp : Application() {
         private set
     lateinit var anuncios: CatalogoDeAnuncios
         private set
+    lateinit var metricasDeAnuncios: MetricasDeAnuncios
+        private set
 
     override fun onCreate() {
         super.onCreate()
@@ -50,6 +57,15 @@ class CuidaMedApp : Application() {
         }
         repo = Repositorio(api, cofre, EfeitosDoAplicativo(this), armazenamento, sessaoGuardada, escopo, aparelho = AparelhoFirebase(this))
         repositorio = repo
+        metricasDeAnuncios = MetricasDeAnuncios(
+            guarda = object : GuardaDeContagens {
+                private val prefs = getSharedPreferences("metricas_de_anuncios", MODE_PRIVATE)
+                override fun ler(): String? = prefs.getString("pendentes", null)
+                override fun salvar(texto: String) = prefs.edit().putString("pendentes", texto).apply()
+            },
+            enviar = { eventos -> chamarVazio { api.enviarEventosDeAnuncios(EventosDeAnunciosRequest(eventos)) } is Resultado.Ok },
+            escopo = escopo,
+        )
 
         // A internet voltou (com o app aberto): manda na hora o que ficou na fila.
         getSystemService(ConnectivityManager::class.java).registerDefaultNetworkCallback(object : ConnectivityManager.NetworkCallback() {

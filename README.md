@@ -130,6 +130,7 @@ Os erros voltam como `{"erro": "mensagem"}`. Idoso só acessa os próprios dados
    - `V5__criar_dispositivo.sql` (necessário para o push instantâneo: guarda o token do Firebase de cada aparelho)
    - `V6__criar_aviso_atraso_enviado.sql` (necessário para o aviso de "remédio esquecido" na hora: evita repetir o mesmo aviso)
    - `V7__criar_consentimento.sql` (necessário para a LGPD: guarda qual versão da política cada pessoa aceitou e quando)
+   - `V8__criar_metrica_anuncio.sql` (contagens anônimas dos banners, para o painel de anúncios)
 2. Copie `.env.example` para `.env` na raiz do repositório e preencha:
    - `DATABASE_URL`: a string de conexão da Neon (botão **Connect**)
    - `JWT_SECRET`: só para a API; um texto aleatório com pelo menos 32 caracteres (`openssl rand -base64 48`)
@@ -299,6 +300,7 @@ O que foi decidido, as alternativas consideradas e o porquê estão documentados
 - [ADR-0052](Gerenciador%20de%20Medicamentos/docs/adr/ADR0052-lgpd-consentimento-politica-e-exportacao-de-dados.md): LGPD (consentimento, política de privacidade e exportação dos dados)
 - [ADR-0053](Gerenciador%20de%20Medicamentos/docs/adr/ADR0053-remocao-do-terminal-e-do-csv-gui-como-cliente-da-api.md): remoção do terminal e do CSV; a interface gráfica passa a usar a API
 - [ADR-0054](Gerenciador%20de%20Medicamentos/docs/adr/ADR0054-banners-de-anuncios-no-app-android.md): banners de anúncios no app Android
+- [ADR-0055](Gerenciador%20de%20Medicamentos/docs/adr/ADR0055-metricas-e-painel-de-anuncios.md): métricas dos banners e painel de anúncios
 
 ## Próximos passos
 

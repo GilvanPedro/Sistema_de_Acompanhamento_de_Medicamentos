@@ -127,6 +127,7 @@ class ApiFalsa : CuidaMedApi {
     override suspend fun registro(corpo: RegistroRequest): UsuarioDto = TODO()
     override suspend fun editarEu(corpo: EditarUsuarioRequest): UsuarioDto = TODO()
     override suspend fun excluirConta(corpo: ExcluirContaRequest): Response<Unit> = TODO()
+    override suspend fun enviarEventosDeAnuncios(corpo: br.com.cuidamed.data.EventosDeAnunciosRequest): Response<Unit> = Response.success(Unit)
     override suspend fun consentimento(): ConsentimentoDto = TODO()
     override suspend fun aceitarPolitica(corpo: ConsentimentoRequest): Response<Unit> = Response.success(Unit)
     override suspend fun exportar(corpo: ExcluirContaRequest): okhttp3.ResponseBody =

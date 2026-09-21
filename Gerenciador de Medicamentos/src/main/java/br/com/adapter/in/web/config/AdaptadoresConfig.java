@@ -14,6 +14,9 @@ import br.com.adapter.in.web.auth.RefreshTokenJdbcStore;
 import br.com.adapter.in.web.auth.RefreshTokenStore;
 import br.com.adapter.in.web.idempotencia.ChavesDeIdempotencia;
 import br.com.adapter.in.web.idempotencia.ChavesDeIdempotenciaJdbc;
+import br.com.adapter.in.web.metricas.MetricasDeAnuncios;
+import br.com.adapter.in.web.metricas.MetricasDeAnunciosJdbc;
+import br.com.adapter.in.web.painel.SenhaDoPainel;
 import br.com.adapter.in.web.privacidade.Consentimentos;
 import br.com.adapter.in.web.privacidade.ConsentimentosJdbc;
 import br.com.adapter.in.web.push.AvisosDeAtraso;
@@ -86,6 +89,17 @@ class AdaptadoresConfig {
     @Bean
     ChavesDeIdempotencia chavesDeIdempotencia(DataSource dataSource) {
         return new ChavesDeIdempotenciaJdbc(dataSource);
+    }
+
+    @Bean
+    MetricasDeAnuncios metricasDeAnuncios(DataSource dataSource) {
+        return new MetricasDeAnunciosJdbc(dataSource);
+    }
+
+    /** PAINEL_SENHA: senha do painel de anúncios (mínimo 12 caracteres). Sem ela, o painel fica desligado. */
+    @Bean
+    SenhaDoPainel senhaDoPainel() {
+        return new SenhaDoPainel(Ambiente.valor("PAINEL_SENHA"));
     }
 
     @Bean
