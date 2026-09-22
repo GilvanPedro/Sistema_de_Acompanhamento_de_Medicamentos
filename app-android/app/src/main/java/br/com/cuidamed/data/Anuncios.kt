@@ -66,9 +66,13 @@ fun linkSeguro(link: String?): String? = link?.trim()?.takeIf {
     (it.startsWith("https://") && runCatching { URI(it).host }.getOrNull()?.isNotBlank() == true) || LINK_DE_EMAIL.matches(it)
 }
 
-/** Lê o JSON do catálogo; texto inválido vira lista vazia (nunca derruba o app). */
-fun lerCatalogo(texto: String): List<Anuncio> =
-    runCatching { jsonDaApi.decodeFromString<ArquivoDeAnuncios>(texto).anuncios }.getOrDefault(emptyList())
+/**
+ * Lê o JSON do catálogo. Null é "texto inválido" (nunca derruba o app); uma lista vazia é uma resposta válida — quer
+ * dizer que não há nenhum banner ativo agora (por exemplo, todos pausados) — e não pode ser confundida com falha,
+ * senão o app cairia numa cópia antiga só porque, no momento, não há banner nenhum para mostrar de verdade.
+ */
+fun lerCatalogo(texto: String): List<Anuncio>? =
+    runCatching { jsonDaApi.decodeFromString<ArquivoDeAnuncios>(texto).anuncios }.getOrNull()
 
 /** Sorteia um banner com chance proporcional ao peso. Peso zero, negativo ou inválido tira o banner do sorteio. */
 fun List<Anuncio>.escolher(sorteio: Random = Random.Default): Anuncio? {
@@ -145,17 +149,20 @@ class CatalogoDeAnuncios(
         }
     }
 
-    /** Baixa a lista (primeiro a com pesos, depois a estática). null se nenhuma respondeu com algum banner. */
+    /**
+     * Baixa a lista (primeiro a com pesos, depois a estática). null só quando nenhum dos dois endereços deu uma
+     * resposta legível (sem internet, servidor fora, JSON quebrado...); uma lista vazia é aceita como resposta
+     * válida — pode ser que não haja banner ativo agora — e não passa para o próximo endereço nem cai na cópia antiga.
+     */
     private suspend fun carregarLista(): List<Anuncio>? = withContext(Dispatchers.IO) {
         for (url in urlsDoCatalogo) {
             val texto = runCatching {
                 http.newCall(Request.Builder().url(url).build()).execute().use { r -> if (r.isSuccessful) r.body.string() else null }
             }.getOrNull() ?: continue
-            val anuncios = normalizar(url, lerCatalogo(texto))
-            if (anuncios.isNotEmpty()) {
-                prefs.edit().putString("lista", jsonDaApi.encodeToString(ArquivoDeAnuncios(anuncios))).apply()
-                return@withContext anuncios
-            }
+            val lido = lerCatalogo(texto) ?: continue
+            val anuncios = normalizar(url, lido)
+            prefs.edit().putString("lista", jsonDaApi.encodeToString(ArquivoDeAnuncios(anuncios))).apply()
+            return@withContext anuncios
         }
         null
     }

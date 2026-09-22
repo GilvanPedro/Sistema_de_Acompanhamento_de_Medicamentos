@@ -56,19 +56,29 @@ class AnunciosTest {
     }
 
     @Test
-    fun catalogoEhLidoIgnorandoCamposDesconhecidosEInvalidoViraListaVazia() {
+    fun catalogoEhLidoIgnorandoCamposDesconhecidosEInvalidoViraNull() {
         val json = """{"versao": 3, "anuncios": [
             {"id": "a", "imagem": "a.png", "link": "https://x.exemplo", "texto": "Anúncio A", "novo": true},
             {"id": "b", "imagem": "b.png"}]}"""
-        val lista = lerCatalogo(json)
+        val lista = lerCatalogo(json)!!
         assertEquals(listOf("a", "b"), lista.map { it.id })
         assertEquals("Anúncio A", lista[0].texto)
         assertNull(lista[1].link)
         assertEquals("Anúncio", lista[1].texto)
 
-        assertTrue(lerCatalogo("isto não é json").isEmpty())
-        assertTrue(lerCatalogo("""{"anuncios": "quebrado"}""").isEmpty())
-        assertTrue(lerCatalogo("""{}""").isEmpty())
+        // texto ilegível: null, para o app tentar outro endereço ou manter o que já tinha — nunca confundir com
+        // "servidor respondeu e não há banner nenhum agora" (essa resposta é lista vazia, não null; ver o teste abaixo)
+        assertNull(lerCatalogo("isto não é json"))
+        assertNull(lerCatalogo("""{"anuncios": "quebrado"}"""))
+        // json válido, sem a lista de anúncios: usa o padrão (lista vazia) — não é uma falha de leitura
+        assertEquals(emptyList<Anuncio>(), lerCatalogo("""{}"""))
+    }
+
+    @Test
+    fun catalogoValidoComListaVaziaNaoEConfundidoComFalhaDeLeitura() {
+        // é a resposta de verdade quando todos os banners estão pausados: precisa continuar sendo "sem banner agora",
+        // e não null (que faria o app tentar outro endereço ou cair numa cópia antiga guardada no aparelho)
+        assertEquals(emptyList<Anuncio>(), lerCatalogo("""{"anuncios": []}"""))
     }
 
     @Test
@@ -106,9 +116,9 @@ class AnunciosTest {
 
     @Test
     fun aListaDoServidorJaVemComPesoEAEstaticaAssumePesoUm() {
-        val comPeso = lerCatalogo("""{"anuncios":[{"id":"a","imagem":"https://cdn.exemplo/a.png","peso":2.5}]}""")
+        val comPeso = lerCatalogo("""{"anuncios":[{"id":"a","imagem":"https://cdn.exemplo/a.png","peso":2.5}]}""")!!
         assertEquals(2.5, comPeso[0].peso, 1e-9)
-        val estatica = lerCatalogo("""{"anuncios":[{"id":"a","imagem":"a.png"}]}""")
+        val estatica = lerCatalogo("""{"anuncios":[{"id":"a","imagem":"a.png"}]}""")!!
         assertEquals(1.0, estatica[0].peso, 1e-9)
     }
 
@@ -133,7 +143,7 @@ class AnunciosTest {
             {"id":"b","imagem":"https://cdn.exemplo/b.png","video":"http://cdn.exemplo/b.mp4"},
             {"id":"c","imagem":"https://cdn.exemplo/c.png"},
             {"id":"d","imagem":"d.png","video":"d.mp4"}]}"""
-        val lista = normalizar(catalogo, lerCatalogo(json)).associateBy { it.id }
+        val lista = normalizar(catalogo, lerCatalogo(json)!!).associateBy { it.id }
         assertEquals("https://cdn.exemplo/a.mp4", lista.getValue("a").video)
         // vídeo sem https perde só o vídeo: o banner continua, com a imagem
         assertNull(lista.getValue("b").video)
