@@ -76,21 +76,24 @@ public class PesosDosBanners {
 
     /**
      * O peso de cada banner. A parte desejada de cada um vem do {@code peso} do catálogo (padrão 1, todos iguais);
-     * o ajuste compara as exibições recentes com essa parte. Banner com peso 0 no catálogo fica de fora (pausado).
+     * o ajuste compara as exibições recentes com essa parte. Banner com peso 0 (ou negativo) no catálogo fica de fora
+     * (pausado) — mesmo que ele seja o único banner cadastrado, ou que todos estejam pausados: nesse caso a lista
+     * sai vazia, e não "todos com peso igual" (senão pausar o único banner que existe voltaria a exibi-lo).
      */
     static List<BannerComPeso> calcular(List<Banner> banners, Map<String, Long> exibicoesNaJanela) {
-        double somaDosPesos = banners.stream().mapToDouble(b -> Math.max(b.peso(), 0)).sum();
-        long total = banners.stream().mapToLong(b -> exibicoesNaJanela.getOrDefault(b.id(), 0L)).sum();
+        List<Banner> ativos = banners.stream().filter(b -> b.peso() > 0).toList();
+        if (ativos.isEmpty()) {
+            return List.of();
+        }
+        double somaDosPesos = ativos.stream().mapToDouble(Banner::peso).sum();
+        long total = ativos.stream().mapToLong(b -> exibicoesNaJanela.getOrDefault(b.id(), 0L)).sum();
         List<BannerComPeso> resultado = new ArrayList<>();
-        for (Banner b : banners) {
-            double parte = somaDosPesos <= 0 ? 1.0 / banners.size() : Math.max(b.peso(), 0) / somaDosPesos;
-            if (parte <= 0) {
-                continue; // pausado
-            }
+        for (Banner b : ativos) {
+            double parte = b.peso() / somaDosPesos;
             double alvo = total * parte;
             double feitas = exibicoesNaJanela.getOrDefault(b.id(), 0L);
             double ajuste = Math.min(AJUSTE_MAXIMO, Math.max(AJUSTE_MINIMO, Math.pow((alvo + SUAVIZACAO) / (feitas + SUAVIZACAO), GANHO)));
-            resultado.add(new BannerComPeso(b, Math.round(parte * ajuste * banners.size() * 10_000.0) / 10_000.0));
+            resultado.add(new BannerComPeso(b, Math.round(parte * ajuste * ativos.size() * 10_000.0) / 10_000.0));
         }
         return resultado;
     }

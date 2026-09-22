@@ -71,10 +71,19 @@ class PesosDosBannersTest {
     }
 
     @Test
-    void catalogoVazioOuTodosPausadosNaoQuebra() {
+    void catalogoVazioOuTodosPausadosNaoQuebraEmostraNada() {
         assertTrue(PesosDosBanners.calcular(List.of(), Map.of()).isEmpty());
-        var todosPausados = PesosDosBanners.calcular(List.of(banner("a", 0), banner("b", 0)), Map.of());
-        assertEquals(2, todosPausados.size(), "sem nenhum peso, cai para todos iguais em vez de mostrar nada");
+        // com todos pausados (nenhum peso positivo), a lista fica vazia: nunca volta a exibir quem foi pausado
+        assertTrue(PesosDosBanners.calcular(List.of(banner("a", 0), banner("b", 0)), Map.of()).isEmpty());
+        assertTrue(PesosDosBanners.calcular(List.of(banner("a", -1)), Map.of()).isEmpty(), "peso negativo também conta como pausado");
+    }
+
+    @Test
+    void umUnicoBannerPausadoNaoAparece() {
+        // é o caso relatado no uso real: só existe um banner cadastrado, e ele foi pausado
+        assertTrue(PesosDosBanners.calcular(List.of(banner("unico", 0)), Map.of()).isEmpty());
+        assertTrue(PesosDosBanners.calcular(List.of(banner("unico", 0)), Map.of("unico", 500L)).isEmpty(),
+                "mesmo com exibições antigas registradas, continua pausado");
     }
 
     /**
