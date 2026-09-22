@@ -87,6 +87,37 @@ private fun podeAbrirTelaCheia(contexto: Context): Boolean =
     Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE ||
         contexto.getSystemService(android.app.NotificationManager::class.java).canUseFullScreenIntent()
 
+/**
+ * Com o celular desbloqueado e o app só minimizado, o alarme não consegue mais abrir a tela sozinho (só sobre a tela
+ * de bloqueio). Ligando esta permissão, ele passa a aparecer por cima de qualquer app nesse caso também (ver
+ * [SobreposicaoDoAlarme]). Opcional: sem ela, o alarme ainda toca, vibra e mostra a notificação normalmente.
+ */
+@Composable
+fun AvisoDeSobreposicao() {
+    val contexto = LocalContext.current
+    var permitido by remember { mutableStateOf(SobreposicaoDoAlarme.permitido(contexto)) }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { permitido = SobreposicaoDoAlarme.permitido(contexto) }
+    if (!permitido) {
+        Cartao(Tom.AVISO) {
+            Text(
+                "Para o alarme do remédio aparecer na tela mesmo com o celular desbloqueado (não só quando ele está bloqueado), permita \"Exibir sobre outros apps\" para o CuidaMed.",
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            BotaoGrande("Permitir", {
+                try {
+                    contexto.startActivity(
+                        Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
+                            .setData(android.net.Uri.parse("package:${contexto.packageName}"))
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    )
+                } catch (e: ActivityNotFoundException) {
+                    // aparelho sem essa tela específica: nada a fazer, a permissão fica desligada
+                }
+            })
+        }
+    }
+}
+
 fun abrirConfiguracoesDeNotificacao(contexto: Context) {
     val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
         .putExtra(Settings.EXTRA_APP_PACKAGE, contexto.packageName)

@@ -29,8 +29,8 @@ android {
         applicationId = "br.com.cuidamed"
         minSdk = 26
         targetSdk = 37
-        versionCode = 10
-        versionName = "1.3.5"
+        versionCode = 13
+        versionName = "1.3.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

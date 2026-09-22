@@ -16,6 +16,10 @@
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Opcional: com o celular desbloqueado e o app apenas minimizado, o Android não deixa mais abrir a tela do
+         alarme sozinha (só sobre a tela de bloqueio). Com esta permissão (a pessoa liga manualmente, como a de bateria),
+         o alarme desenha a própria tela por cima de qualquer app. Sem ela, o alarme ainda toca e vibra normalmente. -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <!-- Dados de saúde: sem backup na nuvem, e só tráfego HTTPS (sem texto puro). -->
     <application
