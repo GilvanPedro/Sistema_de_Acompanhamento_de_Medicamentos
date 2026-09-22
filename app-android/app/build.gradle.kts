@@ -29,8 +29,8 @@ android {
         applicationId = "br.com.cuidamed"
         minSdk = 26
         targetSdk = 37
-        versionCode = 13
-        versionName = "1.3.8"
+        versionCode = 14
+        versionName = "1.3.9"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -53,6 +53,11 @@ android {
             isShrinkResources = true
             optimization {
                 enable = true
+            }
+            // Inclui os símbolos de depuração do código nativo (bibliotecas de terceiros como o media3) direto no
+            // .aab, para o Play Console conseguir decifrar falhas nativas sem precisar de upload manual à parte.
+            ndk {
+                debugSymbolLevel = "FULL"
             }
         }
     }
