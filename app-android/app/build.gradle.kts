@@ -48,8 +48,11 @@ android {
     buildTypes {
         release {
             signingConfigs.findByName("release")?.let { signingConfig = it }
+            // R8 liga a remoção de código não usado, a otimização e a ofuscação dos nomes; encolhe o pacote e
+            // dificulta a leitura de quem tentar ler o APK. As regras próprias ficam em proguard-rules.pro.
+            isShrinkResources = true
             optimization {
-                enable = false
+                enable = true
             }
         }
     }

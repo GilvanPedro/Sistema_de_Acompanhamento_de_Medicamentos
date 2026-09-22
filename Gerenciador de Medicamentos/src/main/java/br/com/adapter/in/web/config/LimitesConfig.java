@@ -73,4 +73,22 @@ class LimitesConfig {
     LimiteDeTentativas limiteRedefinicao() {
         return new LimiteDeTentativas(20, Duration.ofHours(1), CAPACIDADE);
     }
+
+    /** Pedidos de "excluir minha conta" por IP (página pública, sem senha). */
+    @Bean
+    LimiteDeTentativas limiteExclusaoPorIp() {
+        return new LimiteDeTentativas(5, Duration.ofHours(1), CAPACIDADE);
+    }
+
+    /** Pedidos de "excluir minha conta" por e-mail: ninguém consegue encher a caixa de outra pessoa. */
+    @Bean
+    LimiteDeTentativas limiteExclusaoPorEmail() {
+        return new LimiteDeTentativas(3, Duration.ofHours(1), CAPACIDADE);
+    }
+
+    /** Confirmações de exclusão de conta, por IP. */
+    @Bean
+    LimiteDeTentativas limiteExclusaoConfirmacao() {
+        return new LimiteDeTentativas(10, Duration.ofHours(1), CAPACIDADE);
+    }
 }

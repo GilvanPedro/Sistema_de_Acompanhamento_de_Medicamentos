@@ -12,7 +12,9 @@ class EmailsEnviados implements EnviadorDeEmail {
 
     record Email(String para, String assunto, String texto) { }
 
-    private static final Pattern LINK = Pattern.compile("/redefinir-senha\\?token=([A-Za-z0-9_-]+)");
+    // Serve tanto para o link de "esqueci minha senha" (/redefinir-senha?token=...) quanto para o de
+    // "excluir minha conta" (/excluir-conta?token=...): o teste olha para o parâmetro, não para o caminho.
+    private static final Pattern LINK = Pattern.compile("[?&]token=([A-Za-z0-9_-]+)");
     private final List<Email> enviados = new ArrayList<>();
 
     @Override
@@ -37,6 +39,6 @@ class EmailsEnviados implements EnviadorDeEmail {
                 return m.group(1);
             }
         }
-        throw new AssertionError("Nenhum link de redefinição foi enviado para " + endereco);
+        throw new AssertionError("Nenhum e-mail com link (token=...) foi enviado para " + endereco);
     }
 }

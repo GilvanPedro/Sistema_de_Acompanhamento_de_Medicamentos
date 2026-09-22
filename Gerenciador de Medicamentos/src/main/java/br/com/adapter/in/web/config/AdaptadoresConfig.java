@@ -148,6 +148,11 @@ class AdaptadoresConfig {
         return new br.com.adapter.in.web.recuperacao.RedefinicoesDeSenhaJdbc(dataSource);
     }
 
+    @Bean
+    br.com.adapter.in.web.exclusao.ExclusoesDeConta exclusoesDeConta(DataSource dataSource) {
+        return new br.com.adapter.in.web.exclusao.ExclusoesDeContaJdbc(dataSource);
+    }
+
     /**
      * E-mail de "esqueci minha senha" pela Brevo (HTTPS; o plano grátis do Render bloqueia SMTP). Precisa de
      * EMAIL_BREVO_CHAVE (chave de API) e EMAIL_REMETENTE (um e-mail já validado na Brevo); sem eles, nada é enviado.

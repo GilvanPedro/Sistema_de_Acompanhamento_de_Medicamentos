@@ -155,6 +155,11 @@ class ConfiguracaoDeTeste {
         return new RedefinicoesEmMemoria();
     }
 
+    @Bean
+    br.com.adapter.in.web.exclusao.ExclusoesDeConta exclusoesDeConta() {
+        return new ExclusoesEmMemoria();
+    }
+
     /** Os e-mails saem na hora e na mesma linha de execução, para o teste poder olhar o que foi enviado. */
     @Bean
     @Qualifier("executorDeEmail")

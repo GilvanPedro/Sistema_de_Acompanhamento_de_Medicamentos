@@ -135,6 +135,7 @@ Os erros voltam como `{"erro": "mensagem"}`. Idoso só acessa os próprios dados
    - `V10__adicionar_video_ao_banner.sql` (vídeo curto opcional no banner)
    - `V11__medicamento_vigente_desde.sql` (desde quando o horário do remédio vale, para o "não tomou" do histórico)
    - `V12__criar_redefinicao_senha.sql` (links de "esqueci minha senha", só com o hash do token)
+   - `V13__criar_exclusao_conta.sql` (links de "excluir minha conta", só com o hash do token)
 2. Copie `.env.example` para `.env` na raiz do repositório e preencha:
    - `DATABASE_URL`: a string de conexão da Neon (botão **Connect**)
    - `JWT_SECRET`: só para a API; um texto aleatório com pelo menos 32 caracteres (`openssl rand -base64 48`)
@@ -313,6 +314,7 @@ O que foi decidido, as alternativas consideradas e o porquê estão documentados
 - [ADR-0061](Gerenciador%20de%20Medicamentos/docs/adr/ADR0061-historico-em-pdf.md): histórico em PDF para levar ao médico
 - [ADR-0062](Gerenciador%20de%20Medicamentos/docs/adr/ADR0062-alarme-no-lugar-da-notificacao.md): alarme de remédio no lugar da notificação
 - [ADR-0063](Gerenciador%20de%20Medicamentos/docs/adr/ADR0063-recuperacao-de-senha-por-email.md): recuperação de senha por e-mail
+- [ADR-0064](Gerenciador%20de%20Medicamentos/docs/adr/ADR0064-exclusao-de-conta-por-link-publico.md): exclusão de conta por um link público
 
 ## Próximos passos
 

@@ -61,6 +61,19 @@ class ServicosConfig {
                 java.time.Clock.systemDefaultZone());
     }
 
+    /** URL_PUBLICA: mesmo endereço usado no link de "esqueci minha senha" (ADR-0063). */
+    @Bean
+    br.com.adapter.in.web.exclusao.SolicitacaoDeExclusaoDeConta solicitacaoDeExclusaoDeConta(
+            SalvarUsuarioPort usuarios, ExcluirUsuarioService excluirUsuarioService, br.com.adapter.in.web.exclusao.ExclusoesDeConta exclusoes,
+            br.com.adapter.in.web.recuperacao.RedefinicoesDeSenha redefinicoesDeSenha, br.com.adapter.in.web.auth.RefreshTokenStore sessoes,
+            br.com.adapter.in.web.push.Dispositivos dispositivos, br.com.adapter.in.web.privacidade.Consentimentos consentimentos,
+            br.com.adapter.in.web.recuperacao.EnviadorDeEmail email, @Qualifier("executorDeEmail") java.util.concurrent.Executor executor) {
+        return new br.com.adapter.in.web.exclusao.SolicitacaoDeExclusaoDeConta(usuarios, excluirUsuarioService, exclusoes, redefinicoesDeSenha,
+                sessoes, dispositivos, consentimentos, email, executor,
+                br.com.config.Ambiente.valor("URL_PUBLICA", "https://sistema-de-acompanhamento-de-medicamentos.onrender.com"),
+                java.time.Clock.systemDefaultZone());
+    }
+
     @Bean
     ExcluirUsuarioService excluirUsuarioService(SalvarUsuarioPort usuarios) {
         return new ExcluirUsuarioService(usuarios);

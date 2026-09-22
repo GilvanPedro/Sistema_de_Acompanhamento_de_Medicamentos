@@ -46,6 +46,7 @@ val SECOES_DA_POLITICA: List<Pair<String, List<String>>> = listOf(
     "7. Seus direitos" to listOf(
         "Você pode, a qualquer momento (LGPD, art. 18): confirmar que tratamos seus dados; acessar e receber uma cópia; corrigir; pedir a eliminação; saber com quem compartilhamos; e retirar o consentimento.",
         "No app, em \"Meus dados\": corrija nome e e-mail, baixe uma cópia de tudo com \"Baixar meus dados\" e exclua a conta com \"Excluir minha conta\".",
+        "Sem abrir o app (por exemplo, se você esqueceu a senha e não consegue entrar): peça a exclusão na página cuidamed.onrender.com/excluir-conta, informando o e-mail da conta. Enviamos um link de confirmação por e-mail, que vale por 30 minutos.",
         "Se preferir, escreva para gilvanpedro2006@gmail.com. Você também pode reclamar à Autoridade Nacional de Proteção de Dados (ANPD).",
     ),
     "8. Como protegemos" to listOf(

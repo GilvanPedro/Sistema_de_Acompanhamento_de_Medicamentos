@@ -1,0 +1,37 @@
+# Regras do R8 do CuidaMed (ADR pendente de escrever; ver comentários abaixo).
+# Documentação: https://developer.android.com/build/shrink-code
+
+# Deixa o arquivo de mapeamento (nome real das classes) num lugar fácil de achar depois de cada versão:
+# é ele que traduz um relatório de erro (Play Console, stack trace) de volta para os nomes originais.
+# (o próprio Gradle já grava em app/build/outputs/mapping/release/mapping.txt)
+
+# --- WorkManager: os "trabalhos" agendados (sincronizar remédio tomado, checar eventos, sincronização geral)
+# ficam salvos em um banco no aparelho até rodarem, guardando o NOME da classe. Numa atualização do app, se o nome
+# mudasse de uma versão para a outra, um trabalho que ainda não rodou perderia a classe e falharia silenciosamente
+# (por exemplo, um "já tomei" registrado sem internet que ainda não subiu). Por isso esses três não são renomeados.
+-keep public class br.com.cuidamed.notificacoes.TomadaWorker { public <init>(android.content.Context, androidx.work.WorkerParameters); }
+-keep public class br.com.cuidamed.notificacoes.VerificadorDeEventosWorker { public <init>(android.content.Context, androidx.work.WorkerParameters); }
+-keep public class br.com.cuidamed.notificacoes.SincronizadorWorker { public <init>(android.content.Context, androidx.work.WorkerParameters); }
+
+# --- kotlinx.serialization: os formatos JSON da API (Modelos.kt) são convertidos por um serializador gerado em
+# tempo de compilação. As regras abaixo seguem a recomendação oficial da biblioteca, para o R8 não remover essas
+# classes geradas nem os métodos "serializer()" usados por elas.
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.AnnotationsKt
+
+-keepclassmembers class kotlinx.serialization.json.** {
+    *** Companion;
+}
+-keepclasseswithmembers class kotlinx.serialization.json.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
+-keepclasseswithmembers class br.com.cuidamed.**$$serializer {
+    *** INSTANCE;
+}
+-keepclassmembers class br.com.cuidamed.data.** {
+    *** Companion;
+}
+-keepclasseswithmembers class br.com.cuidamed.data.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}

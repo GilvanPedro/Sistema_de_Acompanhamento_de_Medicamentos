@@ -34,11 +34,13 @@ class UsuarioController {
     private final br.com.adapter.in.web.push.Dispositivos dispositivos;
     private final br.com.adapter.in.web.privacidade.Consentimentos consentimentos;
     private final br.com.adapter.in.web.recuperacao.RedefinicoesDeSenha redefinicoes;
+    private final br.com.adapter.in.web.exclusao.ExclusoesDeConta exclusoesDeConta;
 
     UsuarioController(Acesso acesso, EditarUsuarioService editar, ExcluirUsuarioService excluir, TokenService tokens,
                       ConfirmacaoDeSenha confirmacao, br.com.adapter.in.web.push.Dispositivos dispositivos,
                       br.com.adapter.in.web.privacidade.Consentimentos consentimentos,
-                      br.com.adapter.in.web.recuperacao.RedefinicoesDeSenha redefinicoes) {
+                      br.com.adapter.in.web.recuperacao.RedefinicoesDeSenha redefinicoes,
+                      br.com.adapter.in.web.exclusao.ExclusoesDeConta exclusoesDeConta) {
         this.acesso = acesso;
         this.editar = editar;
         this.excluir = excluir;
@@ -47,6 +49,7 @@ class UsuarioController {
         this.dispositivos = dispositivos;
         this.consentimentos = consentimentos;
         this.redefinicoes = redefinicoes;
+        this.exclusoesDeConta = exclusoesDeConta;
     }
 
     @GetMapping
@@ -85,6 +88,7 @@ class UsuarioController {
         dispositivos.removerTodos(atual.getId());
         consentimentos.removerDe(atual.getId());
         redefinicoes.removerDe(atual.getId());
+        exclusoesDeConta.removerDe(atual.getId());
         return ResponseEntity.noContent().build();
     }
 
