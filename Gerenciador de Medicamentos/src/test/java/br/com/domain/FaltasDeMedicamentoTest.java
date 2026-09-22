@@ -33,13 +33,13 @@ class FaltasDeMedicamentoTest {
     }
 
     @Test
-    void horarioSemTomadaViraFaltaDepoisQueOFimDoDiaPassa() {
+    void horarioSemTomadaViraFaltaUmaHoraDepoisDoPrevisto() {
         Medicamento m = remedio(DayOfWeek.MONDAY, "08:00", SEGUNDA.minusDays(30).atStartOfDay());
-        // na segunda à noite ainda não é falta: o dia não acabou
-        assertTrue(FaltasDeMedicamento.calcular(IDOSO, List.of(m), List.of(), SEGUNDA.atTime(23, 0), null).stream()
+        // dentro da tolerância (1h): ainda não é falta, mesmo sem tomada
+        assertTrue(FaltasDeMedicamento.calcular(IDOSO, List.of(m), List.of(), SEGUNDA.atTime(8, 59), null).stream()
                 .noneMatch(f -> f.getDataHoraTomada().toLocalDate().equals(SEGUNDA)));
-        // na terça às 4h (passou a folga da madrugada), a segunda vira falta, no horário previsto
-        List<HistoricoMedicamento> faltas = FaltasDeMedicamento.calcular(IDOSO, List.of(m), List.of(), SEGUNDA.plusDays(1).atTime(4, 0), null);
+        // passada a tolerância (mesmo no mesmo dia, sem esperar ele acabar), vira falta, no horário previsto
+        List<HistoricoMedicamento> faltas = FaltasDeMedicamento.calcular(IDOSO, List.of(m), List.of(), SEGUNDA.atTime(9, 1), null);
         HistoricoMedicamento hoje = faltas.stream().filter(f -> f.getDataHoraTomada().toLocalDate().equals(SEGUNDA)).findFirst().orElseThrow();
         assertEquals(SEGUNDA.atTime(8, 0), hoje.getDataHoraTomada());
         assertFalse(hoje.isFoiTomado());
@@ -47,9 +47,15 @@ class FaltasDeMedicamentoTest {
     }
 
     @Test
-    void naMadrugadaSeguinteAindaHaFolgaParaQuemTomaTarde() {
+    void remedioDeMadrugadaViraFaltaUmaHoraDepoisMasAindaDaParaCorrigirDentroDaFolga() {
         Medicamento m = remedio(DayOfWeek.MONDAY, "23:50", SEGUNDA.minusDays(3).atStartOfDay());
-        assertTrue(FaltasDeMedicamento.calcular(IDOSO, List.of(m), List.of(), SEGUNDA.plusDays(1).atTime(1, 0), SEGUNDA).isEmpty());
+        // 40 minutos depois: ainda dentro da tolerância, não é falta
+        assertTrue(FaltasDeMedicamento.calcular(IDOSO, List.of(m), List.of(), SEGUNDA.plusDays(1).atTime(0, 30), SEGUNDA).isEmpty());
+        // passada 1h (00:50), já aparece como falta, mesmo de madrugada e o dia de segunda não ter acabado de verdade
+        assertFalse(FaltasDeMedicamento.calcular(IDOSO, List.of(m), List.of(), SEGUNDA.plusDays(1).atTime(1, 0), SEGUNDA).isEmpty());
+        // mas se a pessoa marcar dentro da folga da madrugada (3h após o horário), a tomada ainda cobre o de ontem e a falta some
+        List<HistoricoMedicamento> registros = List.of(tomada(m, SEGUNDA.plusDays(1).atTime(1, 30)));
+        assertTrue(FaltasDeMedicamento.calcular(IDOSO, List.of(m), registros, SEGUNDA.plusDays(1).atTime(2, 0), SEGUNDA).isEmpty());
     }
 
     @Test

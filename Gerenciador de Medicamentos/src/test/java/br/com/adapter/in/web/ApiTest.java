@@ -517,17 +517,17 @@ class ApiTest {
     @Test
     void agendadorAvisaOFamiliarDoRemedioEsquecidoUmaVezSoEExigeSegredo() throws Exception {
         java.time.LocalDateTime agora = java.time.LocalDateTime.now();
-        org.junit.jupiter.api.Assumptions.assumeTrue(agora.getHour() >= 1, "perto da meia-noite o atraso cairia no dia anterior");
+        org.junit.jupiter.api.Assumptions.assumeTrue(agora.getHour() >= 2, "perto da meia-noite o atraso cairia no dia anterior");
         Sessao idoso = criarConta("IDOSO", "Seu Anselmo");
         Sessao familiar = criarConta("FAMILIAR", "Filha Bia");
         vincular(familiar, idoso);
         mvc.perform(com(put("/api/v1/me/dispositivos"), familiar).contentType(MediaType.APPLICATION_JSON)
                 .content(corpo(Map.of("token", "token-bia")))).andExpect(status().isNoContent());
 
-        // remédio de hoje, marcado para uma hora atrás (passou da tolerância) e ainda não tomado
+        // remédio de hoje, marcado para duas horas atrás (passou bem da tolerância de 1h) e ainda não tomado
         mvc.perform(com(post("/api/v1/idosos/" + idoso.id() + "/medicamentos"), idoso).contentType(MediaType.APPLICATION_JSON)
                 .content(corpo(Map.of("nome", "Metformina", "diaSemana", agora.getDayOfWeek().name(),
-                        "horario", agora.minusHours(1).toLocalTime().withSecond(0).withNano(0).toString(), "tipo", "COMPRIMIDO"))))
+                        "horario", agora.minusHours(2).toLocalTime().withSecond(0).withNano(0).toString(), "tipo", "COMPRIMIDO"))))
                 .andExpect(status().isCreated());
 
         // sem segredo, ou com segredo errado: recusado e nada é enviado; o de verdade é aceito

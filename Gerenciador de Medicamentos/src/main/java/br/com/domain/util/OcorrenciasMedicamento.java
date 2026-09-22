@@ -14,8 +14,13 @@ import br.com.domain.model.Medicamento;
  */
 public final class OcorrenciasMedicamento {
 
-    /** Até quantos minutos depois do horário ainda é um "lembrete"; passou disso, o remédio foi esquecido. */
-    public static final int TOLERANCIA_MINUTOS = 10;
+    /**
+     * Até quantos minutos depois do horário ainda é um "lembrete"; passou disso, o remédio foi esquecido: o alarme e
+     * as notificações param de insistir por esse dia, o remédio aparece como "não tomado" no histórico (mesmo o dia
+     * ainda não tendo acabado) e, se houver familiar vinculado, ele é avisado. Continua dando para marcar como tomado
+     * depois, a qualquer hora do mesmo dia: aí o "não tomado" desaparece e vira "tomado" (ADR-0065).
+     */
+    public static final int TOLERANCIA_MINUTOS = 60;
 
     /** Depois da meia-noite, o horário previsto de ontem ainda importa por este tempo. */
     public static final Duration PRAZO_APOS_MEIA_NOITE = Duration.ofHours(3);

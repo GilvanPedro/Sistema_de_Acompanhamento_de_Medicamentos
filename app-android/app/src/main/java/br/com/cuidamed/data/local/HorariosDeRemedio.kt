@@ -14,7 +14,8 @@ import java.time.LocalTime
  */
 object HorariosDeRemedio {
 
-    const val TOLERANCIA_MINUTOS = 10L
+    /** Depois disso sem marcar, o remédio é "esquecido": o alarme para de insistir por esse dia (ADR-0065). */
+    const val TOLERANCIA_MINUTOS = 60L
     val PRAZO_APOS_MEIA_NOITE: Duration = Duration.ofHours(3)
 
     fun relevantes(remedio: MedicamentoDto, agora: LocalDateTime): List<LocalDateTime> {

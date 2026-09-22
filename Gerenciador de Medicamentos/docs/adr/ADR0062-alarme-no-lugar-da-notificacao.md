@@ -32,3 +32,7 @@ Na hora do remédio (e no aviso de atraso, 10 minutos depois, se não marcou), o
 - O ícone de alarme aparece na barra de status enquanto houver um remédio marcado.
 - Se o volume do alarme do celular estiver no zero, só a vibração e a tela avisam.
 - Ao publicar na Play Store, a permissão de tela cheia e o uso de alarmes exatos entram na revisão de políticas.
+
+## Atualização (ADR-0065)
+
+A tolerância antes do aviso de atraso subiu de 10 minutos para 1 hora; depois dele, o alarme não insiste mais nesse dia.

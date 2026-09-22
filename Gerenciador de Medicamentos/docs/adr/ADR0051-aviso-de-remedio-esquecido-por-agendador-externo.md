@@ -61,3 +61,7 @@ Um job no **cron-job.org** (gratuito) faz `POST` na rota **a cada 5 minutos**, c
 1. Rodar `V6__criar_aviso_atraso_enviado.sql` na Neon.
 2. No Render, criar a variável `CRON_SEGREDO` (`openssl rand -hex 24`).
 3. No cron-job.org, criar um job `POST https://<servidor>/api/v1/interno/atrasos`, a cada 5 minutos, com o cabeçalho `X-Cron-Segredo` igual ao segredo.
+
+## Atualização (ADR-0065)
+
+A tolerância usada para classificar "esquecido" subiu de 10 minutos para 1 hora; o familiar passa a ser avisado até 1 hora depois do horário, não mais 10 minutos.

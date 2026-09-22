@@ -58,7 +58,8 @@ class VisaoTest {
         fun avisos(agora: LocalDateTime, historico: List<HistoricoDto> = emptyList()) = Visao.avisos(listOf(losartana), historico, agora).map { it.tipo }
         assertEquals(emptyList<String>(), avisos(LocalDateTime.of(2026, 9, 21, 7, 59)))
         assertEquals(listOf("LEMBRETE"), avisos(LocalDateTime.of(2026, 9, 21, 8, 5)))
-        assertEquals(listOf("ESQUECIDO"), avisos(LocalDateTime.of(2026, 9, 21, 8, 30)))
+        assertEquals(listOf("LEMBRETE"), avisos(LocalDateTime.of(2026, 9, 21, 8, 55))) // dentro da 1h de tolerância
+        assertEquals(listOf("ESQUECIDO"), avisos(LocalDateTime.of(2026, 9, 21, 9, 5))) // passou 1h05
         val tomou = listOf(HistoricoDto(1, 1, "Losartana", "2026-09-21T08:20:00", true))
         assertEquals(listOf("TOMADO"), avisos(LocalDateTime.of(2026, 9, 21, 9, 0), tomou))
     }
@@ -74,8 +75,10 @@ class VisaoTest {
     @Test
     fun remedioDasVinteETresECinquentaAindaContaDepoisDaMeiaNoite() {
         val noite = losartana.copy(horario = "23:50")
-        val avisos = Visao.avisos(listOf(noite), emptyList(), LocalDateTime.of(2026, 9, 22, 0, 5))
-        assertEquals(listOf("ESQUECIDO"), avisos.map { it.tipo })
+        // 15 min depois, ainda dentro da 1h de tolerância
+        assertEquals(listOf("LEMBRETE"), Visao.avisos(listOf(noite), emptyList(), LocalDateTime.of(2026, 9, 22, 0, 5)).map { it.tipo })
+        // 1h10 depois, já é esquecido
+        assertEquals(listOf("ESQUECIDO"), Visao.avisos(listOf(noite), emptyList(), LocalDateTime.of(2026, 9, 22, 1, 0)).map { it.tipo })
         assertTrue(Visao.avisos(listOf(noite), emptyList(), LocalDateTime.of(2026, 9, 22, 3, 30)).isEmpty())
         // tomado depois da meia-noite cobre o horário de ontem, e não gera aviso nenhum
         val tomou = listOf(HistoricoDto(1, 1, "Losartana", "2026-09-22T00:10:00", true))

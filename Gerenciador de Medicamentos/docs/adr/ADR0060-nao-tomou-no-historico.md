@@ -29,3 +29,7 @@ Um horário previsto **que terminou sem tomada vira "Não tomou"** no histórico
 
 - A lista do histórico da API (`GET /idosos/{id}/historico`) passa a incluir as faltas (o app antigo já mostra "Não tomou" para elas).
 - É preciso rodar `V11__medicamento_vigente_desde.sql` na Neon **antes** de publicar: o servidor novo lê a coluna.
+
+## Atualização (ADR-0065)
+
+O horário não espera mais o dia acabar para virar "não tomado": a partir da tolerância de 1 hora (que também rege o alarme), já aparece assim, e ainda dá para corrigir a qualquer hora do dia.

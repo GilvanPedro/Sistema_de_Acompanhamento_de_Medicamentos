@@ -1,5 +1,6 @@
 package br.com.domain.util;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -14,9 +15,12 @@ import br.com.domain.model.Medicamento;
  * "horário previsto sem tomada que o cubra", feita quando o histórico é pedido. Assim ela some sozinha se a tomada
  * chegar depois (o celular pode ficar dias sem internet) e nunca fica desatualizada.
  *
- * <p>Um horário só vira falta depois de fechado: acabou o dia dele e também o prazo da madrugada
- * ({@link OcorrenciasMedicamento#PRAZO_APOS_MEIA_NOITE}). E só valem os horários a partir de
- * {@link Medicamento#getVigenteDesde()}, para um remédio recém-cadastrado não ter faltas nas semanas anteriores.
+ * <p>Um horário vira falta assim que passa a tolerância de esquecimento ({@link OcorrenciasMedicamento#TOLERANCIA_MINUTOS},
+ * a mesma dos avisos e do alarme) sem uma tomada que o cubra — não é preciso esperar o dia acabar (ADR-0065). Ainda dá
+ * para corrigir a qualquer hora do mesmo dia: uma tomada registrada depois faz a falta desaparecer na próxima consulta
+ * (inclusive de madrugada, para quem toma tarde da noite: ver {@link OcorrenciasMedicamento#tomadaCobre}). E só valem
+ * os horários a partir de {@link Medicamento#getVigenteDesde()}, para um remédio recém-cadastrado não ter faltas nas
+ * semanas anteriores.
  */
 public final class FaltasDeMedicamento {
 
@@ -55,10 +59,9 @@ public final class FaltasDeMedicamento {
         return faltas;
     }
 
-    /** O horário só vira falta quando o dia dele acabou e passou o prazo depois da meia-noite. */
+    /** O horário só vira falta quando passa mais que a tolerância de esquecimento sem tomada (a mesma do alarme e dos avisos). */
     static boolean fechado(LocalDateTime previsto, LocalDateTime agora) {
-        LocalDateTime fim = previsto.toLocalDate().plusDays(1).atStartOfDay().plus(OcorrenciasMedicamento.PRAZO_APOS_MEIA_NOITE);
-        return agora.isAfter(fim);
+        return Duration.between(previsto, agora).toMinutes() > OcorrenciasMedicamento.TOLERANCIA_MINUTOS;
     }
 
     private static boolean foiTomado(Medicamento medicamento, LocalDateTime previsto, List<HistoricoMedicamento> registros) {

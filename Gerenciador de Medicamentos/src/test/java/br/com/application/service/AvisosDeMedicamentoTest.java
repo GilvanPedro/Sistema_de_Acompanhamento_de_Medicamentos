@@ -73,7 +73,8 @@ class AvisosDeMedicamentoTest {
         Medicamento m = remedioDeSegunda(8, 0);
         assertTrue(avisos(em(21, 7, 59)).isEmpty(), "antes do horário não há aviso");
         assertEquals(TipoNotificacao.LEMBRETE, avisos(em(21, 8, 5)).get(0).getTipo());
-        assertEquals(TipoNotificacao.ESQUECIDO, avisos(em(21, 8, 30)).get(0).getTipo());
+        assertEquals(TipoNotificacao.LEMBRETE, avisos(em(21, 8, 55)).get(0).getTipo(), "dentro da 1h de tolerância, ainda é lembrete");
+        assertEquals(TipoNotificacao.ESQUECIDO, avisos(em(21, 9, 5)).get(0).getTipo(), "passou 1h05, já é esquecido");
         assertEquals(TipoNotificacao.ESQUECIDO, avisos(em(21, 23, 0)).get(0).getTipo());
 
         tomouEm(m, 21, 8, 20);
@@ -89,7 +90,8 @@ class AvisosDeMedicamentoTest {
     @Test
     void remedioDas2350AindaContaComoEsquecidoDepoisDaMeiaNoite() {
         Medicamento m = remedioDeSegunda(23, 50);
-        assertEquals(TipoNotificacao.ESQUECIDO, avisos(em(22, 0, 5)).get(0).getTipo());
+        assertEquals(TipoNotificacao.LEMBRETE, avisos(em(22, 0, 5)).get(0).getTipo(), "15 min depois, ainda dentro da 1h de tolerância");
+        assertEquals(TipoNotificacao.ESQUECIDO, avisos(em(22, 1, 0)).get(0).getTipo(), "1h10 depois, já é esquecido");
         assertEquals(TipoNotificacao.ESQUECIDO, avisos(em(22, 2, 30)).get(0).getTipo());
         assertTrue(avisos(em(22, 3, 30)).isEmpty(), "passado o prazo de 3 horas, some");
 

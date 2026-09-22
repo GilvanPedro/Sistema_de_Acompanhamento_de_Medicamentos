@@ -315,6 +315,7 @@ O que foi decidido, as alternativas consideradas e o porquê estão documentados
 - [ADR-0062](Gerenciador%20de%20Medicamentos/docs/adr/ADR0062-alarme-no-lugar-da-notificacao.md): alarme de remédio no lugar da notificação
 - [ADR-0063](Gerenciador%20de%20Medicamentos/docs/adr/ADR0063-recuperacao-de-senha-por-email.md): recuperação de senha por e-mail
 - [ADR-0064](Gerenciador%20de%20Medicamentos/docs/adr/ADR0064-exclusao-de-conta-por-link-publico.md): exclusão de conta por um link público
+- [ADR-0065](Gerenciador%20de%20Medicamentos/docs/adr/ADR0065-tolerancia-de-esquecimento-sobe-para-1-hora.md): tolerância de esquecimento sobe para 1 hora, e o "não tomado" aparece antes do fim do dia
 
 ## Próximos passos
 

@@ -314,7 +314,7 @@ class ServicoDoAlarme : Service() {
     }
 
     companion object {
-        /** Quanto tempo o alarme toca sem resposta. Depois disso vem o aviso de atraso, 10 minutos após o horário. */
+        /** Quanto tempo o alarme toca sem resposta. Depois disso, ele silencia; o próximo aviso de atraso vem em até 10 minutos. */
         const val DURACAO_MS = 60_000L
 
         private const val PREFS_DO_VOLUME = "alarme_volume"
@@ -399,7 +399,7 @@ class AlarmeActivity : ComponentActivity() {
                         if (!atraso) {
                             Spacer(Modifier.height(14.dp))
                             Text(
-                                "Se você não marcar que tomou, o alarme avisa de novo daqui a ${AgendadorDeLembretes.TOLERANCIA_MINUTOS} minutos.",
+                                "Se você não marcar que tomou, o alarme avisa de novo a cada 10 minutos, por até 1 hora. Depois disso, ele não insiste mais hoje, mas você ainda pode marcar como tomado a qualquer hora do dia.",
                                 style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center,
                             )
                         }
