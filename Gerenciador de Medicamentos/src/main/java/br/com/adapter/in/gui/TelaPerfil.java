@@ -49,6 +49,10 @@ class TelaPerfil extends Pagina {
                 aviso("A nova senha precisa ter pelo menos 8 caracteres.", Tom.AVISO);
                 return;
             }
+            if (novaSenha != null && novaSenha.length() > 72) {
+                aviso("A nova senha pode ter no máximo 72 caracteres.", Tom.AVISO);
+                return;
+            }
             if ((novaSenha != null || novoEmail != null) && atual == null) {
                 aviso("Para trocar o e-mail ou a senha, digite a sua senha atual.", Tom.AVISO);
                 return;

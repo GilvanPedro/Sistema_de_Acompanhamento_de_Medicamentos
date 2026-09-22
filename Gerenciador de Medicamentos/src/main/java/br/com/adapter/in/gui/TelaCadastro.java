@@ -34,6 +34,10 @@ class TelaCadastro extends Pagina {
                 aviso("A senha precisa ter pelo menos 8 caracteres.", Tom.AVISO);
                 return;
             }
+            if (senha.getPassword().length > 72) {
+                aviso("A senha pode ter no máximo 72 caracteres.", Tom.AVISO);
+                return;
+            }
             if (!aceito.isSelected()) {
                 aviso("Para criar a conta, leia e aceite a política de privacidade.", Tom.AVISO);
                 return;

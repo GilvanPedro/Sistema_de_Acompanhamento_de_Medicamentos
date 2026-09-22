@@ -21,6 +21,8 @@ import javax.swing.WindowConstants;
 
 import br.com.adapter.in.gui.Cartao.Tom;
 import br.com.adapter.in.gui.Tema.Papel;
+import br.com.adapter.in.gui.alarme.MonitorDeAvisos;
+import br.com.adapter.in.gui.alarme.NotificacaoDoSistema;
 import br.com.adapter.in.gui.api.ApiException;
 import br.com.adapter.in.gui.api.ClienteApi;
 import br.com.adapter.in.gui.api.Conta;
@@ -38,6 +40,8 @@ public class Navegador {
     private final JPanel barra = criarBarra();
     private Conta usuario;
     private final ClienteApi api = new ClienteApi(Ambiente.valor("CUIDAMED_API_URL", URL_DA_API));
+    /** Alarme de remédio e avisos em segundo plano, mesmo com a tela inicial fechada — equivalente ao do app Android. */
+    private final MonitorDeAvisos monitor = new MonitorDeAvisos(this);
     /** Muda a cada tela mostrada: resposta que chega depois de a pessoa ter ido para outra tela é descartada. */
     private int geracao;
 
@@ -72,6 +76,7 @@ public class Navegador {
         atualizarBarra();
         inicio();
         janela.setVisible(true);
+        NotificacaoDoSistema.iniciar();
         Thread aquecimento = new Thread(api::acordarServidor, "acordar-servidor");
         aquecimento.setDaemon(true);
         aquecimento.start();
@@ -289,6 +294,7 @@ public class Navegador {
 
     private void sessaoPerdida() {
         usuario = null;
+        monitor.parar();
         atualizarBarra();
         Pagina inicio = new TelaInicio(this);
         inicio.aviso("Sua sessão terminou. Entre de novo.", Tom.AVISO);
@@ -324,6 +330,7 @@ public class Navegador {
             saida.start();
         }
         usuario = null;
+        monitor.parar();
         atualizarBarra();
         inicio();
     }
@@ -341,6 +348,7 @@ public class Navegador {
         if (atual == null) {
             return;
         }
+        monitor.iniciar();
         if (atual.ehIdoso()) {
             carregar(() -> TelaHomeIdoso.buscar(api, atual), dados -> {
                 usuario = dados.idoso();
